@@ -5,7 +5,10 @@ import SwiftUI
 class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let cameraManager = CameraManager()
     private let faceDetector = FaceDetector()
-    private let faceRecognitionManager: FaceRecognitionManager
+    private let faceEmbedder: FaceEmbedder
+    private let faceValidator = FaceValidator()
+    private let facePreprocessor = FacePreprocessor()
+    private let faceAPI = FaceAPI()
 
     private var faceProcessingTask: Task<Void, Never>?
     private var lastProcessed = Date(timeIntervalSince1970: 0)
@@ -15,7 +18,7 @@ class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSample
 
     override init() {
         do {
-            self.faceRecognitionManager = try FaceRecognitionManager()
+            self.faceEmbedder = try FaceEmbedder()
         } catch {
             fatalError("❌ Failed to initialize FaceRecognitionManager: \(error)")
         }
@@ -53,11 +56,11 @@ class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSample
         }
         
         guard shouldContinue() else { return }
-        processFace(image: ciImage, face: face)
+        handleFaceDetection(image: ciImage, face: face)
 
     }
 
-    private func processFace(image: CIImage, face: VNFaceObservation) {
+    private func handleFaceDetection(image: CIImage, face: VNFaceObservation) {
         withFaceProcessingTask {
             await MainActor.run { self.faceDetected = true }
             guard let embedding = self.prepareEmbedding(from: image, face: face) else { return }
@@ -66,17 +69,17 @@ class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSample
 
     }
 
-    private func prepareEmbedding(from image: CIImage, face: VNFaceObservation) -> [Float]? {
-        guard let preprocessed = faceRecognitionManager.preprocessFace(from: image, face: face) else { return nil }
-        guard faceRecognitionManager.isFaceValid(pixelBuffer: preprocessed, face: face) else { return nil }
-        return faceRecognitionManager.runModel(on: preprocessed)
+    private func prepareEmbedding(from image: CIImage, face: VNFaceObservation) -> FaceEmbedding? {
+        guard let preprocessed = facePreprocessor.preprocessFace(from: image, face: face) else { return nil }
+        guard faceValidator.passesValidation(buffer: preprocessed, face: face) else { return nil }
+        return try? faceEmbedder.embed(from: preprocessed)
     }
 
     
 
-    private func handleRecognition(_ embedding: [Float]) async {
+    private func handleRecognition(_ embedding: FaceEmbedding) async {
         do {
-            if let name = try await faceRecognitionManager.matchFace(embedding: embedding),
+            if let name = try await faceAPI.matchFace(embedding: embedding),
                !Task.isCancelled {
                 await MainActor.run {
                     self.matchName = name

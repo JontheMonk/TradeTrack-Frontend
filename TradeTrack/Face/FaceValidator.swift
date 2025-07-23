@@ -5,6 +5,24 @@ import CoreVideo
 
 
 class FaceValidator {
+    
+    func passesValidation(buffer: CVPixelBuffer, face: VNFaceObservation) -> Bool {
+        guard let landmarks = face.landmarks,
+              let leftEye = landmarks.leftEye,
+              let rightEye = landmarks.rightEye,
+              let nose = landmarks.nose,
+              landmarks.outerLips != nil else { return false }
+
+        let (roll, yaw) = estimateRollAndYaw(leftEye: leftEye, rightEye: rightEye, nose: nose)
+        let brightness = estimateBrightness(from: buffer)
+        let sharpness = computeFaceQuality(from: buffer, face: face)
+
+        return abs(roll) <= 15 &&
+               abs(yaw) <= 15 &&
+               (0.25...0.85).contains(brightness) &&
+               (sharpness ?? 0) >= 0.2
+    }
+    
     func estimateRollAndYaw(leftEye: VNFaceLandmarkRegion2D,
                             rightEye: VNFaceLandmarkRegion2D,
                             nose: VNFaceLandmarkRegion2D) -> (roll: Float, yaw: Float) {
@@ -62,20 +80,4 @@ class FaceValidator {
         }
     }
 
-    func passesValidation(buffer: CVPixelBuffer, face: VNFaceObservation) -> Bool {
-        guard let landmarks = face.landmarks,
-              let leftEye = landmarks.leftEye,
-              let rightEye = landmarks.rightEye,
-              let nose = landmarks.nose,
-              landmarks.outerLips != nil else { return false }
-
-        let (roll, yaw) = estimateRollAndYaw(leftEye: leftEye, rightEye: rightEye, nose: nose)
-        let brightness = estimateBrightness(from: buffer)
-        let sharpness = computeFaceQuality(from: buffer, face: face)
-
-        return abs(roll) <= 15 &&
-               abs(yaw) <= 15 &&
-               (0.25...0.85).contains(brightness) &&
-               (sharpness ?? 0) >= 0.2
-    }
 }
