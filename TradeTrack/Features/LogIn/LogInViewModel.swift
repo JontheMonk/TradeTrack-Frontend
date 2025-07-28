@@ -2,26 +2,33 @@ import AVFoundation
 import Vision
 import SwiftUI
 
+@MainActor
+enum RecognitionState: Equatable {
+    case idle
+    case detecting
+    case matched(name: String)
+    case error(message: String)
+    case timedOut
+}
+
 class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let cameraManager = CameraManager()
-    private let faceDetector = FaceDetector()
-    private let faceEmbedder: FaceEmbedder
-    private let faceValidator = FaceValidator()
-    private let facePreprocessor = FacePreprocessor()
-    private let faceAPI = FaceAPI()
+    private let recognitionPipeline: FaceRecognitionPipeline
 
     private var faceProcessingTask: Task<Void, Never>?
     private var lastProcessed = Date(timeIntervalSince1970: 0)
+    private let lastProcessedQueue = DispatchQueue(label: "lastProcessed.queue")
 
-    @Published var faceDetected = false
-    @Published var matchName: String? = nil
+    @Published var recognitionState: RecognitionState = .idle
 
     override init() {
-        do {
-            self.faceEmbedder = try FaceEmbedder()
-        } catch {
-            fatalError("❌ Failed to initialize FaceRecognitionManager: \(error)")
-        }
+        self.recognitionPipeline = FaceRecognitionPipeline(
+            detector: FaceDetector(),
+            preprocessor: FacePreprocessor(),
+            validator: FaceValidator(),
+            embedder: try! FaceEmbedder(),
+            api: FaceAPI()
+        )
 
         super.init()
         cameraManager.setupCamera(delegate: self)
@@ -48,68 +55,62 @@ class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSample
               faceProcessingTask == nil || faceProcessingTask?.isCancelled == true else {
             return
         }
-        
+
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-        guard let face = faceDetector.detectFace(in: ciImage) else {
-            Task { @MainActor in self.faceDetected = false }
+
+        guard let face = recognitionPipeline.detectFace(in: ciImage),
+              shouldContinue() else {
             return
         }
-        
-        guard shouldContinue() else { return }
-        handleFaceDetection(image: ciImage, face: face)
 
-    }
-
-    private func handleFaceDetection(image: CIImage, face: VNFaceObservation) {
-        withFaceProcessingTask {
-            await MainActor.run { self.faceDetected = true }
-            guard let embedding = self.prepareEmbedding(from: image, face: face) else { return }
-            await self.handleRecognition(embedding)
-        }
-
-    }
-
-    private func prepareEmbedding(from image: CIImage, face: VNFaceObservation) -> FaceEmbedding? {
-        guard let preprocessed = facePreprocessor.preprocessFace(from: image, face: face) else { return nil }
-        guard faceValidator.passesValidation(buffer: preprocessed, face: face) else { return nil }
-        return try? faceEmbedder.embed(from: preprocessed)
-    }
-
-    
-
-    private func handleRecognition(_ embedding: FaceEmbedding) async {
-        do {
-            if let name = try await faceAPI.matchFace(embedding: embedding),
-               !Task.isCancelled {
-                await MainActor.run {
-                    self.matchName = name
-                    self.cancelRecognition()
-                }
-            } else {
-                print("❌ No match or view closed")
-            }
-        } catch {
-            if !Task.isCancelled {
-                print("❌ Match request failed: \(error)")
-            }
-        }
-    }
-    
-    private func withFaceProcessingTask(_ body: @escaping () async -> Void) {
-        faceProcessingTask = Task(priority: .userInitiated) { [weak self] in
-            guard let self = self else { return }
-            defer { Task { @MainActor in self.faceProcessingTask = nil } }
+        runFaceProcessingTask {
             guard !Task.isCancelled else { return }
 
+            await MainActor.run {
+                self.recognitionState = .detecting
+            }
+
+            let result = await self.recognitionPipeline.process(ciImage, face: face)
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                switch result {
+                case .matched(let name):
+                    self.recognitionState = .matched(name: name)
+                    self.cancelRecognition()
+                case .timeout:
+                    self.recognitionState = .timedOut
+                case .failure(let reason):
+                    self.recognitionState = .error(message: reason)
+                }
+            }
+        }
+
+
+    }
+
+    private func runFaceProcessingTask(_ body: @escaping () async -> Void) {
+        faceProcessingTask = Task(priority: .userInitiated) { [weak self] in
+            guard let self else { return }
+
+            defer {
+                Task { @MainActor in self.faceProcessingTask = nil }
+            }
+
+            guard !Task.isCancelled else { return }
             await body()
         }
     }
-    
-    private func shouldContinue() -> Bool {
-        guard !Task.isCancelled else { return false }
-        guard Date().timeIntervalSince(lastProcessed) > 1.5 else { return false }
-        lastProcessed = Date()
-        return true
-    }
 
+    private func shouldContinue() -> Bool {
+        lastProcessedQueue.sync {
+            guard !Task.isCancelled else { return false }
+            let now = Date()
+            if now.timeIntervalSince(lastProcessed) > 1.5 {
+                lastProcessed = now
+                return true
+            }
+            return false
+        }
+    }
 }
