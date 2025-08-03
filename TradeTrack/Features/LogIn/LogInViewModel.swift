@@ -12,7 +12,7 @@ enum RecognitionState: Equatable {
 }
 
 class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    private let cameraManager = CameraManager()
+    private let cameraManager: CameraManager
     private let recognitionPipeline: FaceRecognitionPipeline
 
     private var faceProcessingTask: Task<Void, Never>?
@@ -21,17 +21,20 @@ class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSample
 
     @Published var recognitionState: RecognitionState = .idle
 
-    override init() {
-        self.recognitionPipeline = FaceRecognitionPipeline(
+    init(
+        cameraManager: CameraManager = CameraManager(),
+        recognitionPipeline: FaceRecognitionPipeline = FaceRecognitionPipeline(
             detector: FaceDetector(),
             preprocessor: FacePreprocessor(),
             validator: FaceValidator(),
             embedder: try! FaceEmbedder(),
             api: FaceAPI()
         )
-
+    ) {
+        self.cameraManager = cameraManager
+        self.recognitionPipeline = recognitionPipeline
         super.init()
-        cameraManager.setupCamera(delegate: self)
+        self.cameraManager.setupCamera(delegate: self)
     }
 
     func getSession() -> AVCaptureSession {
@@ -85,8 +88,6 @@ class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSample
                 }
             }
         }
-
-
     }
 
     private func runFaceProcessingTask(_ body: @escaping () async -> Void) {

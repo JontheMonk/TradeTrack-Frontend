@@ -2,7 +2,7 @@ import Foundation
 
 class FaceAPI {
     func matchFace(embedding: FaceEmbedding) async throws -> String? {
-        guard let url = URL(string: "http://192.168.1.138:8000/match-face") else {
+        guard let url = URL(string: "https://tradetrack-backend.onrender.com/match-face") else {
             throw URLError(.badURL)
         }
 
@@ -24,7 +24,7 @@ class FaceAPI {
     }
 
     func addFace(employeeID: String, name: String, embedding: FaceEmbedding) async throws {
-        guard let url = URL(string: "http://192.168.1.138:8000/add-face") else {
+        guard let url = URL(string: "https://tradetrack-backend.onrender.com/add-face") else {
             throw URLError(.badURL)
         }
 

@@ -9,7 +9,7 @@ class RegisterViewModel: ObservableObject {
     @Published var showingImagePicker = false
     @Published var status = "Ready"
 
-    private let faceManager = try! FaceRecognitionManager()
+    private let faceManager = try! FaceRecognitionPipeline()
     private let faceDetector = FaceDetector()
 
     var isFormValid: Bool {
