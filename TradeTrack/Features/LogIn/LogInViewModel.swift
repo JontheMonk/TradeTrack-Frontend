@@ -23,19 +23,24 @@ class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSample
 
     init(
         cameraManager: CameraManager = CameraManager(),
-        recognitionPipeline: FaceRecognitionPipeline = FaceRecognitionPipeline(
-            detector: FaceDetector(),
-            preprocessor: FacePreprocessor(),
-            validator: FaceValidator(),
-            embedder: try! FaceEmbedder(),
-            api: FaceAPI()
-        )
+        detector: FaceDetector = FaceDetector(),
+        preprocessor: FacePreprocessor = FacePreprocessor(),
+        validator: FaceValidator = FaceValidator(),
+        embedder: FaceEmbedder = try! FaceEmbedder(),
+        api: FaceAPI = FaceAPI()
     ) {
         self.cameraManager = cameraManager
-        self.recognitionPipeline = recognitionPipeline
+        self.recognitionPipeline = FaceRecognitionPipeline(
+            detector: detector,
+            preprocessor: preprocessor,
+            validator: validator,
+            embedder: embedder,
+            api: api
+        )
         super.init()
         self.cameraManager.setupCamera(delegate: self)
     }
+
 
     func getSession() -> AVCaptureSession {
         cameraManager.session

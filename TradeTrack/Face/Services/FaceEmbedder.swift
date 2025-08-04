@@ -5,16 +5,26 @@ class FaceEmbedder {
     private let model: w600k_r50
 
     init() throws {
-        self.model = try w600k_r50(configuration: MLModelConfiguration())
+        do {
+            self.model = try w600k_r50(configuration: MLModelConfiguration())
+        } catch {
+            throw AppError(code: .modelFailedToLoad)
+        }
     }
 
-    func embed(from pixelBuffer: CVPixelBuffer) throws -> FaceEmbedding? {
+    func embed(from pixelBuffer: CVPixelBuffer) throws -> FaceEmbedding {
         let inputArray = try toNCHWArray(pixelBuffer)
         let input = w600k_r50Input(input_1: inputArray)
-        let output = try model.prediction(input: input)
+
+        let output: MLFeatureProvider
+        do {
+            output = try model.prediction(input: input)
+        } catch {
+            throw AppError(code: .modelOutputMissing)
+        }
 
         guard let multiArray = output.featureValue(for: "683")?.multiArrayValue else {
-            return nil
+            throw AppError(code: .modelOutputMissing)
         }
 
         let raw = (0..<multiArray.count).map { Float(truncating: multiArray[$0]) }
@@ -25,14 +35,14 @@ class FaceEmbedder {
         CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
         defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
 
-        let width = CVPixelBufferGetWidth(pixelBuffer)
-        let height = CVPixelBufferGetHeight(pixelBuffer)
-
         guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else {
-            throw NSError(domain: "PixelBuffer", code: 1, userInfo: [NSLocalizedDescriptionKey: "No base address"])
+            throw AppError(code: .pixelBufferMissingBaseAddress)
         }
 
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
         let buffer = baseAddress.assumingMemoryBound(to: UInt8.self)
+
         let array = try MLMultiArray(shape: [3, 112, 112], dataType: .float32)
         let ptr = UnsafeMutablePointer<Float32>(OpaquePointer(array.dataPointer))
 
