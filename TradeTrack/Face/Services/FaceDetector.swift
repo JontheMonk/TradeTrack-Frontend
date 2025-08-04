@@ -4,20 +4,24 @@ import CoreVideo
 import CoreImage
 
 class FaceDetector {
-    func detectFace(in image: CIImage, orientation: CGImagePropertyOrientation = .leftMirrored) -> VNFaceObservation? {
+    func detectFace(in image: CIImage, orientation: CGImagePropertyOrientation = .leftMirrored) throws -> VNFaceObservation {
         let handler = VNImageRequestHandler(ciImage: image, orientation: orientation)
-        return performRequest(handler)
+        return try performRequest(handler)
     }
 
-    private func performRequest(_ handler: VNImageRequestHandler) -> VNFaceObservation? {
+    private func performRequest(_ handler: VNImageRequestHandler) throws -> VNFaceObservation {
         let request = VNDetectFaceLandmarksRequest()
+        
         do {
             try handler.perform([request])
-            return request.results?.first as? VNFaceObservation
         } catch {
-            print("❌ Face detection failed: \(error)")
-            return nil
+            throw AppError(code: .faceDetectionFailed)
         }
+
+        guard let face = request.results?.first as? VNFaceObservation else {
+            throw AppError(code: .noFaceFound)
+        }
+
+        return face
     }
 }
-

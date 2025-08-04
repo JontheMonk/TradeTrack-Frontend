@@ -3,26 +3,41 @@ import CoreImage
 import Vision
 import CoreVideo
 
-
 class FaceValidator {
-    
-    func passesValidation(buffer: CVPixelBuffer, face: VNFaceObservation) -> Bool {
-        guard let landmarks = face.landmarks,
-              let leftEye = landmarks.leftEye,
+
+    func validate(buffer: CVPixelBuffer, face: VNFaceObservation) throws {
+        guard let landmarks = face.landmarks else {
+            throw AppError(code: .faceValidationMissingLandmarks)
+        }
+
+        guard let leftEye = landmarks.leftEye,
               let rightEye = landmarks.rightEye,
               let nose = landmarks.nose,
-              landmarks.outerLips != nil else { return false }
+              landmarks.outerLips != nil else {
+            throw AppError(code: .faceValidationIncompleteLandmarks)
+        }
 
         let (roll, yaw) = estimateRollAndYaw(leftEye: leftEye, rightEye: rightEye, nose: nose)
         let brightness = estimateBrightness(from: buffer)
-        let sharpness = computeFaceQuality(from: buffer, face: face)
+        let sharpness = try computeFaceQuality(from: buffer, face: face)
 
-        return abs(roll) <= 15 &&
-               abs(yaw) <= 15 &&
-               (0.25...0.85).contains(brightness) &&
-               (sharpness ?? 0) >= 0.2
+        guard abs(roll) <= 15 else {
+            throw AppError(code: .faceValidationBadRoll)
+        }
+
+        guard abs(yaw) <= 15 else {
+            throw AppError(code: .faceValidationBadYaw)
+        }
+
+        guard (0.25...0.85).contains(brightness) else {
+            throw AppError(code: .faceValidationBadBrightness)
+        }
+
+        guard sharpness >= 0.2 else {
+            throw AppError(code: .faceValidationBlurry)
+        }
     }
-    
+
     func estimateRollAndYaw(leftEye: VNFaceLandmarkRegion2D,
                             rightEye: VNFaceLandmarkRegion2D,
                             nose: VNFaceLandmarkRegion2D) -> (roll: Float, yaw: Float) {
@@ -61,23 +76,23 @@ class FaceValidator {
                        format: .RGBA8,
                        colorSpace: nil)
 
-        let brightness = (Float(bitmap[0]) + Float(bitmap[1]) + Float(bitmap[2])) / (3.0 * 255.0)
-        return brightness
+        return (Float(bitmap[0]) + Float(bitmap[1]) + Float(bitmap[2])) / (3.0 * 255.0)
     }
 
-    func computeFaceQuality(from buffer: CVPixelBuffer, face: VNFaceObservation) -> Float? {
+    func computeFaceQuality(from buffer: CVPixelBuffer, face: VNFaceObservation) throws -> Float {
         let request = VNDetectFaceCaptureQualityRequest()
         request.revision = VNDetectFaceCaptureQualityRequestRevision1
 
         let handler = VNImageRequestHandler(cvPixelBuffer: buffer, orientation: .leftMirrored, options: [:])
         do {
             try handler.perform([request])
-            guard let result = request.results?.first else { return nil }
-            return result.faceCaptureQuality
+            guard let result = request.results?.first,
+                  let quality = result.faceCaptureQuality else {
+                throw AppError(code: .faceValidationQualityUnavailable)
+            }
+            return quality
         } catch {
-            print("Quality check failed: \(error)")
-            return nil
+            throw AppError(code: .faceValidationQualityUnavailable)
         }
     }
-
 }
