@@ -8,10 +8,6 @@ enum AppErrorCode: String, Equatable {
     case modelOutputMissing = "MODEL_OUTPUT_MISSING"
     case modelFailedToLoad = "MODEL_LOAD_FAILURE"
 
-    // Detection
-    case faceDetectionFailed = "FACE_DETECTION_FAILED"
-    case noFaceFound = "NO_FACE_FOUND"
-
     // Preprocessing
     case facePreprocessingFailedResize = "FACE_PREPROCESSING_RESIZE_FAILED"
     case facePreprocessingFailedRender = "FACE_PREPROCESSING_RENDER_FAILED"
@@ -43,8 +39,14 @@ enum AppErrorCode: String, Equatable {
 
 // MARK: - App-Wide Error Struct
 
-struct AppError: Error, LocalizedError, Equatable {
+struct AppError: Error, LocalizedError {
     let code: AppErrorCode
+    let underlyingError: Error?
+
+    init(code: AppErrorCode, underlyingError: Error? = nil) {
+        self.code = code
+        self.underlyingError = underlyingError
+    }
 
     var errorDescription: String? {
         userMessage(for: code)
@@ -55,20 +57,12 @@ struct AppError: Error, LocalizedError, Equatable {
 
 func userMessage(for code: AppErrorCode) -> String {
     switch code {
-
-    // Camera & Model
     case .pixelBufferMissingBaseAddress, .modelOutputMissing, .modelFailedToLoad:
         return "The face recognition system had a problem starting. Please restart the app or try again."
 
-    // Face Detection
-    case .faceDetectionFailed, .noFaceFound:
-        return "No face was detected. Make sure your face is clearly visible and try again."
-
-    // Preprocessing
     case .facePreprocessingFailedResize, .facePreprocessingFailedRender:
         return "There was a problem processing the face image. Try using a clearer photo."
 
-    // Validation
     case .faceValidationMissingLandmarks,
          .faceValidationIncompleteLandmarks,
          .faceValidationBadRoll,
@@ -78,7 +72,6 @@ func userMessage(for code: AppErrorCode) -> String {
          .faceValidationQualityUnavailable:
         return "The image didn’t meet the quality requirements. Try facing the camera directly with good lighting."
 
-    // Backend Errors
     case .employeeAlreadyExists:
         return "This employee already exists in the system."
 
@@ -94,7 +87,6 @@ func userMessage(for code: AppErrorCode) -> String {
     case .dbError:
         return "Server error. Please try again later."
 
-    // Fallback
     case .unknown:
         return "Something went wrong. Please try again."
     }

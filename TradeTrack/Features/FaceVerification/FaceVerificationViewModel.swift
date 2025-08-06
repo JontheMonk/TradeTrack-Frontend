@@ -4,69 +4,55 @@ import SwiftUI
 
 @MainActor
 enum RecognitionState: Equatable {
-    case idle
     case detecting
+    case processing
     case matched(name: String)
-    case error(message: String)
-    case timedOut
 }
 
-class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+class FaceVerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let cameraManager: CameraManager
-    private let recognitionPipeline: FaceRecognitionPipeline
+    private let faceDetector: FaceDetector
+    private let faceProcessor: FaceProcessor
+    
 
-    private var faceProcessingTask: Task<Void, Never>?
     private var lastProcessed = Date(timeIntervalSince1970: 0)
     private let lastProcessedQueue = DispatchQueue(label: "lastProcessed.queue")
 
-    @Published var recognitionState: RecognitionState = .idle
+    @Published var recognitionState: RecognitionState = .detecting
 
     init(
         cameraManager: CameraManager = CameraManager(),
-        detector: FaceDetector = FaceDetector(),
-        preprocessor: FacePreprocessor = FacePreprocessor(),
-        validator: FaceValidator = FaceValidator(),
-        embedder: FaceEmbedder = try! FaceEmbedder(),
-        api: FaceAPI = FaceAPI()
-    ) {
-        self.cameraManager = cameraManager
-        self.recognitionPipeline = FaceRecognitionPipeline(
-            detector: detector,
-            preprocessor: preprocessor,
-            validator: validator,
-            embedder: embedder,
-            api: api
-        )
+        faceDetector: FaceDetector = FaceDetector(),
+        faceProcessor: FaceProcessor! = nil
+    ) throws {
+        self.cameraManager = cameraManager,
+        self.faceDetector = faceDetector,
+        self.faceProcessor = try faceProcessor ?? FaceProcessor()
         super.init()
         self.cameraManager.setupCamera(delegate: self)
     }
 
 
     func getSession() -> AVCaptureSession {
-        cameraManager.session
+        self.cameraManager.session
     }
 
     func stopSession() {
-        cameraManager.stop()
-    }
-
-    func cancelRecognition() {
-        faceProcessingTask?.cancel()
-        faceProcessingTask = nil
-        stopSession()
+       _cameraManager.stop()
     }
 
     func captureOutput(_ output: AVCaptureOutput,
                        didOutput sampleBuffer: CMSampleBuffer,
                        from connection: AVCaptureConnection) {
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer),
-              faceProcessingTask == nil || faceProcessingTask?.isCancelled == true else {
+        
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
 
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
 
-        guard let face = recognitionPipeline.detectFace(in: ciImage),
+
+        guard let face = self.faceDetector.detectFace(in: ciImage),
               shouldContinue() else {
             return
         }
@@ -75,10 +61,10 @@ class LogInViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSample
             guard !Task.isCancelled else { return }
 
             await MainActor.run {
-                self.recognitionState = .detecting
+                recognitionState = .detecting
             }
 
-            let result = await self.recognitionPipeline.process(ciImage, face: face)
+            let result = self.faceProcessor.process(ciImage, face: face)
             guard !Task.isCancelled else { return }
 
             await MainActor.run {

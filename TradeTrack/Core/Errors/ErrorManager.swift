@@ -1,25 +1,23 @@
 import Foundation
 import SwiftUI
+import os.log
 
 @MainActor
 final class ErrorManager: ObservableObject {
     @Published var currentError: AppError?
-    private var clearTask: Task<Void, Never>?
 
-    func show(_ error: AppError, duration: TimeInterval = 3) {
+    private let logger = Logger(subsystem: "com.tradetrack", category: "error")
+
+    func show(_ error: AppError) {
+        log(error)
         currentError = error
-        clearTask?.cancel()
-
-        clearTask = Task {
-            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
-            withAnimation {
-                self.currentError = nil
-            }
-        }
     }
 
     func clear() {
         currentError = nil
-        clearTask?.cancel()
+    }
+
+    private func log(_ error: AppError) {
+        logger.error("AppError: \(error.code.rawValue, privacy: .public) - \(error.localizedDescription, privacy: .public)")
     }
 }

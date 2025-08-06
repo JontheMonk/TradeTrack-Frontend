@@ -8,19 +8,25 @@ class FaceEmbedder {
         do {
             self.model = try w600k_r50(configuration: MLModelConfiguration())
         } catch {
-            throw AppError(code: .modelFailedToLoad)
+            throw AppError(code: .modelFailedToLoad, underlyingError: error)
         }
     }
 
     func embed(from pixelBuffer: CVPixelBuffer) throws -> FaceEmbedding {
-        let inputArray = try toNCHWArray(pixelBuffer)
+        let inputArray: MLMultiArray
+        do {
+            inputArray = try toNCHWArray(pixelBuffer)
+        } catch {
+            throw AppError(code: .facePreprocessingFailedRender, underlyingError: error)
+        }
+
         let input = w600k_r50Input(input_1: inputArray)
 
         let output: MLFeatureProvider
         do {
             output = try model.prediction(input: input)
         } catch {
-            throw AppError(code: .modelOutputMissing)
+            throw AppError(code: .modelOutputMissing, underlyingError: error)
         }
 
         guard let multiArray = output.featureValue(for: "683")?.multiArrayValue else {
@@ -43,7 +49,13 @@ class FaceEmbedder {
         let height = CVPixelBufferGetHeight(pixelBuffer)
         let buffer = baseAddress.assumingMemoryBound(to: UInt8.self)
 
-        let array = try MLMultiArray(shape: [3, 112, 112], dataType: .float32)
+        let array: MLMultiArray
+        do {
+            array = try MLMultiArray(shape: [3, 112, 112], dataType: .float32)
+        } catch {
+            throw AppError(code: .facePreprocessingFailedResize, underlyingError: error)
+        }
+
         let ptr = UnsafeMutablePointer<Float32>(OpaquePointer(array.dataPointer))
 
         for y in 0..<height {

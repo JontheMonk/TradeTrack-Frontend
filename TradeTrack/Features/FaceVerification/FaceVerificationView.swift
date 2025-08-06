@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct LogInView: View {
-    @StateObject var viewModel = LogInViewModel()
+struct FaceVerificationView: View {
+    @StateObject var viewModel = FaceVerificationViewModel()
     @State private var animateBorder = false
 
     var body: some View {

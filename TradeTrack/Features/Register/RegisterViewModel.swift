@@ -18,7 +18,7 @@ class RegisterViewModel: ObservableObject {
         selectedImage != nil
     }
 
-    func registerFace() async {
+    func registerEmployee() async {
         guard let image = selectedImage,
               let cgImage = image.cgImage else {
             await MainActor.run { self.status = "❌ Invalid image" }

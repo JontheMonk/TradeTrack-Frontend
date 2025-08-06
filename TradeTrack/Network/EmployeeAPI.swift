@@ -1,16 +1,16 @@
 import Foundation
 
-class FaceAPI {
+class EmployeeAPI {
 
-    func matchFace(embedding: FaceEmbedding) async throws -> String? {
-        let url = try validatedURL("https://tradetrack-backend.onrender.com/match-face")
+    func verifyFace(embedding: FaceEmbedding, employeeID: String) async throws -> Bool {
+        let url = try validatedURL("https://tradetrack-backend.onrender.com/verify-face")
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let payload: [String: Any] = ["embedding": embedding.normalized]
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        let verifyRequest = embedding.toVerifyRequest(employeeId: employeeID)
+        request.httpBody = try JSONEncoder().encode(verifyRequest)
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -18,28 +18,17 @@ class FaceAPI {
             try handleBackendError(data)
         }
 
-        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let name = json["match"] as? String {
-            return name
-        }
-
-        return nil
+        return true
     }
 
-    func addFace(employeeID: String, name: String, embedding: FaceEmbedding) async throws {
-        let url = try validatedURL("https://tradetrack-backend.onrender.com/add-face")
+    func addEmployee(employee: EmployeeInput) async throws {
+        let url = try validatedURL("https://tradetrack-backend.onrender.com/add-employee")
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let payload: [String: Any] = [
-            "employee_id": employeeID,
-            "name": name,
-            "embedding": embedding.normalized
-        ]
-
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        request.httpBody = try JSONEncoder().encode(employee)
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -47,6 +36,7 @@ class FaceAPI {
             try handleBackendError(data)
         }
     }
+
 
     private func validatedURL(_ string: String) throws -> URL {
         guard let url = URL(string: string) else {
