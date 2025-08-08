@@ -1,7 +1,7 @@
 import Foundation
 
 struct EmployeeInput: Codable {
-    let employee_id: String
+    let employeeId: String
     let name: String
     let embedding: [Double]
     let role: String

@@ -1,5 +1,5 @@
 struct EmployeeSearchResult: Codable {
-    let employee_id: String
+    let employeeId: String
     let name: String
     let role: String
 }

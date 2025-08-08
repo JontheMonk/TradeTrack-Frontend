@@ -1,16 +1,27 @@
-import SwiftUI
+import Foundation
 import Vision
+import CoreImage
+import CoreVideo
 
-class FacePreprocessor {
-    func preprocessFace(from image: CIImage, face: VNFaceObservation) throws -> CVPixelBuffer {
-        let cropped = crop(image, using: face)
-        let resized = try resize(cropped, to: CGSize(width: 112, height: 112))
-        return try renderToPixelBuffer(resized, size: CGSize(width: 112, height: 112))
+final class FacePreprocessor {
+    private let context: CIContext
+
+    init(context: CIContext = CIContext()) {
+        self.context = context
     }
 
-    private func crop(_ ciImage: CIImage, using face: VNFaceObservation) -> CIImage {
-        let width = ciImage.extent.width
-        let height = ciImage.extent.height
+    /// Full preprocessing pipeline: crop → resize → render to pixel buffer
+    func preprocessFace(from image: CIImage, face: VNFaceObservation) throws -> CVPixelBuffer {
+        let croppedImage = crop(image, using: face)
+        let resizedImage = try resize(croppedImage, to: CGSize(width: 112, height: 112))
+        return try renderToPixelBuffer(resizedImage, size: CGSize(width: 112, height: 112))
+    }
+
+    // MARK: - Crop
+
+    private func crop(_ image: CIImage, using face: VNFaceObservation) -> CIImage {
+        let width = image.extent.width
+        let height = image.extent.height
 
         let faceRect = CGRect(
             x: face.boundingBox.origin.x * width,
@@ -19,8 +30,10 @@ class FacePreprocessor {
             height: face.boundingBox.height * height
         )
 
-        return ciImage.cropped(to: faceRect)
+        return image.cropped(to: faceRect)
     }
+
+    // MARK: - Resize
 
     private func resize(_ image: CIImage, to size: CGSize) throws -> CIImage {
         guard let lanczos = CIFilter(name: "CILanczosScaleTransform") else {
@@ -32,16 +45,17 @@ class FacePreprocessor {
         lanczos.setValue(scale, forKey: kCIInputScaleKey)
         lanczos.setValue(1.0, forKey: kCIInputAspectRatioKey)
 
-        guard let output = lanczos.outputImage else {
+        guard let outputImage = lanczos.outputImage else {
             throw AppError(code: .facePreprocessingFailedResize)
         }
 
-        return output
+        return outputImage
     }
 
+    // MARK: - Render to CVPixelBuffer
+
     private func renderToPixelBuffer(_ image: CIImage, size: CGSize) throws -> CVPixelBuffer {
-        let context = CIContext()
-        var buffer: CVPixelBuffer?
+        var pixelBuffer: CVPixelBuffer?
 
         let attrs: [String: Any] = [
             kCVPixelBufferCGImageCompatibilityKey as String: true,
@@ -50,17 +64,18 @@ class FacePreprocessor {
 
         let status = CVPixelBufferCreate(
             kCFAllocatorDefault,
-            Int(size.width), Int(size.height),
+            Int(size.width),
+            Int(size.height),
             kCVPixelFormatType_32BGRA,
             attrs as CFDictionary,
-            &buffer
+            &pixelBuffer
         )
 
-        guard status == kCVReturnSuccess, let finalBuffer = buffer else {
+        guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
             throw AppError(code: .facePreprocessingFailedRender)
         }
 
-        context.render(image, to: finalBuffer)
-        return finalBuffer
+        context.render(image, to: buffer)
+        return buffer
     }
 }

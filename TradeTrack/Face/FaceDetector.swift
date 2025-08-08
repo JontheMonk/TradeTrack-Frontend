@@ -2,8 +2,10 @@ import Foundation
 import Vision
 import CoreVideo
 import CoreImage
+import os.log
 
 class FaceDetector {
+    private let logger = Logger(subsystem: "Jon.TradeTrack", category: "face-detection")
 
     func detectFace(in image: CIImage, orientation: CGImagePropertyOrientation = .leftMirrored) -> VNFaceObservation? {
         let request = VNDetectFaceLandmarksRequest()
@@ -12,8 +14,7 @@ class FaceDetector {
         do {
             try handler.perform([request])
         } catch {
-            // Optional: log the error, but silently fail
-            print("Face detection failed: \(error.localizedDescription)")
+            logger.error("Face detection failed: \(error.localizedDescription, privacy: .public)")
             return nil
         }
 
