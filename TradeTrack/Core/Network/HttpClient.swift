@@ -1,6 +1,5 @@
 import Foundation
 
-// Matches your backend wrapper
 struct APIResponse<T: Decodable>: Decodable {
     let success: Bool
     let data: T?
@@ -64,10 +63,9 @@ final class HTTPClient {
                 throw AppError(code: .invalidResponse)
             }
 
-            // Decode the unified envelope and just return data (optional).
             let env = try decoder.decode(APIResponse<Response>.self, from: data)
             if env.success {
-                return env.data  // <-- may be nil; that’s fine
+                return env.data
             } else {
                 throw AppError(code: AppErrorCode(fromBackend: env.code ?? "UNKNOWN"))
             }
