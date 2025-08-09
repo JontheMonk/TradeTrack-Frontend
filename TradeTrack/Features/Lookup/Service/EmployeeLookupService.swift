@@ -1,3 +1,7 @@
+protocol EmployeeLookupServing {
+    func search(prefix: String) async throws -> [EmployeeResult]
+}
+
 struct EmployeeLookupService: EmployeeLookupServing {
     let http: HTTPClient
     func search(prefix: String) async throws -> [EmployeeResult] {

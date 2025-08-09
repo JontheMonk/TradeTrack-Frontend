@@ -1,9 +1,5 @@
 import Foundation
 
-protocol EmployeeLookupServing {
-    func search(prefix: String) async throws -> [EmployeeResult]
-}
-
 final class LookupViewModel: ObservableObject {
     @Published private(set) var query = ""
     @Published private(set) var results: [EmployeeResult] = []

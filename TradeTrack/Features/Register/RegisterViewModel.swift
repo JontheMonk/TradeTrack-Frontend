@@ -2,94 +2,79 @@ import Foundation
 import SwiftUI
 import Vision
 
+@MainActor
 final class RegisterViewModel: ObservableObject {
-    // MARK: - Form state
+    // Form fields
     @Published var employeeID = ""
     @Published var name = ""
     @Published var role = ""
     @Published var selectedImage: UIImage?
-    @Published var showingImagePicker = false
+
+    // UI state
     @Published var status = "Ready"
+    @Published var isSubmitting = false
 
-    // MARK: - Deps
-    private let http: HTTPClient
+    // Deps
     private let errorManager: ErrorManager
-    private let faceDetector: FaceDetector
-    private let faceProcessor: FaceProcessor
+    private let face: RegistrationEmbeddingServing
+    private let api: EmployeeRegistrationServing
 
-    // MARK: - Init
     init(
         http: HTTPClient,
         errorManager: ErrorManager,
-        faceDetector: FaceDetector = FaceDetector(),
-        faceProcessor: FaceProcessor? = nil
-    ) throws {
-        self.http = http
+        face: RegistrationEmbeddingServing = RegistrationEmbeddingService(),
+        api: EmployeeRegistrationServing? = nil
+    ) {
         self.errorManager = errorManager
-        self.faceDetector = faceDetector
-        self.faceProcessor = try faceProcessor ?? FaceProcessor()
+        self.face = face
+        self.api = api ?? EmployeeRegistrationService(http: http)
     }
 
-    // MARK: - Validation
+    // Trim + validate
+    private var trimmedEmployeeID: String { employeeID.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var trimmedRole: String { role.trimmingCharacters(in: .whitespacesAndNewlines) }
+
     var isFormValid: Bool {
-        !employeeID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !trimmedEmployeeID.isEmpty &&
+        !trimmedName.isEmpty &&
+        !trimmedRole.isEmpty &&
         selectedImage != nil
     }
 
-    // MARK: - Actions
-    func registerEmployee() {
-        guard isFormValid, let image = selectedImage, let cgImage = image.cgImage else {
-            Task { @MainActor in self.status = "❌ Fill all fields and select a valid image" }
+    func registerEmployee() async {
+        guard isFormValid, let image = selectedImage else {
+            status = "❌ Fill all fields and select a valid image"
             return
         }
+        guard !isSubmitting else { return }
+        isSubmitting = true
+        status = "⏳ Registering…"
 
-        let ciImage = CIImage(cgImage: cgImage)
+        do {
+            // If embedding is heavy, consider offloading to a background Task.
+            let embedding = try face.embedding(from: image)
 
-        Task { [weak self] in
-            guard let self else { return }
-            do {
-                // Detect a face
-                guard let face = self.faceDetector.detectFace(in: ciImage) else {
-                    await MainActor.run { self.status = "❌ No face detected" }
-                    return
-                }
+            let input = EmployeeInput(
+                employeeId: trimmedEmployeeID,
+                name: trimmedName,
+                embedding: embedding,
+                role: trimmedRole
+            )
 
-                // Create embedding using the same processor as verification
-                let embedding = try self.faceProcessor.process(ciImage, face: face)
+            try await api.addEmployee(input)
 
-                // Build your existing EmployeeInput model
-                let payload = EmployeeInput(
-                    employeeId: self.employeeID,
-                    name: self.name,
-                    embedding: embedding.values,
-                    role: self.role
-                )
-
-                // Call your endpoint; HTTPClient unwraps ApiResponse.data
-                let _: EmployeeResult? = try await self.http.send(
-                    "POST",
-                    path: "add-employee",
-                    body: payload
-                )
-
-                await MainActor.run {
-                    self.status = "✅ Registered \(self.name)"
-                    self.clearForm()
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorManager.show(error)
-                    self.status = "❌ Failed to register face"
-                }
-            }
+            status = "✅ Registered \(trimmedName)"
+            resetForm()
+        } catch {
+            errorManager.show(error)
+            status = "❌ Failed to register face"
         }
+
+        isSubmitting = false
     }
 
-    // MARK: - Helpers
-    @MainActor
-    private func clearForm() {
+    private func resetForm() {
         employeeID = ""
         name = ""
         role = ""

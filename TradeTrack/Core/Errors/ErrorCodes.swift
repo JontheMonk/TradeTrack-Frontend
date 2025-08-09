@@ -13,6 +13,8 @@ enum AppErrorCode: String, Equatable {
     case facePreprocessingFailedRender = "FACE_PREPROCESSING_RENDER_FAILED"
 
     // Validation
+    case invalidImage = "INVALID_IMAGE"          // ← NEW
+    case noFaceDetected = "NO_FACE_DETECTED"     // ← NEW
     case faceValidationMissingLandmarks = "FACE_VALIDATION_MISSING_LANDMARKS"
     case faceValidationIncompleteLandmarks = "FACE_VALIDATION_INCOMPLETE_LANDMARKS"
     case faceValidationBadRoll = "FACE_VALIDATION_BAD_ROLL"
@@ -27,24 +29,22 @@ enum AppErrorCode: String, Equatable {
     case faceConfidenceTooLow = "FACE_CONFIDENCE_TOO_LOW"
     case noEmployeesFound = "NO_EMPLOYEES_FOUND"
     case dbError = "DB_ERROR"
-    
+
     // Network / Transport
-    case networkUnavailable = "NETWORK_UNAVAILABLE" 
+    case networkUnavailable = "NETWORK_UNAVAILABLE"
     case requestTimedOut = "REQUEST_TIMED_OUT"
     case badURL = "BAD_URL"
     case invalidResponse = "INVALID_RESPONSE"
     case decodingFailed = "DECODING_FAILED"
 
-    
-
     // Fallback
     case unknown = "UNKNOWN"
 
-    // Convert backend string to AppErrorCode
     init(fromBackend code: String) {
         self = AppErrorCode(rawValue: code) ?? .unknown
     }
 }
+
 
 // MARK: - App-Wide Error Struct
 
@@ -66,6 +66,12 @@ struct AppError: Error, LocalizedError {
 
 func userMessage(for code: AppErrorCode) -> String {
     switch code {
+    case .invalidImage:
+        return "The selected image is invalid or unsupported. Please choose a different image."
+
+    case .noFaceDetected:
+        return "No face was detected in the image. Please make sure your face is clearly visible."
+
     case .pixelBufferMissingBaseAddress, .modelOutputMissing, .modelFailedToLoad:
         return "The face recognition system had a problem starting. Please restart the app or try again."
 
@@ -84,39 +90,31 @@ func userMessage(for code: AppErrorCode) -> String {
     // Backend-specific
     case .employeeAlreadyExists:
         return "This employee already exists in the system."
-
     case .employeeNotFound:
         return "Employee not found. Please check the details."
-
     case .faceConfidenceTooLow:
         return "Face not recognized. Try again with better lighting and angle."
-
     case .noEmployeesFound:
         return "No employees are registered in the system."
-
     case .dbError:
         return "Server error. Please try again later."
 
     // Network / Transport
     case .networkUnavailable:
         return "No internet connection. Please check your network settings and try again."
-
     case .requestTimedOut:
         return "The request took too long. Please try again."
-
     case .badURL:
         return "There was an internal app error (invalid request URL). Please contact support."
-
     case .invalidResponse:
         return "Received an invalid response from the server. Please try again later."
-
     case .decodingFailed:
         return "The server returned unexpected data. Please try again later."
 
-    // Fallback
     case .unknown:
         return "Something went wrong. Please try again."
     }
 }
+
 
 

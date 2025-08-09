@@ -1,23 +1,28 @@
 import SwiftUI
 
 struct RegisterView: View {
-    @StateObject private var vm = RegisterViewModel()
+    @StateObject private var vm: RegisterViewModel
+    @State private var showPicker = false   // presentation state lives in the View
+
+    init(http: HTTPClient, errorManager: ErrorManager) {
+        _vm = StateObject(wrappedValue: RegisterViewModel(http: http, errorManager: errorManager))
+    }
 
     var body: some View {
         VStack(spacing: 20) {
             Text("Register Employee")
                 .font(.largeTitle.bold())
                 .padding(.top)
-                .foregroundColor(.primary)
 
             Group {
                 customTextField("Employee ID", text: $vm.employeeID)
                 customTextField("Full Name", text: $vm.name)
+                customTextField("Role", text: $vm.role)          // you validated it, so show it
             }
 
-            Button(action: {
-                vm.showingImagePicker = true
-            }) {
+            Button {
+                showPicker = true
+            } label: {
                 HStack {
                     Image(systemName: "photo")
                     Text(vm.selectedImage == nil ? "Select Face Image" : "Change Image")
@@ -40,9 +45,9 @@ struct RegisterView: View {
                     .padding(.top, 10)
             }
 
-            Button(action: {
-                Task { await vm.registerFace() }
-            }) {
+            Button {
+                Task { await vm.registerEmployee() }     // call the right method
+            } label: {
                 Text("Add to Database")
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
@@ -65,8 +70,8 @@ struct RegisterView: View {
             Spacer()
         }
         .padding()
-        .sheet(isPresented: $vm.showingImagePicker) {
-            ImagePicker(image: $vm.selectedImage)
+        .sheet(isPresented: $showPicker) {
+            ImagePicker(image: $vm.selectedImage) // <- Binding into VM
         }
     }
 
@@ -83,6 +88,6 @@ struct RegisterView: View {
                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
             )
             .padding(.horizontal)
-            .autocapitalization(.none)
+            .textInputAutocapitalization(.never) // modern API
     }
 }

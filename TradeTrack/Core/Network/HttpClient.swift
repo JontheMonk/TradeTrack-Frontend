@@ -1,12 +1,5 @@
 import Foundation
 
-struct APIResponse<T: Decodable>: Decodable {
-    let success: Bool
-    let data: T?
-    let code: String?
-    let message: String?
-}
-
 final class HTTPClient {
     private let baseURL: URL
     private let session: URLSession
