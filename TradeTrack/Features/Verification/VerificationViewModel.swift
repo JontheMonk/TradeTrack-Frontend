@@ -1,3 +1,4 @@
+// VerificationViewModel.swift
 import AVFoundation
 import Vision
 import SwiftUI
@@ -18,7 +19,7 @@ final class VerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDat
 
     // MARK: - Properties
     var targetEmployeeID: String?
-    @Published var recognitionState: VerificationState = .detecting
+    @Published var verificationState: VerificationState = .detecting
 
     private var lastProcessed = Date(timeIntervalSince1970: 0)
     private let lastProcessedQueue = DispatchQueue(label: "lastProcessed.queue")
@@ -29,7 +30,7 @@ final class VerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDat
         errorManager: ErrorManager,
         cameraManager: CameraManager = CameraManager(),
         faceDetector: FaceDetector = FaceDetector(),
-        http: HTTPClient = HTTPClient(baseURL: URL(string: "https://tradetrack-backend.onrender.com")!),
+        http: HTTPClient,
         faceProcessor: FaceProcessor? = nil
     ) throws {
         self.errorManager = errorManager
@@ -59,26 +60,37 @@ final class VerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDat
         guard faceProcessingTask == nil else { return } // avoid overlap
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+
         guard let face = faceDetector.detectFace(in: ciImage), shouldContinue() else { return }
 
         faceProcessingTask = Task(priority: .userInitiated) { [weak self] in
             defer { self?.faceProcessingTask = nil }
             guard let self else { return }
 
+            await MainActor.run { self.verificationState = .processing }
+
             do {
                 let embedding = try self.faceProcessor.process(ciImage, face: face)
-                guard let employeeID = self.targetEmployeeID else { return }
+
+                guard let employeeID = self.targetEmployeeID else {
+                    // If you want "best match" without target, adapt your request/endpoint and drop this guard.
+                    throw AppError(code: .unknown)
+                }
 
                 let req = embedding.toVerifyRequest(employeeId: employeeID)
                 let result: VerifyFaceResponse? = try await self.http.send("POST", path: "verify-face", body: req)
                 guard let result else { throw AppError(code: .invalidResponse) }
 
+                // Prefer real name if your response has it; fallback to id.
+                let displayName = result.employeeId
+
                 await MainActor.run {
-                    self.recognitionState = .matched(name: result.employeeId)
+                    self.verificationState = .matched(name: displayName)
                 }
             } catch {
                 await MainActor.run {
                     self.errorManager.show(error)
+                    self.verificationState = .detecting
                 }
             }
         }

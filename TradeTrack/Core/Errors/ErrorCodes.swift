@@ -46,22 +46,6 @@ enum AppErrorCode: String, Equatable {
 }
 
 
-// MARK: - App-Wide Error Struct
-
-struct AppError: Error, LocalizedError {
-    let code: AppErrorCode
-    let underlyingError: Error?
-
-    init(code: AppErrorCode, underlyingError: Error? = nil) {
-        self.code = code
-        self.underlyingError = underlyingError
-    }
-
-    var errorDescription: String? {
-        userMessage(for: code)
-    }
-}
-
 // MARK: - User Message Mapper
 
 func userMessage(for code: AppErrorCode) -> String {

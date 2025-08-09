@@ -29,9 +29,22 @@
 		C4029FB12E2D72BF00334A85 /* TradeTrackUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TradeTrackUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C45A143E2E47B46000BFEDF0 /* Exceptions for "TradeTrack" folder in "TradeTrack" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C4029F9C2E2D72BD00334A85 /* TradeTrack */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C45A143E2E47B46000BFEDF0 /* Exceptions for "TradeTrack" folder in "TradeTrack" target */,
+			);
 			path = TradeTrack;
 			sourceTree = "<group>";
 		};
