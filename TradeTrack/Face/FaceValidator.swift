@@ -81,18 +81,31 @@ class FaceValidator {
 
     func computeFaceQuality(from buffer: CVPixelBuffer, face: VNFaceObservation) throws -> Float {
         let request = VNDetectFaceCaptureQualityRequest()
-        request.revision = VNDetectFaceCaptureQualityRequestRevision1
-
-        let handler = VNImageRequestHandler(cvPixelBuffer: buffer, orientation: .leftMirrored, options: [:])
-        do {
-            try handler.perform([request])
-            guard let result = request.results?.first,
-                  let quality = result.faceCaptureQuality else {
-                throw AppError(code: .faceValidationQualityUnavailable)
-            }
-            return quality
-        } catch {
-            throw AppError(code: .faceValidationQualityUnavailable)
+        // Pick the best available revision
+        if #available(iOS 17.0, *) {
+            request.revision = VNDetectFaceCaptureQualityRequestRevision3
+        } else {
+            request.revision = VNDetectFaceCaptureQualityRequestRevision1
         }
+
+        request.inputFaceObservations = [face]
+        request.regionOfInterest = face.boundingBox
+
+        let orientation: CGImagePropertyOrientation = .leftMirrored
+
+        let handler = VNImageRequestHandler(cvPixelBuffer: buffer, orientation: orientation, options: [:])
+        try handler.perform([request])
+
+        guard let obs = (request.results?.first as? VNFaceObservation) else {
+            throw AppError(code: .faceValidationQualityUnavailable,
+                           debugMessage: "No results from quality request.")
+        }
+        guard let quality = obs.faceCaptureQuality else {
+            throw AppError(code: .faceValidationQualityUnavailable,
+                           debugMessage: "Result present but quality == nil. bbox=\(obs.boundingBox)")
+        }
+        return quality
     }
+
+
 }

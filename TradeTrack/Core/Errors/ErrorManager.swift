@@ -30,18 +30,17 @@ final class ErrorManager: ObservableObject {
     }
 
     private func log(_ error: AppError) {
-        logger.error("AppError: \(error.code.rawValue, privacy: .public) - \(error.localizedDescription, privacy: .public)")
+        logger.error("AppError: \(error.code.rawValue, privacy: .public) - \(error.debugMessage ?? "No debug message", privacy: .public)")
 
         if let underlying = error.underlyingError {
             let message: String
-
             if let localized = underlying as? LocalizedError, let desc = localized.errorDescription {
                 message = desc
             } else {
                 message = String(describing: underlying)
             }
-
             logger.error("Underlying error: \(message, privacy: .public)")
         }
     }
+
 }

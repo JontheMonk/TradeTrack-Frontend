@@ -7,7 +7,7 @@ final class RegisterViewModel: ObservableObject {
     // Form fields
     @Published var employeeID = ""
     @Published var name = ""
-    @Published var role = ""
+    @Published var role = "employee"
     @Published var selectedImage: UIImage?
 
     // UI state
