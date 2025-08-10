@@ -70,7 +70,7 @@ func userMessage(for code: AppErrorCode) -> String {
          .faceValidationBlurry,
          .faceValidationQualityUnavailable:
         return "The image didn’t meet the quality requirements. Try facing the camera directly with good lighting."
-
+ 
     // Backend-specific
     case .employeeAlreadyExists:
         return "This employee already exists in the system."

@@ -76,6 +76,8 @@ final class HTTPClient {
             default:
                 throw AppError(code: .unknown, underlyingError: e)
             }
+        } catch let e as AppError {
+            throw e
         } catch {
             throw AppError(code: .unknown, underlyingError: error)
         }

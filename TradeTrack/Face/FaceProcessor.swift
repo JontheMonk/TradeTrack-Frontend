@@ -17,9 +17,9 @@ final class FaceProcessor {
     }
 
 
-    func process(_ image: CIImage, face: VNFaceObservation) throws -> FaceEmbedding {
-        let preprocessed = try preprocessor.preprocessFace(from: image, face: face)
-        try validator.validate(buffer: preprocessed, face: face)
+    func process(_ input: FrameInput, face: VNFaceObservation) throws -> FaceEmbedding {
+        try validator.validate(frame: input, face: face)
+        let preprocessed = try preprocessor.preprocessFace(from: input, face: face)
         return try embedder.embed(from: preprocessed)
     }
 }
