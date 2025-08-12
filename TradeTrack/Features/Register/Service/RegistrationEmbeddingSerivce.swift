@@ -1,6 +1,6 @@
 import Foundation
-import CoreImage
 import UIKit
+import Vision
 
 protocol RegistrationEmbeddingServing {
     func embedding(from image: UIImage) throws -> [Float]
@@ -8,12 +8,19 @@ protocol RegistrationEmbeddingServing {
 
 final class RegistrationEmbeddingService: RegistrationEmbeddingServing {
     private let detector = FaceDetector()
-    private let processor = try! FaceProcessor()
+    private var processor: FaceProcessor?
 
     func embedding(from image: UIImage) throws -> [Float] {
-        guard let cg = image.cgImage else { throw AppError(code: .invalidImage) }
-        let ci = CIImage(cgImage: cg)
-        guard let face = detector.detectFace(in: ci) else { throw AppError(code: .noFaceDetected) }
-        return try processor.process(ci, face: face).values
+        let frame = try PhotoFrameBuilder.makeFrame(from: image)
+
+        guard let face = detector.detectFace(in: frame.image, orientation: frame.orientation) else {
+            throw AppError(code: .faceValidationMissingLandmarks)
+        }
+
+        if processor == nil {
+            processor = try FaceProcessor()
+        }
+        // processor now guaranteed
+        return try processor!.process(frame, face: face).values
     }
 }

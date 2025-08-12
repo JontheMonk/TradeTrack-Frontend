@@ -1,4 +1,3 @@
-// VerificationViewModel.swift
 import AVFoundation
 import Vision
 import SwiftUI
@@ -10,19 +9,19 @@ enum VerificationState: Equatable {
 }
 
 final class VerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    // MARK: - Dependencies
+    // MARK: - Deps
     private let errorManager: ErrorManager
     private let cameraManager: CameraManager
     private let faceDetector: FaceDetector
     private let faceProcessor: FaceProcessor
     private let http: HTTPClient
 
-    // MARK: - Properties
-    var targetEmployeeID: String?
+    // MARK: - UI
     @Published var verificationState: VerificationState = .detecting
+    var targetEmployeeID: String?
 
+    // MARK: - Control
     private var lastProcessed = Date(timeIntervalSince1970: 0)
-    private let lastProcessedQueue = DispatchQueue(label: "lastProcessed.queue")
     private var faceProcessingTask: Task<Void, Never>?
 
     // MARK: - Init
@@ -39,10 +38,10 @@ final class VerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDat
         self.http = http
         self.faceProcessor = try faceProcessor ?? FaceProcessor()
         super.init()
-        self.cameraManager.setupCamera(delegate: self)
+        cameraManager.setupCamera(delegate: self)   // assume front cam, portrait, mirroring locked in CameraManager
     }
 
-    // MARK: - Session Control
+    // MARK: - Session
     func getSession() -> AVCaptureSession { cameraManager.session }
 
     func stopSession() {
@@ -51,17 +50,23 @@ final class VerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDat
         cameraManager.stop()
     }
 
-    // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
-    func captureOutput(
-        _ output: AVCaptureOutput,
-        didOutput sampleBuffer: CMSampleBuffer,
-        from connection: AVCaptureConnection
-    ) {
-        guard faceProcessingTask == nil else { return } // avoid overlap
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+    // MARK: - Delegate
+    func captureOutput(_ output: AVCaptureOutput,
+                       didOutput sampleBuffer: CMSampleBuffer,
+                       from connection: AVCaptureConnection) {
+        // One task at a time + simple throttle
+        guard faceProcessingTask == nil else { return }
+        let now = Date()
+        guard now.timeIntervalSince(lastProcessed) >= 1.5 else { return }
+        lastProcessed = now
 
-        guard let face = faceDetector.detectFace(in: ciImage), shouldContinue() else { return }
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+
+        // Front camera, portrait, mirrored → .leftMirrored
+        let frame = FrameInput(buffer: pixelBuffer, orientation: .leftMirrored)
+
+        // Detect (landmarks-prepared face if your detector does that; otherwise keep as-is)
+        guard let face = faceDetector.detectFace(in: frame.image, orientation: frame.orientation) else { return }
 
         faceProcessingTask = Task(priority: .userInitiated) { [weak self] in
             defer { self?.faceProcessingTask = nil }
@@ -70,22 +75,18 @@ final class VerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDat
             await MainActor.run { self.verificationState = .processing }
 
             do {
-                let embedding = try self.faceProcessor.process(ciImage, face: face)
+                let embedding = try self.faceProcessor.process(frame, face: face)
 
                 guard let employeeID = self.targetEmployeeID else {
-                    // If you want "best match" without target, adapt your request/endpoint and drop this guard.
-                    throw AppError(code: .unknown)
+                    throw AppError(code: .employeeNotFound) // pick a better code if you have one
                 }
 
                 let req = embedding.toVerifyRequest(employeeId: employeeID)
                 let result: VerifyFaceResponse? = try await self.http.send("POST", path: "verify-face", body: req)
                 guard let result else { throw AppError(code: .invalidResponse) }
 
-                // Prefer real name if your response has it; fallback to id.
-                let displayName = result.employeeId
-
                 await MainActor.run {
-                    self.verificationState = .matched(name: displayName)
+                    self.verificationState = .matched(name: result.employeeId)
                 }
             } catch {
                 await MainActor.run {
@@ -93,19 +94,6 @@ final class VerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDat
                     self.verificationState = .detecting
                 }
             }
-        }
-    }
-
-    // MARK: - Helpers
-    private func shouldContinue() -> Bool {
-        lastProcessedQueue.sync {
-            guard !Task.isCancelled else { return false }
-            let now = Date()
-            if now.timeIntervalSince(lastProcessed) > 1.5 {
-                lastProcessed = now
-                return true
-            }
-            return false
         }
     }
 }
