@@ -67,6 +67,8 @@ final class HTTPClient {
             throw AppError(code: .decodingFailed, underlyingError: e)
         } catch let e as URLError {
             switch e.code {
+            case .cancelled:
+                throw CancellationError()
             case .notConnectedToInternet:
                 throw AppError(code: .networkUnavailable, underlyingError: e)
             case .timedOut:

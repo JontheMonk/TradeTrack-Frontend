@@ -1,12 +1,16 @@
 import Foundation
 
+@MainActor
 final class LookupViewModel: ObservableObject {
     @Published private(set) var query = ""
     @Published private(set) var results: [EmployeeResult] = []
     @Published private(set) var isLoading = false
+
     private let service: EmployeeLookupServing
     private let errorManager: ErrorManager
     private var searchTask: Task<Void, Never>?
+    private var generation = 0
+    private let debounceNs: UInt64 = 350_000_000
 
     init(service: EmployeeLookupServing, errorManager: ErrorManager) {
         self.service = service
@@ -20,35 +24,48 @@ final class LookupViewModel: ObservableObject {
 
     private func onQueryChanged() {
         searchTask?.cancel()
+        generation &+= 1
+        let gen = generation
+
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.count < 3 {
+        guard trimmed.count >= 3 else {
             Task { @MainActor in
-                self.results = []; self.isLoading = false
+                if self.generation == gen { self.results = []; self.isLoading = false }
             }
             return
         }
 
         searchTask = Task { [weak self] in
             guard let self else { return }
-            try? await Task.sleep(nanoseconds: 350_000_000)
-            if Task.isCancelled { return }
-            await self.setLoading(true)
             do {
+                try await Task.sleep(nanoseconds: debounceNs)
+                await MainActor.run {
+                    if self.generation == gen { self.isLoading = true }
+                }
+
                 let found = try await self.service.search(prefix: trimmed)
-                if Task.isCancelled { return }
-                await self.setResults(found)
+                try Task.checkCancellation()
+
+                await MainActor.run {
+                    guard self.generation == gen else { return }
+                    self.results = found
+                    self.isLoading = false
+                }
+            } catch is CancellationError {
+                await MainActor.run {
+                    if self.generation == gen { self.isLoading = false }
+                }
             } catch {
-                if Task.isCancelled { return }
-                await self.report(error)
-                await self.setResults([])
+                await MainActor.run {
+                    if self.generation == gen {
+                        self.errorManager.show(error)
+                        self.results = []
+                        self.isLoading = false
+                    }
+                }
             }
-            await self.setLoading(false)
         }
     }
 
     deinit { searchTask?.cancel() }
-
-    @MainActor private func setLoading(_ flag: Bool) { isLoading = flag }
-    @MainActor private func setResults(_ arr: [EmployeeResult]) { results = arr }
-    @MainActor private func report(_ error: Error) { errorManager.show(error) }
 }

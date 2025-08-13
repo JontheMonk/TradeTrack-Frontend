@@ -2,96 +2,101 @@ import AVFoundation
 import Vision
 import SwiftUI
 
-enum VerificationState: Equatable {
-    case detecting
-    case processing
-    case matched(name: String)
-}
+enum VerificationState: Equatable { case detecting, processing, matched(name: String) }
 
-final class VerificationViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    // MARK: - Deps
-    private let errorManager: ErrorManager
-    private let cameraManager: CameraManager
-    private let faceDetector: FaceDetector
-    private let faceProcessor: FaceProcessor
+@MainActor
+final class VerificationViewModel: NSObject, ObservableObject {
+    // deps
+    private let camera = CameraManager()
+    private let detector = FaceDetector()
+    private let processor = try! FaceProcessor()
     private let http: HTTPClient
+    private let errorManager: ErrorManager
 
-    // MARK: - UI
-    @Published var verificationState: VerificationState = .detecting
+    // ui
+    @Published var state: VerificationState = .detecting
     var targetEmployeeID: String?
 
-    // MARK: - Control
-    private var lastProcessed = Date(timeIntervalSince1970: 0)
-    private var faceProcessingTask: Task<Void, Never>?
+    // control
+    private var task: Task<Void, Never>?
+    private let outputDelegate: VerificationOutputDelegate
 
-    // MARK: - Init
-    init(
-        errorManager: ErrorManager,
-        cameraManager: CameraManager = CameraManager(),
-        faceDetector: FaceDetector = FaceDetector(),
-        http: HTTPClient,
-        faceProcessor: FaceProcessor? = nil
-    ) throws {
-        self.errorManager = errorManager
-        self.cameraManager = cameraManager
-        self.faceDetector = faceDetector
+    init(http: HTTPClient, errorManager: ErrorManager, throttle: TimeInterval = 1.0) {
         self.http = http
-        self.faceProcessor = try faceProcessor ?? FaceProcessor()
+        self.errorManager = errorManager
+        self.outputDelegate = VerificationOutputDelegate(throttle: throttle)
         super.init()
-        cameraManager.setupCamera(delegate: self)   // assume front cam, portrait, mirroring locked in CameraManager
+
+        // Frame hookup: delegate -> VM
+        outputDelegate.onFrame = { [weak self] sample in
+            // We're on the camera frames queue here. Hop to MainActor to coordinate,
+            // then offload heavy work inside a Task.
+            Task { @MainActor [weak self] in
+                await self?.handle(sample)
+            }
+        }
     }
 
-    // MARK: - Session
-    func getSession() -> AVCaptureSession { cameraManager.session }
+    var session: AVCaptureSession { camera.session }
 
-    func stopSession() {
-        faceProcessingTask?.cancel()
-        faceProcessingTask = nil
-        cameraManager.stop()
-    }
-
-    // MARK: - Delegate
-    func captureOutput(_ output: AVCaptureOutput,
-                       didOutput sampleBuffer: CMSampleBuffer,
-                       from connection: AVCaptureConnection) {
-        // One task at a time + simple throttle
-        guard faceProcessingTask == nil else { return }
-        let now = Date()
-        guard now.timeIntervalSince(lastProcessed) >= 1.5 else { return }
-        lastProcessed = now
-
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-
-        // Front camera, portrait, mirrored → .leftMirrored
-        let frame = FrameInput(buffer: pixelBuffer, orientation: .leftMirrored)
-
-        // Detect (landmarks-prepared face if your detector does that; otherwise keep as-is)
-        guard let face = faceDetector.detectFace(in: frame.image, orientation: frame.orientation) else { return }
-
-        faceProcessingTask = Task(priority: .userInitiated) { [weak self] in
-            defer { self?.faceProcessingTask = nil }
-            guard let self else { return }
-
-            await MainActor.run { self.verificationState = .processing }
-
+    func start() {
+        Task {
             do {
-                let embedding = try self.faceProcessor.process(frame, face: face)
+                try await camera.requestAuthorization()
+                try camera.start(delegate: outputDelegate)
+            } catch {
+                errorManager.show(error)
+            }
+        }
+    }
 
-                guard let employeeID = self.targetEmployeeID else {
-                    throw AppError(code: .employeeNotFound) // pick a better code if you have one
-                }
+    func stop() {
+        task?.cancel()
+        task = nil
+        camera.stop()
+        state = .detecting
+    }
 
+    // MARK: - One-at-a-time pipeline
+    private func handle(_ sampleBuffer: CMSampleBuffer) async {
+        // If a previous frame is still being processed, skip.
+        guard task == nil else { return }
+
+        guard let pb = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        let frame = FrameInput(buffer: pb, orientation: .leftMirrored)
+
+        // Detect face on this exact frame (fast)
+        guard let face = detector.detectFace(in: frame.image, orientation: frame.orientation) else { return }
+
+        let http = self.http
+        let employeeID = self.targetEmployeeID
+        let processor = self.processor
+
+        state = .processing
+
+        task = Task(priority: .userInitiated) { [weak self] in
+            defer {
+                Task { @MainActor [weak self] in self?.task = nil }
+            }
+            do {
+                let embedding = try await Task.detached(priority: .userInitiated) {
+                    try processor.process(frame, face: face)
+                }.value
+
+                guard let employeeID else { throw AppError(code: .employeeNotFound) }
                 let req = embedding.toVerifyRequest(employeeId: employeeID)
-                let result: VerifyFaceResponse? = try await self.http.send("POST", path: "verify-face", body: req)
+                let result: VerifyFaceResponse? = try await http.send("POST", path: "verify-face", body: req)
                 guard let result else { throw AppError(code: .invalidResponse) }
 
                 await MainActor.run {
-                    self.verificationState = .matched(name: result.employeeId)
+                    self?.state = .matched(name: result.employeeId)
                 }
+            } catch is CancellationError {
+                // ignore
             } catch {
                 await MainActor.run {
-                    self.errorManager.show(error)
-                    self.verificationState = .detecting
+                    self?.errorManager.show(error)
+                    self?.state = .detecting
                 }
             }
         }
