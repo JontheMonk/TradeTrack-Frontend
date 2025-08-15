@@ -73,6 +73,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
         let processor = self.processor
 
         state = .processing
+        
 
         task = Task(priority: .userInitiated) { [weak self] in
             defer {
@@ -85,11 +86,10 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
                 guard let employeeID else { throw AppError(code: .employeeNotFound) }
                 let req = embedding.toVerifyRequest(employeeId: employeeID)
-                let result: VerifyFaceResponse? = try await http.send("POST", path: "verify-face", body: req)
-                guard let result else { throw AppError(code: .invalidResponse) }
+                let _: Empty? = try await http.send("POST", path: "verify-face", body: req)
 
                 await MainActor.run {
-                    self?.state = .matched(name: result.employeeId)
+                    self?.state = .matched(name: employeeID)
                 }
             } catch is CancellationError {
                 // ignore

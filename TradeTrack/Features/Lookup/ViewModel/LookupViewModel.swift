@@ -8,9 +8,10 @@ final class LookupViewModel: ObservableObject {
 
     private let service: EmployeeLookupServing
     private let errorManager: ErrorManager
+
     private var searchTask: Task<Void, Never>?
     private var generation = 0
-    private let debounceNs: UInt64 = 350_000_000
+    private let debounce: Duration = .milliseconds(350)
 
     init(service: EmployeeLookupServing, errorManager: ErrorManager) {
         self.service = service
@@ -29,21 +30,29 @@ final class LookupViewModel: ObservableObject {
 
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.count >= 3 else {
-            Task { @MainActor in
-                if self.generation == gen { self.results = []; self.isLoading = false }
-            }
+            results = []
+            isLoading = false
             return
         }
+        
+        searchTask = performSearch(for: trimmed, generation: gen)
+    }
 
-        searchTask = Task { [weak self] in
+    private func performSearch(for prefix: String, generation gen: Int) -> Task<Void, Never> {
+        let svc = service
+        let debounce = self.debounce
+
+        return Task(priority: .userInitiated) { [weak self, svc] in
             guard let self else { return }
             do {
-                try await Task.sleep(nanoseconds: debounceNs)
+                try await Task.sleep(for: debounce)
+                try Task.checkCancellation()
+
                 await MainActor.run {
                     if self.generation == gen { self.isLoading = true }
                 }
 
-                let found = try await self.service.search(prefix: trimmed)
+                let found = try await svc.search(prefix: prefix)
                 try Task.checkCancellation()
 
                 await MainActor.run {
@@ -57,11 +66,8 @@ final class LookupViewModel: ObservableObject {
                 }
             } catch {
                 await MainActor.run {
-                    if self.generation == gen {
-                        self.errorManager.show(error)
-                        self.results = []
-                        self.isLoading = false
-                    }
+                    if self.generation == gen { self.isLoading = false }
+                    self.errorManager.show(error)
                 }
             }
         }
