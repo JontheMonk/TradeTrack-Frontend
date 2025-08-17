@@ -1,15 +1,17 @@
 import Foundation
 import Vision
-import CoreVideo
 import CoreImage
 import os.log
 
-class FaceDetector {
+final class FaceDetector {
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "face-detection")
 
-    func detectFace(in image: CIImage, orientation: CGImagePropertyOrientation = .leftMirrored) -> VNFaceObservation? {
+    func detectFace(in image: CIImage) -> VNFaceObservation? {
         let request = VNDetectFaceLandmarksRequest()
-        let handler = VNImageRequestHandler(ciImage: image, orientation: orientation)
+        if #available(iOS 17.0, *) {
+            request.revision = VNDetectFaceLandmarksRequestRevision3
+        }
+        let handler = VNImageRequestHandler(ciImage: image, orientation: .up, options: [:])
 
         do {
             try handler.perform([request])
@@ -18,6 +20,6 @@ class FaceDetector {
             return nil
         }
 
-        return request.results?.first as? VNFaceObservation
+        return (request.results)?.first
     }
 }

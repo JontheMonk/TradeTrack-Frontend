@@ -1,38 +1,35 @@
 import SwiftUI
 
 struct VerificationView: View {
-    @StateObject var vm: VerificationViewModel
+    @StateObject private var vm: VerificationViewModel
+
+    init(employeeId: String, http: HTTPClient, errorManager: ErrorManager) {
+        let model = VerificationViewModel(http: http, errorManager: errorManager)
+        model.targetEmployeeID = employeeId
+        _vm = StateObject(wrappedValue: model)
+    }
 
     var body: some View {
         ZStack {
-            // White background
             Color.white.ignoresSafeArea()
-
-            // Camera feed masked to a circle
             CameraPreview(session: vm.session)
                 .clipShape(Circle())
-                .frame(width: 250, height: 250) // size of the circle
-                .overlay(
-                    Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2) // optional border
-                )
+                .frame(width: 250, height: 250)
+                .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2))
 
             VStack {
-                // Status text at the top
                 switch vm.state {
                 case .detecting:
                     Text("Looking for a face…")
-                        .padding()
-                        .background(.ultraThinMaterial)
+                        .padding().background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 case .processing:
                     ProgressView("Verifying…")
-                        .padding()
-                        .background(.ultraThinMaterial)
+                        .padding().background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 case .matched(let name):
                     Text("✅ \(name)")
-                        .padding()
-                        .background(.ultraThinMaterial)
+                        .padding().background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 Spacer()

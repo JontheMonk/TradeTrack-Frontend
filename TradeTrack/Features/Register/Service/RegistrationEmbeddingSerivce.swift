@@ -8,19 +8,35 @@ protocol RegistrationEmbeddingServing {
 
 final class RegistrationEmbeddingService: RegistrationEmbeddingServing {
     private let detector = FaceDetector()
-    private var processor: FaceProcessor?
+    private lazy var processor: FaceProcessor = try! FaceProcessor() // or inject
 
     func embedding(from image: UIImage) throws -> [Float] {
-        let frame = try PhotoFrameBuilder.makeFrame(from: image)
+        // 1) Get CIImage + fix orientation once
+        let ciRaw = image.cgImage.map(CIImage.init(cgImage:)) ?? (CIImage(image: image) ?? CIImage())
+        let exif = CGImagePropertyOrientation(ui: image.imageOrientation)
+        let ciUpright = ciRaw.oriented(forExifOrientation: Int32(exif.rawValue))
 
-        guard let face = detector.detectFace(in: frame.image, orientation: frame.orientation) else {
+        // 2) Detect on CIImage (no pixel buffer yet)
+        guard let face = detector.detectFace(in: ciUpright) else {
             throw AppError(code: .faceValidationMissingLandmarks)
         }
 
-        if processor == nil {
-            processor = try FaceProcessor()
+        return processor.process(ciUpright, face: face).values
+    }
+}
+
+private extension CGImagePropertyOrientation {
+    init(ui: UIImage.Orientation) {
+        switch ui {
+        case .up: self = .up
+        case .upMirrored: self = .upMirrored
+        case .down: self = .down
+        case .downMirrored: self = .downMirrored
+        case .left: self = .left
+        case .leftMirrored: self = .leftMirrored
+        case .right: self = .right
+        case .rightMirrored: self = .rightMirrored
+        @unknown default: self = .up
         }
-        // processor now guaranteed
-        return try processor!.process(frame, face: face).values
     }
 }

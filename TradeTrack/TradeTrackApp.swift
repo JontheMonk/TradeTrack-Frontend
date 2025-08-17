@@ -3,22 +3,22 @@ import SwiftUI
 @main
 struct TradeTrackApp: App {
     @StateObject private var errorManager = ErrorManager()
-    private let http = HTTPClient(baseURL: URL(string: "https://tradetrack-backend.onrender.com")!)
-    private let lookupService: EmployeeLookupServing
+
+    private let http: HTTPClient
+    private let lookupService: EmployeeLookupService
 
     init() {
-        self.lookupService = EmployeeLookupService(http: http) // or whatever your service is
+        let baseURL = URL(string: "https://tradetrack-backend.onrender.com")!
+        let http = HTTPClient(baseURL: baseURL)
+        self.http = http
+        self.lookupService = EmployeeLookupService(http: http)
     }
 
     var body: some Scene {
         WindowGroup {
-            ZStack(alignment: .top) {
-                LookupView(service: lookupService, errorManager: errorManager)
-                ErrorBannerView()
-                    .padding(.top, 10)
-                    .zIndex(1)
-            }
-            .environmentObject(errorManager)
+            LookupView(service: lookupService, errorManager: errorManager, http: http)
+                .overlay(alignment: .top) { ErrorBannerView().padding(.top, 10) }
+                .environmentObject(errorManager)
         }
     }
 }

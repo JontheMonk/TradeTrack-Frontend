@@ -29,6 +29,7 @@ enum AppErrorCode: String, Equatable {
     case faceValidationBadBrightness   = "FACE_VALIDATION_BAD_BRIGHTNESS"
     case faceValidationBlurry          = "FACE_VALIDATION_BLURRY"
     case faceValidationQualityUnavailable = "FACE_VALIDATION_QUALITY_UNAVAILABLE"
+    case faceTooSmall = "FACE_TOO_SMALL"
 
     // Backend
     case employeeAlreadyExists = "EMPLOYEE_ALREADY_EXISTS"
@@ -92,6 +93,8 @@ func userMessage(for code: AppErrorCode) -> String {
          .faceValidationBlurry,
          .faceValidationQualityUnavailable:
         return "The image didn’t meet the quality requirements. Face the camera directly with good lighting."
+    case .faceTooSmall:
+        return "Come closer to the screen"
 
     // Backend-specific
     case .employeeAlreadyExists:

@@ -2,8 +2,12 @@ import SwiftUI
 
 struct LookupView: View {
     @StateObject private var vm: LookupViewModel
+    private let http: HTTPClient
+    private let errorManager: ErrorManager
 
-    init<S: EmployeeLookupServing>(service: S, errorManager: ErrorManager) {
+    init<S: EmployeeLookupServing>(service: S, errorManager: ErrorManager, http: HTTPClient) {
+        self.http = http
+        self.errorManager = errorManager
         _vm = StateObject(wrappedValue: LookupViewModel(service: service, errorManager: errorManager))
     }
 
@@ -16,47 +20,60 @@ struct LookupView: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                TextField("Search employees (min 3 chars)…", text: searchBinding)
-                    .textInputAutocapitalization(.never)
-                    .disableAutocorrection(true)
-                    .submitLabel(.search)
-                if !vm.query.isEmpty {
-                    Button {
-                        vm.setQuery("")
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+        NavigationStack {
+            VStack(spacing: 12) {
+                // Search bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                    TextField("Search employees (min 3 chars)…", text: searchBinding)
+                        .textInputAutocapitalization(.never)
+                        .disableAutocorrection(true)
+                        .submitLabel(.search)
+                    if !vm.query.isEmpty {
+                        Button { vm.setQuery("") } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Clear search")
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Clear search")
                 }
-            }
-            .padding(10)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
-            .padding(.horizontal)
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                )
+                .padding(.horizontal)
 
-            if !hasMinQuery {
-                stateText("Enter at least 3 characters.")
-            } else if vm.isLoading {
-                ProgressView("Searching…").padding(.top, 8)
-            } else if vm.results.isEmpty {
-                stateText("No matches.")
-            } else {
-                List(vm.results) { emp in
-                    EmployeeCard(employee: emp)
+                // States
+                if !hasMinQuery {
+                    stateText("Enter at least 3 characters.")
+                } else if vm.isLoading {
+                    ProgressView("Searching…").padding(.top, 8)
+                } else if vm.results.isEmpty {
+                    stateText("No matches.")
+                } else {
+                    // Results
+                    List(vm.results) { emp in
+                        NavigationLink {
+                            VerificationView(employeeId: emp.employeeId,
+                                             http: http,
+                                             errorManager: errorManager)
+                        } label: {
+                            EmployeeCard(employee: emp)
+                        }
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
             }
+            .padding(.top, 12)
+            .navigationTitle("Employee Lookup")
+            .animation(.default, value: vm.query)
+            .animation(.default, value: vm.isLoading)
         }
-        .padding(.top, 12)
-        .animation(.default, value: vm.query)
-        .animation(.default, value: vm.isLoading)
     }
 
     @ViewBuilder

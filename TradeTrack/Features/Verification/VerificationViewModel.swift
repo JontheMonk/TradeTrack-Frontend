@@ -21,18 +21,16 @@ final class VerificationViewModel: NSObject, ObservableObject {
     private var task: Task<Void, Never>?
     private let outputDelegate: VerificationOutputDelegate
 
-    init(http: HTTPClient, errorManager: ErrorManager, throttle: TimeInterval = 1.0) {
+    init(http: HTTPClient, errorManager: ErrorManager) {
         self.http = http
         self.errorManager = errorManager
-        self.outputDelegate = VerificationOutputDelegate(throttle: throttle)
+        self.outputDelegate = VerificationOutputDelegate()
         super.init()
 
-        // Frame hookup: delegate -> VM
-        outputDelegate.onFrame = { [weak self] sample in
-            // We're on the camera frames queue here. Hop to MainActor to coordinate,
-            // then offload heavy work inside a Task.
-            Task { @MainActor [weak self] in
-                await self?.handle(sample)
+        outputDelegate.onFrame = { [weak self] frame in
+            guard let self else { return }
+            Task { @MainActor in
+                await self.handle(frame)
             }
         }
     }
@@ -57,32 +55,36 @@ final class VerificationViewModel: NSObject, ObservableObject {
         state = .detecting
     }
 
+    deinit { task?.cancel() }
+
     // MARK: - One-at-a-time pipeline
-    private func handle(_ sampleBuffer: CMSampleBuffer) async {
-        // If a previous frame is still being processed, skip.
+    private func handle(_ frame: FrameInput) async {
         guard task == nil else { return }
 
-        guard let pb = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        let frame = FrameInput(buffer: pb, orientation: .leftMirrored)
-
-        // Detect face on this exact frame (fast)
-        guard let face = detector.detectFace(in: frame.image, orientation: frame.orientation) else { return }
-
-        let http = self.http
+        // Snapshot values we need off-main
         let employeeID = self.targetEmployeeID
+        let detector = self.detector
         let processor = self.processor
+        let http = self.http
 
         state = .processing
-        
 
         task = Task(priority: .userInitiated) { [weak self] in
             defer {
                 Task { @MainActor [weak self] in self?.task = nil }
             }
             do {
-                let embedding = try await Task.detached(priority: .userInitiated) {
-                    try processor.process(frame, face: face)
-                }.value
+                guard let face = detector.detectFace(in: frame.image) else {
+                    await MainActor.run { self?.state = .detecting }
+                    return
+                }
+
+                try Task.checkCancellation()
+
+                // Embed off-main (structured child task; no detached)
+                let embedding = try processor.process(frame, face: face)
+
+                try Task.checkCancellation()
 
                 guard let employeeID else { throw AppError(code: .employeeNotFound) }
                 let req = embedding.toVerifyRequest(employeeId: employeeID)
@@ -92,7 +94,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
                     self?.state = .matched(name: employeeID)
                 }
             } catch is CancellationError {
-                // ignore
+                await MainActor.run { self?.state = .detecting }
             } catch {
                 await MainActor.run {
                     self?.errorManager.show(error)
