@@ -21,7 +21,7 @@ final class RegistrationEmbeddingService: RegistrationEmbeddingServing {
             throw AppError(code: .faceValidationMissingLandmarks)
         }
 
-        return processor.process(ciUpright, face: face).values
+        return try processor.process(image: ciUpright, face: face).values
     }
 }
 

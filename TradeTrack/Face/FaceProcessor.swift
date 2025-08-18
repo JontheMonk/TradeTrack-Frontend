@@ -7,8 +7,8 @@ final class FaceProcessor {
     private let embedder: FaceEmbedder
 
     init(
-        preprocessor: FacePreprocessor = FacePreprocessor(),
-        validator: FaceValidator = FaceValidator(),
+        preprocessor: FacePreprocessor = .init(),
+        validator: FaceValidator = .init(),
         embedder: FaceEmbedder? = nil
     ) throws {
         self.preprocessor = preprocessor
@@ -16,10 +16,10 @@ final class FaceProcessor {
         self.embedder = try embedder ?? FaceEmbedder()
     }
 
-
-    func process(_ input: FrameInput, face: VNFaceObservation) throws -> FaceEmbedding {
-        try validator.validate(frame: input, face: face)
-        let preprocessed = try preprocessor.preprocessFace(from: input, face: face)
+    /// Preferred: process from an already-upright CIImage.
+    func process(image: CIImage, face: VNFaceObservation) throws -> FaceEmbedding {
+        try validator.validate(image: image, face: face)
+        let preprocessed = try preprocessor.preprocessFace(image: image, face: face)
         return try embedder.embed(from: preprocessed)
     }
 }
