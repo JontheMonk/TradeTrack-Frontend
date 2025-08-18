@@ -21,6 +21,7 @@ enum AppErrorCode: String, Equatable {
 
     // Validation
     case invalidImage                  = "INVALID_IMAGE"
+    case invalidImageInput             = "INVALID_IMAGE_INPUT"   // ← added
     case noFaceDetected                = "NO_FACE_DETECTED"
     case faceValidationMissingLandmarks = "FACE_VALIDATION_MISSING_LANDMARKS"
     case faceValidationIncompleteLandmarks = "FACE_VALIDATION_INCOMPLETE_LANDMARKS"
@@ -54,6 +55,7 @@ enum AppErrorCode: String, Equatable {
 }
 
 
+
 // MARK: - User Message Mapper
 
 func userMessage(for code: AppErrorCode) -> String {
@@ -73,6 +75,9 @@ func userMessage(for code: AppErrorCode) -> String {
     // Validation / Image issues
     case .invalidImage:
         return "The selected image is invalid or unsupported. Please choose a different image."
+    case .invalidImageInput: // ← added
+        return "The image data couldn’t be read. Please try a different photo."
+
     case .noFaceDetected:
         return "No face was detected. Make sure your face is clearly visible."
 

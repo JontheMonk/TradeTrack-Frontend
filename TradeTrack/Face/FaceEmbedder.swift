@@ -34,7 +34,7 @@ class FaceEmbedder {
         }
 
         let raw = (0..<multiArray.count).map { Float(truncating: multiArray[$0]) }
-        return FaceEmbedding(values: raw)
+        return FaceEmbedding(raw)
     }
 
     private func toNCHWArray(_ pixelBuffer: CVPixelBuffer) throws -> MLMultiArray {

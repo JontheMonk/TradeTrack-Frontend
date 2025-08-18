@@ -19,12 +19,12 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
     // control
     private var task: Task<Void, Never>?
-    private let outputDelegate: VerificationOutputDelegate
+    private let outputDelegate = VerificationOutputDelegate()
 
-    init(http: HTTPClient, errorManager: ErrorManager) {
+    init(http: HTTPClient, errorManager: ErrorManager, employeeId: String) {
         self.http = http
         self.errorManager = errorManager
-        self.outputDelegate = VerificationOutputDelegate()
+        self.targetEmployeeID = employeeId
         super.init()
 
         outputDelegate.onFrame = { [weak self] frame in

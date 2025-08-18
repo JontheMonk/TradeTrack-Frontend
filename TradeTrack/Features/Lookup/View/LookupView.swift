@@ -2,13 +2,10 @@ import SwiftUI
 
 struct LookupView: View {
     @StateObject private var vm: LookupViewModel
-    private let http: HTTPClient
-    private let errorManager: ErrorManager
+    @EnvironmentObject private var coordinator: AppCoordinator   // for navigation
 
-    init<S: EmployeeLookupServing>(service: S, errorManager: ErrorManager, http: HTTPClient) {
-        self.http = http
-        self.errorManager = errorManager
-        _vm = StateObject(wrappedValue: LookupViewModel(service: service, errorManager: errorManager))
+    init(viewModel: LookupViewModel) {
+        _vm = StateObject(wrappedValue: viewModel)
     }
 
     private var searchBinding: Binding<String> {
@@ -20,60 +17,54 @@ struct LookupView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 12) {
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                    TextField("Search employees (min 3 chars)…", text: searchBinding)
-                        .textInputAutocapitalization(.never)
-                        .disableAutocorrection(true)
-                        .submitLabel(.search)
-                    if !vm.query.isEmpty {
-                        Button { vm.setQuery("") } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Clear search")
+        // ⚠️ No nested NavigationStack here; your app root owns it.
+        VStack(spacing: 12) {
+            // Search bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                TextField("Search employees (min 3 chars)…", text: searchBinding)
+                    .textInputAutocapitalization(.never)
+                    .disableAutocorrection(true)
+                    .submitLabel(.search)
+                if !vm.query.isEmpty {
+                    Button { vm.setQuery("") } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
                     }
-                }
-                .padding(10)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.secondarySystemBackground))
-                )
-                .padding(.horizontal)
-
-                // States
-                if !hasMinQuery {
-                    stateText("Enter at least 3 characters.")
-                } else if vm.isLoading {
-                    ProgressView("Searching…").padding(.top, 8)
-                } else if vm.results.isEmpty {
-                    stateText("No matches.")
-                } else {
-                    // Results
-                    List(vm.results) { emp in
-                        NavigationLink {
-                            VerificationView(employeeId: emp.employeeId,
-                                             http: http,
-                                             errorManager: errorManager)
-                        } label: {
-                            EmployeeCard(employee: emp)
-                        }
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                    }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear search")
                 }
             }
-            .padding(.top, 12)
-            .navigationTitle("Employee Lookup")
-            .animation(.default, value: vm.query)
-            .animation(.default, value: vm.isLoading)
+            .padding(10)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+            .padding(.horizontal)
+
+            // States
+            if !hasMinQuery {
+                stateText("Enter at least 3 characters.")
+            } else if vm.isLoading {
+                ProgressView("Searching…").padding(.top, 8)
+            } else if vm.results.isEmpty {
+                stateText("No matches.")
+            } else {
+                // Results
+                List(vm.results) { emp in
+                    Button {
+                        coordinator.push(.verification(employeeId: emp.employeeId))
+                    } label: {
+                        EmployeeCard(employee: emp)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+            }
         }
+        .padding(.top, 12)
+        .navigationTitle("Employee Lookup")
+        .animation(.default, value: vm.query)
+        .animation(.default, value: vm.isLoading)
     }
 
     @ViewBuilder

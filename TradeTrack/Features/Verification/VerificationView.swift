@@ -3,15 +3,14 @@ import SwiftUI
 struct VerificationView: View {
     @StateObject private var vm: VerificationViewModel
 
-    init(employeeId: String, http: HTTPClient, errorManager: ErrorManager) {
-        let model = VerificationViewModel(http: http, errorManager: errorManager)
-        model.targetEmployeeID = employeeId
-        _vm = StateObject(wrappedValue: model)
+    init(viewModel: VerificationViewModel) {
+        _vm = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
+
             CameraPreview(session: vm.session)
                 .clipShape(Circle())
                 .frame(width: 250, height: 250)

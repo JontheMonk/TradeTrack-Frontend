@@ -6,17 +6,21 @@ final class FaceProcessor {
     private let validator: FaceValidator
     private let embedder: FaceEmbedder
 
-    init(
-        preprocessor: FacePreprocessor = .init(),
-        validator: FaceValidator = .init(),
-        embedder: FaceEmbedder? = nil
-    ) throws {
+    init(preprocessor: FacePreprocessor,
+         validator: FaceValidator,
+         embedder: FaceEmbedder) {
         self.preprocessor = preprocessor
         self.validator = validator
-        self.embedder = try embedder ?? FaceEmbedder()
+        self.embedder = embedder
     }
 
-    /// Preferred: process from an already-upright CIImage.
+    // Convenience: build the defaults, can throw
+    convenience init() throws {
+        try self.init(preprocessor: .init(),
+                      validator: .init(),
+                      embedder: FaceEmbedder())
+    }
+
     func process(image: CIImage, face: VNFaceObservation) throws -> FaceEmbedding {
         try validator.validate(image: image, face: face)
         let preprocessed = try preprocessor.preprocessFace(image: image, face: face)

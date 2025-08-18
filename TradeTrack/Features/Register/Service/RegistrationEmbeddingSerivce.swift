@@ -1,27 +1,53 @@
-import Foundation
 import UIKit
 import Vision
+import CoreImage
 
 protocol RegistrationEmbeddingServing {
-    func embedding(from image: UIImage) throws -> [Float]
+    func embedding(from image: UIImage) throws -> FaceEmbedding
 }
 
 final class RegistrationEmbeddingService: RegistrationEmbeddingServing {
-    private let detector = FaceDetector()
-    private lazy var processor: FaceProcessor = try! FaceProcessor() // or inject
+    private let detector: FaceDetector
+    private let processor: FaceProcessor
 
-    func embedding(from image: UIImage) throws -> [Float] {
-        // 1) Get CIImage + fix orientation once
-        let ciRaw = image.cgImage.map(CIImage.init(cgImage:)) ?? (CIImage(image: image) ?? CIImage())
-        let exif = CGImagePropertyOrientation(ui: image.imageOrientation)
-        let ciUpright = ciRaw.oriented(forExifOrientation: Int32(exif.rawValue))
+    // Designated: pure DI
+    init(detector: FaceDetector, processor: FaceProcessor) {
+        self.detector = detector
+        self.processor = processor
+    }
 
-        // 2) Detect on CIImage (no pixel buffer yet)
+    // Convenience: build defaults (throws)
+    convenience init() throws {
+        try self.init(detector: FaceDetector(),
+                      processor: FaceProcessor())
+    }
+
+    func embedding(from image: UIImage) throws -> FaceEmbedding {
+        let ciUpright = try Self.makeUprightCIImage(from: image)
         guard let face = detector.detectFace(in: ciUpright) else {
             throw AppError(code: .faceValidationMissingLandmarks)
         }
+        return try processor.process(image: ciUpright, face: face)
+    }
+}
 
-        return try processor.process(image: ciUpright, face: face).values
+// MARK: - Private helpers
+private extension RegistrationEmbeddingService {
+    static func makeUprightCIImage(from image: UIImage) throws -> CIImage {
+        if let cg = image.cgImage {
+            let exif = CGImagePropertyOrientation(ui: image.imageOrientation)
+            return CIImage(cgImage: cg).oriented(exif)
+        }
+        if let ci = image.ciImage {
+            let exif = CGImagePropertyOrientation(ui: image.imageOrientation)
+            return ci.oriented(exif)
+        }
+        if let ci = CIImage(image: image, options: [.applyOrientationProperty: false]) {
+            let exif = CGImagePropertyOrientation(ui: image.imageOrientation)
+            return ci.oriented(exif)
+        }
+        // No usable pixel source—bail out loudly.
+        throw AppError(code: .invalidImageInput)
     }
 }
 

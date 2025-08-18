@@ -33,15 +33,19 @@ struct ErrorBannerView: View {
         }
     }
 
+    @MainActor
     private func dismiss() {
-        errorManager.currentError = nil
+        withAnimation { errorManager.clear() }
     }
 
     private func autoDismiss(after seconds: Double) {
-        Task { @MainActor in
+        Task {
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-            // Only clear if still showing
-            if errorManager.currentError != nil { dismiss() }
+            await MainActor.run {
+                if errorManager.currentError != nil {
+                    withAnimation { errorManager.clear() }
+                }
+            }
         }
     }
 }

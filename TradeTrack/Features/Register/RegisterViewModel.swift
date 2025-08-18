@@ -21,12 +21,12 @@ final class RegisterViewModel: ObservableObject {
     private let api: EmployeeRegistrationServing
 
     // MARK: - Init
-    init(
+    init (
         http: HTTPClient,
         errorManager: ErrorManager,
-        face: RegistrationEmbeddingServing = RegistrationEmbeddingService(),
+        face: RegistrationEmbeddingServing = try RegistrationEmbeddingService(),
         api: EmployeeRegistrationServing? = nil
-    ) {
+    ) throws{
         self.errorManager = errorManager
         self.face = face
         self.api = api ?? EmployeeRegistrationService(http: http)
@@ -69,7 +69,7 @@ final class RegisterViewModel: ObservableObject {
             let input = EmployeeInput(
                 employeeId: trimmedEmployeeID,
                 name: trimmedName,
-                embedding: embedding,
+                embedding: embedding.values,
                 role: trimmedRole
             )
 
