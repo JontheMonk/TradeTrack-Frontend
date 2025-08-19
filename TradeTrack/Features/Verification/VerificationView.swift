@@ -35,7 +35,11 @@ struct VerificationView: View {
             }
             .padding(.top, 40)
         }
-        .onAppear { vm.start() }
-        .onDisappear { vm.stop() }
+        .task {
+            await vm.start()
+        }
+        .onDisappear {
+            vm.stop()
+        }
     }
 }

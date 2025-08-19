@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import Vision
 import SwiftUI
 
@@ -6,45 +6,50 @@ enum VerificationState: Equatable { case detecting, processing, matched(name: St
 
 @MainActor
 final class VerificationViewModel: NSObject, ObservableObject {
-    // deps
-    private let camera = CameraManager()
-    private let detector = FaceDetector()
-    private let processor = try! FaceProcessor()
+    private let camera: CameraManager
+    private let detector: FaceDetector
+    private let processor: FaceProcessor
     private let http: HTTPClient
     private let errorManager: ErrorManager
 
-    // ui
     @Published var state: VerificationState = .detecting
     var targetEmployeeID: String?
 
     // control
     private var task: Task<Void, Never>?
-    private let outputDelegate = VerificationOutputDelegate()
+    private lazy var outputDelegate: VerificationOutputDelegate = {
+        VerificationOutputDelegate { [weak self] frame in
+            Task { @MainActor [weak self] in
+                await self?.handle(frame)
+            }
+        }
+    }()
 
-    init(http: HTTPClient, errorManager: ErrorManager, employeeId: String) {
+    init(
+        camera: CameraManager = CameraManager(),
+        detector: FaceDetector,
+        processor: FaceProcessor,
+        http: HTTPClient,
+        errorManager: ErrorManager,
+        employeeId: String
+    ) {
+        self.camera = camera
+        self.detector = detector
+        self.processor = processor
         self.http = http
         self.errorManager = errorManager
         self.targetEmployeeID = employeeId
         super.init()
-
-        outputDelegate.onFrame = { [weak self] frame in
-            guard let self else { return }
-            Task { @MainActor in
-                await self.handle(frame)
-            }
-        }
     }
 
     var session: AVCaptureSession { camera.session }
 
-    func start() {
-        Task {
-            do {
-                try await camera.requestAuthorization()
-                try camera.start(delegate: outputDelegate)
-            } catch {
-                errorManager.show(error)
-            }
+    func start() async {
+        do {
+            try await camera.requestAuthorization()
+            try await camera.start(delegate: outputDelegate)
+        } catch {
+            errorManager.show(error)
         }
     }
 
@@ -61,7 +66,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     private func handle(_ frame: FrameInput) async {
         guard task == nil else { return }
 
-        // Snapshot values we need off-main
+        // snapshot deps off-main
         let employeeID = self.targetEmployeeID
         let detector = self.detector
         let processor = self.processor
@@ -70,9 +75,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
         state = .processing
 
         task = Task(priority: .userInitiated) { [weak self] in
-            defer {
-                Task { @MainActor [weak self] in self?.task = nil }
-            }
+            defer { Task { @MainActor [weak self] in self?.task = nil } }
             do {
                 guard let face = detector.detectFace(in: frame.image) else {
                     await MainActor.run { self?.state = .detecting }
@@ -80,19 +83,15 @@ final class VerificationViewModel: NSObject, ObservableObject {
                 }
 
                 try Task.checkCancellation()
-
-                // Embed off-main (structured child task; no detached)
-                let embedding = try processor.process(frame, face: face)
-
-                try Task.checkCancellation()
-
+                let embedding = try processor.process(image: frame.image, face: face)
+                
                 guard let employeeID else { throw AppError(code: .employeeNotFound) }
-                let req = embedding.toVerifyRequest(employeeId: employeeID)
+                let req = VerifyFaceRequest(employeeId: employeeID, embedding: embedding)
+                
+                try Task.checkCancellation()
                 let _: Empty? = try await http.send("POST", path: "verify-face", body: req)
 
-                await MainActor.run {
-                    self?.state = .matched(name: employeeID)
-                }
+                await MainActor.run { self?.state = .matched(name: employeeID) }
             } catch is CancellationError {
                 await MainActor.run { self?.state = .detecting }
             } catch {

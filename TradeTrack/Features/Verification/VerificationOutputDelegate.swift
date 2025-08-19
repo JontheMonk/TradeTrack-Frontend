@@ -2,32 +2,33 @@ import AVFoundation
 import CoreImage
 
 final class VerificationOutputDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    var onFrame: ((FrameInput) -> Void)?
+    private let onFrame: @Sendable (FrameInput) -> Void
+
+    init(onFrame: @escaping @Sendable (FrameInput) -> Void) {
+        self.onFrame = onFrame
+    }
 
     func captureOutput(_ output: AVCaptureOutput,
                        didOutput sampleBuffer: CMSampleBuffer,
                        from connection: AVCaptureConnection) {
         guard let px = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-
-        // Build EXIF from rotation angle + mirroring (no deprecation warnings)
         let exif = CGImagePropertyOrientation(
             angleDegrees: connection.rotationAngleCompat,
             mirrored: connection.isVideoMirrored
         )
-
-        // Normalize pixels to upright exactly once
         let ciUpright = CIImage(cvPixelBuffer: px)
             .oriented(forExifOrientation: Int32(exif.rawValue))
-
         let ts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-        onFrame?(FrameInput(buffer: px, image: ciUpright, timestamp: ts))
+        onFrame(FrameInput(image: ciUpright, timestamp: ts))
     }
 }
 
-// MARK: - Compat + mapping (kept private to this file)
+extension VerificationOutputDelegate: @unchecked Sendable {}
+
+
+// MARK: - Compat + mapping
 
 private extension AVCaptureConnection {
-    /// iOS 17+: `videoRotationAngle`; older: map `videoOrientation` → angle.
     var rotationAngleCompat: CGFloat {
         if #available(iOS 17.0, *) { return videoRotationAngle }
         switch videoOrientation {

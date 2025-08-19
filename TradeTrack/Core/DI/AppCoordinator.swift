@@ -1,7 +1,5 @@
 import SwiftUI
 
-import SwiftUI
-
 @MainActor
 final class AppCoordinator: ObservableObject, Navigating {
     @Published var path: [Route] = []
