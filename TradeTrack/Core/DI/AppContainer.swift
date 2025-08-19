@@ -3,9 +3,8 @@ import Foundation
 struct AppContainer {
     // Core infra
     let http: HTTPClient
-    let errorManager: ErrorManager
 
-    // Face pipeline (singletons for app lifetime)
+    // Face pipeline
     let facePreprocessor: FacePreprocessor
     let faceValidator: FaceValidator
     let faceEmbedder: FaceEmbedder
@@ -19,9 +18,7 @@ struct AppContainer {
 
     init(http: HTTPClient) throws {
         self.http = http
-        self.errorManager = ErrorManager()
 
-        // Build face stack once
         let pre  = FacePreprocessor()
         let val  = FaceValidator()
         let emb  = try FaceEmbedder()
@@ -34,9 +31,8 @@ struct AppContainer {
         self.faceProcessor    = proc
         self.faceDetector     = det
 
-        // High-level services
-        self.registrationService  = RegistrationEmbeddingService(detector: det, processor: proc)
-        self.employeeAPI          = EmployeeRegistrationService(http: http)
-        self.employeeLookupService = EmployeeLookupService(http: http) // <-- your lookup impl
+        self.registrationService   = RegistrationEmbeddingService(detector: det, processor: proc)
+        self.employeeAPI           = EmployeeRegistrationService(http: http)
+        self.employeeLookupService = EmployeeLookupService(http: http)
     }
 }

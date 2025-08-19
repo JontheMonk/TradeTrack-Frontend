@@ -2,7 +2,6 @@ import SwiftUI
 
 struct LookupView: View {
     @StateObject private var vm: LookupViewModel
-    @EnvironmentObject private var coordinator: AppCoordinator   // for navigation
 
     init(viewModel: LookupViewModel) {
         _vm = StateObject(wrappedValue: viewModel)
@@ -17,7 +16,6 @@ struct LookupView: View {
     }
 
     var body: some View {
-        // ⚠️ No nested NavigationStack here; your app root owns it.
         VStack(spacing: 12) {
             // Search bar
             HStack {
@@ -35,7 +33,10 @@ struct LookupView: View {
                 }
             }
             .padding(10)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.secondarySystemBackground))
+            )
             .padding(.horizontal)
 
             // States
@@ -49,7 +50,7 @@ struct LookupView: View {
                 // Results
                 List(vm.results) { emp in
                     Button {
-                        coordinator.push(.verification(employeeId: emp.employeeId))
+                        vm.selectEmployee(emp.employeeId)   // ← VM decides navigation
                     } label: {
                         EmployeeCard(employee: emp)
                     }

@@ -1,24 +1,47 @@
 import SwiftUI
+import Foundation
 
 @main
 struct TradeTrackApp: App {
-    @StateObject private var errorManager = ErrorManager()
-
-    private let http: HTTPClient
-    private let lookupService: EmployeeLookupService
+    private let container: AppContainer
+    @StateObject private var coordinator: AppCoordinator
+    @StateObject private var errorManager: ErrorManager
 
     init() {
-        let baseURL = URL(string: "https://tradetrack-backend.onrender.com")!
+        guard let baseURL = URL(string: "https://tradetrack-backend.onrender.com") else {
+            fatalError("Bad backend URL")
+        }
         let http = HTTPClient(baseURL: baseURL)
-        self.http = http
-        self.lookupService = EmployeeLookupService(http: http)
+
+        let builtContainer: AppContainer
+        do {
+            builtContainer = try AppContainer(http: http)
+        } catch {
+            fatalError("Failed to build AppContainer: \(error)")
+        }
+
+        let em = ErrorManager()
+
+        self.container = builtContainer
+
+        _errorManager = StateObject(wrappedValue: em)
+        _coordinator  = StateObject(wrappedValue: AppCoordinator(container: builtContainer,
+                                                                 errorManager: em))
     }
 
     var body: some Scene {
         WindowGroup {
-            LookupView(service: lookupService, errorManager: errorManager, http: http)
-                .overlay(alignment: .top) { ErrorBannerView().padding(.top, 10) }
-                .environmentObject(errorManager)
+            NavigationStack(path: $coordinator.path) {
+                coordinator.makeView(for: .lookup)
+                    .navigationDestination(for: Route.self) { route in
+                        coordinator.makeView(for: route)
+                    }
+            }
+            .environmentObject(coordinator)
+            .environmentObject(errorManager)
+            .overlay(alignment: .top) {
+                ErrorBannerView().padding(.top, 10)
+            }
         }
     }
 }
