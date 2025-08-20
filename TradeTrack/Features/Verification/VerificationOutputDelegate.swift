@@ -2,9 +2,9 @@ import AVFoundation
 import CoreImage
 
 final class VerificationOutputDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    private let onFrame: @Sendable (FrameInput) -> Void
+    private let onFrame: @Sendable (CIImage) -> Void
 
-    init(onFrame: @escaping @Sendable (FrameInput) -> Void) {
+    init(onFrame: @escaping @Sendable (CIImage) -> Void) {
         self.onFrame = onFrame
     }
 
@@ -13,13 +13,12 @@ final class VerificationOutputDelegate: NSObject, AVCaptureVideoDataOutputSample
                        from connection: AVCaptureConnection) {
         guard let px = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let exif = CGImagePropertyOrientation(
-            angleDegrees: connection.rotationAngleCompat,
-            mirrored: connection.isVideoMirrored
+            angleDegrees: connection.rotationAngleCompat
         )
         let ciUpright = CIImage(cvPixelBuffer: px)
             .oriented(forExifOrientation: Int32(exif.rawValue))
         let ts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-        onFrame(FrameInput(image: ciUpright, timestamp: ts))
+        onFrame(ciUpright)
     }
 }
 
@@ -42,7 +41,7 @@ private extension AVCaptureConnection {
 }
 
 private extension CGImagePropertyOrientation {
-    init(angleDegrees: CGFloat, mirrored: Bool) {
+    init(angleDegrees: CGFloat) {
         let a = (Int(round(angleDegrees)) % 360 + 360) % 360
         let base: CGImagePropertyOrientation = {
             switch a {
@@ -53,11 +52,9 @@ private extension CGImagePropertyOrientation {
             default: return .up
             }
         }()
-        self = mirrored
-            ? (base == .up ? .upMirrored
-               : base == .right ? .leftMirrored
-               : base == .down ? .downMirrored
-               : /* .left */     .rightMirrored)
-            : base
+        self = base == .up ? .upMirrored
+             : base == .right ? .leftMirrored
+             : base == .down ? .downMirrored
+             : /* .left */ .rightMirrored
     }
 }

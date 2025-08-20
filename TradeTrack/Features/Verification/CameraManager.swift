@@ -7,7 +7,6 @@ final class CameraManager {
     private let sessionQueue = DispatchQueue(label: "camera.session") // serial
     private let videoQueue   = DispatchQueue(label: "camera.frames")  // sample callbacks
 
-    // Call this from VM before start()
     func requestAuthorization() async throws {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized: return

@@ -63,7 +63,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     deinit { task?.cancel() }
 
     // MARK: - One-at-a-time pipeline
-    private func handle(_ frame: FrameInput) async {
+    private func handle(_ image: CIImage) async {
         guard task == nil else { return }
 
         // snapshot deps off-main
@@ -77,13 +77,13 @@ final class VerificationViewModel: NSObject, ObservableObject {
         task = Task(priority: .userInitiated) { [weak self] in
             defer { Task { @MainActor [weak self] in self?.task = nil } }
             do {
-                guard let face = detector.detectFace(in: frame.image) else {
+                guard let face = detector.detectFace(in: image) else {
                     await MainActor.run { self?.state = .detecting }
                     return
                 }
 
                 try Task.checkCancellation()
-                let embedding = try processor.process(image: frame.image, face: face)
+                let embedding = try processor.process(image: image, face: face)
                 
                 guard let employeeID else { throw AppError(code: .employeeNotFound) }
                 let req = VerifyFaceRequest(employeeId: employeeID, embedding: embedding)
