@@ -32,6 +32,15 @@ final class AppCoordinator: ObservableObject, Navigating {
                 employeeId: id
             )
             VerificationView(viewModel: vm)
+        
+        case .register:
+            let vm = RegisterViewModel(
+                http: container.http,
+                errorManager: errorManager,
+                face: container.registrationService,
+            api: container.employeeAPI
+            )
+            RegisterView(viewModel: vm)
         }
     }
     

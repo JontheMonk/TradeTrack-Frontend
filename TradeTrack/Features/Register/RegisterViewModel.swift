@@ -24,12 +24,12 @@ final class RegisterViewModel: ObservableObject {
     init (
         http: HTTPClient,
         errorManager: ErrorManager,
-        face: RegistrationEmbeddingServing = try RegistrationEmbeddingService(),
-        api: EmployeeRegistrationServing? = nil
-    ) throws{
+        face: RegistrationEmbeddingServing,
+        api: EmployeeRegistrationServing
+    ) {
         self.errorManager = errorManager
         self.face = face
-        self.api = api ?? EmployeeRegistrationService(http: http)
+        self.api = api
     }
 
     // MARK: - Derived values

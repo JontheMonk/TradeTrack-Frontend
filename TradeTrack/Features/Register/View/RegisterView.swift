@@ -4,8 +4,8 @@ struct RegisterView: View {
     @StateObject private var vm: RegisterViewModel
     @State private var showPicker = false
 
-    init(http: HTTPClient, errorManager: ErrorManager) {
-        _vm = StateObject(wrappedValue: RegisterViewModel(http: http, errorManager: errorManager))
+    init(viewModel: RegisterViewModel) {
+        _vm = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
