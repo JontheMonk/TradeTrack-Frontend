@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct ErrorBannerView: View {
-    @EnvironmentObject var errorManager: ErrorManager
+    @ObservedObject var errorManager: ErrorManager
+
+    init(errorManager: ErrorManager) {
+        self.errorManager = errorManager
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,7 +27,6 @@ struct ErrorBannerView: View {
                 .onTapGesture { dismiss() }
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
-
             Spacer(minLength: 0)
         }
         .padding(.top, 8)

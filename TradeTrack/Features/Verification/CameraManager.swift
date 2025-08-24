@@ -51,23 +51,28 @@ final class CameraManager {
 
     // MARK: Orchestration (runs on sessionQueue)
     private func configureAndStart<D: AVCaptureVideoDataOutputSampleBufferDelegate & Sendable>(
-        delegate: D
-    ) throws {
+            delegate: D) throws {
         if session.isRunning {
             applyDelegate(delegate)
             applyConnectionTuning()
             return
         }
 
+        // Configure session
         session.beginConfiguration()
-        defer { session.commitConfiguration() }
+        do {
+            let device = try selectFrontDevice()
+            try ensureInput(for: device)
+            try ensureOutput()
+            applyDelegate(delegate)
+            applyConnectionTuning()
+            session.commitConfiguration()
+        } catch {
+            session.commitConfiguration() // Ensure configuration is committed even on error
+            throw error
+        }
 
-        let device = try selectFrontDevice()
-        try ensureInput(for: device)
-        try ensureOutput()
-        applyDelegate(delegate)
-        applyConnectionTuning()
-
+        // Start session after configuration
         try startSession()
     }
 

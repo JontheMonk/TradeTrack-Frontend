@@ -14,23 +14,16 @@ enum AppErrorCode: String, Equatable {
     case pixelBufferMissingBaseAddress = "PIXEL_BUFFER_MISSING"
     case modelOutputMissing            = "MODEL_OUTPUT_MISSING"
     case modelFailedToLoad             = "MODEL_LOAD_FAILURE"
+    
+    // Face
+    case faceValidationFailed = "FACE_VALIDATION_FAILED"
+    
+    // Image
+    case imageFailedToLoad = "IMAGE_LOAD_FAILED"
 
     // Preprocessing
     case facePreprocessingFailedResize = "FACE_PREPROCESSING_RESIZE_FAILED"
     case facePreprocessingFailedRender = "FACE_PREPROCESSING_RENDER_FAILED"
-
-    // Validation
-    case invalidImage                  = "INVALID_IMAGE"
-    case invalidImageInput             = "INVALID_IMAGE_INPUT"   // ← added
-    case noFaceDetected                = "NO_FACE_DETECTED"
-    case faceValidationMissingLandmarks = "FACE_VALIDATION_MISSING_LANDMARKS"
-    case faceValidationIncompleteLandmarks = "FACE_VALIDATION_INCOMPLETE_LANDMARKS"
-    case faceValidationBadRoll         = "FACE_VALIDATION_BAD_ROLL"
-    case faceValidationBadYaw          = "FACE_VALIDATION_BAD_YAW"
-    case faceValidationBadBrightness   = "FACE_VALIDATION_BAD_BRIGHTNESS"
-    case faceValidationBlurry          = "FACE_VALIDATION_BLURRY"
-    case faceValidationQualityUnavailable = "FACE_VALIDATION_QUALITY_UNAVAILABLE"
-    case faceTooSmall = "FACE_TOO_SMALL"
 
     // Backend
     case employeeAlreadyExists = "EMPLOYEE_ALREADY_EXISTS"
@@ -72,34 +65,21 @@ func userMessage(for code: AppErrorCode) -> String {
     case .cameraStartFailed:
         return "Failed to start the camera. Please try again."
 
-    // Validation / Image issues
-    case .invalidImage:
-        return "The selected image is invalid or unsupported. Please choose a different image."
-    case .invalidImageInput: // ← added
-        return "The image data couldn’t be read. Please try a different photo."
-
-    case .noFaceDetected:
-        return "No face was detected. Make sure your face is clearly visible."
-
     // Camera & Model
     case .pixelBufferMissingBaseAddress, .modelOutputMissing, .modelFailedToLoad:
         return "The face recognition system had a problem starting. Please restart the app or try again."
-
+      
+    // Face
+    case .faceValidationFailed:
+        return "Face was recgonized. Try again."
+        
+    // Image
+    case .imageFailedToLoad:
+        return "Image failed to load"
+        
     // Preprocessing
     case .facePreprocessingFailedResize, .facePreprocessingFailedRender:
         return "There was a problem processing the face image. Try using a clearer photo."
-
-    // Validation quality gates
-    case .faceValidationMissingLandmarks,
-         .faceValidationIncompleteLandmarks,
-         .faceValidationBadRoll,
-         .faceValidationBadYaw,
-         .faceValidationBadBrightness,
-         .faceValidationBlurry,
-         .faceValidationQualityUnavailable:
-        return "The image didn’t meet the quality requirements. Face the camera directly with good lighting."
-    case .faceTooSmall:
-        return "Come closer to the screen"
 
     // Backend-specific
     case .employeeAlreadyExists:

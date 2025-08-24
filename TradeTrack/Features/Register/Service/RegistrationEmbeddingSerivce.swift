@@ -24,8 +24,8 @@ final class RegistrationEmbeddingService: RegistrationEmbeddingServing {
 
     func embedding(from image: UIImage) throws -> FaceEmbedding {
         let ciUpright = try Self.makeUprightCIImage(from: image)
-        guard let face = detector.detectFace(in: ciUpright) else {
-            throw AppError(code: .faceValidationMissingLandmarks)
+        guard let face = detector.detectAndValidate(in: ciUpright) else {
+            throw AppError(code: .faceValidationFailed)
         }
         return try processor.process(image: ciUpright, face: face)
     }
@@ -46,8 +46,7 @@ private extension RegistrationEmbeddingService {
             let exif = CGImagePropertyOrientation(ui: image.imageOrientation)
             return ci.oriented(exif)
         }
-        // No usable pixel source—bail out loudly.
-        throw AppError(code: .invalidImageInput)
+        throw AppError(code: .imageFailedToLoad)
     }
 }
 

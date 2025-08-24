@@ -6,7 +6,6 @@ struct AppContainer {
 
     // Face pipeline
     let facePreprocessor: FacePreprocessor
-    let faceValidator: FaceValidator
     let faceEmbedder: FaceEmbedder
     let faceProcessor: FaceProcessor
     let faceDetector: FaceDetector
@@ -20,13 +19,11 @@ struct AppContainer {
         self.http = http
 
         let pre  = FacePreprocessor()
-        let val  = FaceValidator()
         let emb  = try FaceEmbedder()
-        let proc = FaceProcessor(preprocessor: pre, validator: val, embedder: emb)
+        let proc = FaceProcessor(preprocessor: pre, embedder: emb)
         let det  = FaceDetector()
 
         self.facePreprocessor = pre
-        self.faceValidator    = val
         self.faceEmbedder     = emb
         self.faceProcessor    = proc
         self.faceDetector     = det

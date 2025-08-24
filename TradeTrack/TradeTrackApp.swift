@@ -21,12 +21,9 @@ struct TradeTrackApp: App {
         }
 
         let em = ErrorManager()
-
         self.container = builtContainer
-
         _errorManager = StateObject(wrappedValue: em)
-        _coordinator  = StateObject(wrappedValue: AppCoordinator(container: builtContainer,
-                                                                 errorManager: em))
+        _coordinator = StateObject(wrappedValue: AppCoordinator(container: builtContainer, errorManager: em))
     }
 
     var body: some Scene {
@@ -38,9 +35,9 @@ struct TradeTrackApp: App {
                     }
             }
             .environmentObject(coordinator)
-            .environmentObject(errorManager)
             .overlay(alignment: .top) {
-                ErrorBannerView().padding(.top, 10)
+                ErrorBannerView(errorManager: errorManager)
+                    .padding(.top, 10)
             }
         }
     }

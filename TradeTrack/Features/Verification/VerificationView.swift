@@ -23,7 +23,7 @@ struct VerificationView: View {
                         .padding().background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 case .processing:
-                    ProgressView("Verifying…")
+                    Text("Verifying…")
                         .padding().background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 case .matched(let name):
@@ -34,6 +34,7 @@ struct VerificationView: View {
                 Spacer()
             }
             .padding(.top, 40)
+            .animation(.easeInOut(duration: 0.5), value: vm.state)
         }
         .task {
             await vm.start()

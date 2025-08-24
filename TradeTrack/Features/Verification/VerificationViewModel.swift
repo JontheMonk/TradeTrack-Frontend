@@ -15,8 +15,10 @@ final class VerificationViewModel: NSObject, ObservableObject {
     @Published var state: VerificationState = .detecting
     var targetEmployeeID: String?
 
-    // control
     private var task: Task<Void, Never>?
+    private var lastProcessedTime: Date?
+    private let minimumInterval: TimeInterval = 0.5
+
     private lazy var outputDelegate: VerificationOutputDelegate = {
         VerificationOutputDelegate { [weak self] frame in
             Task { @MainActor [weak self] in
@@ -58,31 +60,36 @@ final class VerificationViewModel: NSObject, ObservableObject {
         task = nil
         camera.stop()
         state = .detecting
+        lastProcessedTime = nil // Reset throttle on stop
     }
 
     deinit { task?.cancel() }
 
-    // MARK: - One-at-a-time pipeline
+    // MARK: - Throttled pipeline
     private func handle(_ image: CIImage) async {
+        let currentTime = Date()
+        if let lastTime = lastProcessedTime, currentTime.timeIntervalSince(lastTime) < minimumInterval {
+            return
+        }
+        lastProcessedTime = currentTime
+
         guard task == nil else { return }
 
-        // snapshot deps off-main
+        // Snapshot deps off-main
         let employeeID = self.targetEmployeeID
         let detector = self.detector
         let processor = self.processor
         let http = self.http
 
-        state = .processing
-
         task = Task(priority: .userInitiated) { [weak self] in
             defer { Task { @MainActor [weak self] in self?.task = nil } }
             do {
-                guard let face = detector.detectFace(in: image) else {
-                    await MainActor.run { self?.state = .detecting }
+                guard let face = detector.detectAndValidate(in: image) else {
                     return
                 }
 
                 try Task.checkCancellation()
+                await MainActor.run { self?.state = .processing}
                 let embedding = try processor.process(image: image, face: face)
                 
                 guard let employeeID else { throw AppError(code: .employeeNotFound) }
