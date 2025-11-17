@@ -71,7 +71,7 @@ func userMessage(for code: AppErrorCode) -> String {
       
     // Face
     case .faceValidationFailed:
-        return "Face was recgonized. Try again."
+        return "Face was not recgonized. Try again."
         
     // Image
     case .imageFailedToLoad:

@@ -5,7 +5,7 @@ import Foundation
 struct AppError: Error, LocalizedError, Equatable, Identifiable {
     let id = UUID()
     let code: AppErrorCode
-    let debugMessage: String?        // Only for logging/debugging
+    let debugMessage: String?
     let underlyingError: Error?
 
     init(
@@ -19,7 +19,7 @@ struct AppError: Error, LocalizedError, Equatable, Identifiable {
     }
 
     var errorDescription: String? {
-        userMessage(for: code) // Still safe for end-users
+        userMessage(for: code)
     }
 
     static func == (lhs: AppError, rhs: AppError) -> Bool {

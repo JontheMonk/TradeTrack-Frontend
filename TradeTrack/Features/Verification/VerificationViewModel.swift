@@ -6,7 +6,7 @@ enum VerificationState: Equatable { case detecting, processing, matched(name: St
 
 @MainActor
 final class VerificationViewModel: NSObject, ObservableObject {
-    private let camera: CameraManager
+    private let camera: CameraManaging
     private let detector: FaceDetector
     private let processor: FaceProcessor
     private let http: HTTPClient
@@ -28,7 +28,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     }()
 
     init(
-        camera: CameraManager = CameraManager(),
+        camera: CameraManaging,
         detector: FaceDetector,
         processor: FaceProcessor,
         http: HTTPClient,

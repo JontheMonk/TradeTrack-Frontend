@@ -3,7 +3,7 @@ import UIKit
 
 /// Manages the camera session and video output for the verification feature.
 final class CameraManager : CameraManaging {
-    private let session = AVCaptureSession()
+    let session = AVCaptureSession()
     private let output = AVCaptureVideoDataOutput()
     private let sessionQueue = DispatchQueue(label: "camera.session") // serial
     private let videoQueue = DispatchQueue(label: "camera.frames") // sample callbacks
