@@ -7,7 +7,7 @@ enum VerificationState: Equatable { case detecting, processing, matched(name: St
 @MainActor
 final class VerificationViewModel: NSObject, ObservableObject {
     private let camera: CameraManaging
-    private let detector: FaceDetector
+    private let analyzer: FaceAnalyzer
     private let processor: FaceProcessor
     private let http: HTTPClient
     private let errorManager: ErrorManager
@@ -29,14 +29,14 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
     init(
         camera: CameraManaging,
-        detector: FaceDetector,
+        analyzer: FaceAnalyzer,
         processor: FaceProcessor,
         http: HTTPClient,
         errorManager: ErrorManager,
         employeeId: String
     ) {
         self.camera = camera
-        self.detector = detector
+        self.analyzer = analyzer
         self.processor = processor
         self.http = http
         self.errorManager = errorManager
@@ -77,14 +77,14 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
         // Snapshot deps off-main
         let employeeID = self.targetEmployeeID
-        let detector = self.detector
+        let analyzer = self.analyzer
         let processor = self.processor
         let http = self.http
 
         task = Task(priority: .userInitiated) { [weak self] in
             defer { Task { @MainActor [weak self] in self?.task = nil } }
             do {
-                guard let face = detector.detectAndValidate(in: image) else {
+                guard let face = analyzer.analyze(in: image) else {
                     return
                 }
 

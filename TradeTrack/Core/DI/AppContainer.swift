@@ -3,6 +3,7 @@ import Foundation
 struct AppContainer {
     // Core infra
     let http: HTTPClient
+    let cameraManager: CameraManaging
 
     // Face pipeline
     let facePreprocessor: FacePreprocessor
@@ -17,6 +18,7 @@ struct AppContainer {
 
     init(http: HTTPClient) throws {
         self.http = http
+        self.cameraManager = CameraManager()
 
         let pre  = FacePreprocessor()
         let emb  = try FaceEmbedder()
@@ -33,3 +35,4 @@ struct AppContainer {
         self.employeeLookupService = EmployeeLookupService(http: http)
     }
 }
+
