@@ -60,7 +60,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
         task = nil
         camera.stop()
         state = .detecting
-        lastProcessedTime = nil // Reset throttle on stop
+        lastProcessedTime = nil
     }
 
     deinit { task?.cancel() }

@@ -37,6 +37,24 @@
 			);
 			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
 		};
+		C47F63C82E620FFB005F1C59 /* Exceptions for "TradeTrackTests" folder in "TradeTrackTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Camera/CameraManagerTests.swift,
+				Camera/MockCameraDeviceProvider.swift,
+				Support/ErrorHelper.swift,
+			);
+			target = C4029FA62E2D72BF00334A85 /* TradeTrackTests */;
+		};
+		C47F63CA2E621014005F1C59 /* Exceptions for "TradeTrackTests" folder in "TradeTrack" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Camera/CameraManagerTests.swift,
+				Camera/MockCameraDeviceProvider.swift,
+				Support/ErrorHelper.swift,
+			);
+			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -48,12 +66,16 @@
 			path = TradeTrack;
 			sourceTree = "<group>";
 		};
-		C4029FAA2E2D72BF00334A85 /* TradeTrackTests */ = {
+		C47F63C12E620F2C005F1C59 /* TradeTrackTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C47F63CA2E621014005F1C59 /* Exceptions for "TradeTrackTests" folder in "TradeTrack" target */,
+				C47F63C82E620FFB005F1C59 /* Exceptions for "TradeTrackTests" folder in "TradeTrackTests" target */,
+			);
 			path = TradeTrackTests;
 			sourceTree = "<group>";
 		};
-		C4029FB42E2D72BF00334A85 /* TradeTrackUITests */ = {
+		C47F63D82E625C76005F1C59 /* TradeTrackUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TradeTrackUITests;
 			sourceTree = "<group>";
@@ -88,9 +110,9 @@
 		C4029F912E2D72BD00334A85 = {
 			isa = PBXGroup;
 			children = (
+				C47F63D82E625C76005F1C59 /* TradeTrackUITests */,
+				C47F63C12E620F2C005F1C59 /* TradeTrackTests */,
 				C4029F9C2E2D72BD00334A85 /* TradeTrack */,
-				C4029FAA2E2D72BF00334A85 /* TradeTrackTests */,
-				C4029FB42E2D72BF00334A85 /* TradeTrackUITests */,
 				C4029F9B2E2D72BD00334A85 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -122,6 +144,8 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C4029F9C2E2D72BD00334A85 /* TradeTrack */,
+				C47F63C12E620F2C005F1C59 /* TradeTrackTests */,
+				C47F63D82E625C76005F1C59 /* TradeTrackUITests */,
 			);
 			name = TradeTrack;
 			packageProductDependencies = (
@@ -143,9 +167,6 @@
 			dependencies = (
 				C4029FA92E2D72BF00334A85 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				C4029FAA2E2D72BF00334A85 /* TradeTrackTests */,
-			);
 			name = TradeTrackTests;
 			packageProductDependencies = (
 			);
@@ -165,9 +186,6 @@
 			);
 			dependencies = (
 				C4029FB32E2D72BF00334A85 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				C4029FB42E2D72BF00334A85 /* TradeTrackUITests */,
 			);
 			name = TradeTrackUITests;
 			packageProductDependencies = (

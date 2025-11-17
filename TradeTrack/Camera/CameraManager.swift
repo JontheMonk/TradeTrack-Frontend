@@ -1,17 +1,32 @@
-@preconcurrency import AVFoundation
+import AVFoundation
 import UIKit
 
-final class CameraManager {
-    let session = AVCaptureSession()
+/// Manages the camera session and video output for the verification feature.
+final class CameraManager : CameraManaging {
+    private let session = AVCaptureSession()
     private let output = AVCaptureVideoDataOutput()
     private let sessionQueue = DispatchQueue(label: "camera.session") // serial
-    private let videoQueue   = DispatchQueue(label: "camera.frames")  // sample callbacks
+    private let videoQueue = DispatchQueue(label: "camera.frames") // sample callbacks
+    private let deviceProvider: CameraDeviceProvider
 
+    /// Initializes the CameraManager with a device provider.
+    /// - Parameter deviceProvider: The provider for camera device functionality (default is real implementation).
+    init(deviceProvider: CameraDeviceProvider = RealCameraDeviceProvider()) {
+        self.deviceProvider = deviceProvider
+    }
+
+    /// Requests camera authorization asynchronously.
     func requestAuthorization() async throws {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized: return
+        switch deviceProvider.authorizationStatus(for: .video) {
+        case .authorized:
+            return
         case .notDetermined:
-            guard await AVCaptureDevice.requestAccess(for: .video) else {
+            let granted = await withCheckedContinuation { continuation in
+                deviceProvider.requestAccess(for: .video) { granted in
+                    continuation.resume(returning: granted)
+                }
+            }
+            guard granted else {
                 throw AppError(code: .cameraNotAuthorized)
             }
         default:
@@ -20,17 +35,17 @@ final class CameraManager {
     }
 
     // MARK: Public API
-    func start<D: AVCaptureVideoDataOutputSampleBufferDelegate & Sendable>(
-        delegate: D
-    ) async throws {
+    /// Starts the camera session with the specified delegate.
+    func start<D: AVCaptureVideoDataOutputSampleBufferDelegate & Sendable>(delegate: D) async throws {
         try await onSessionQueue {
             try self.configureAndStart(delegate: delegate)
         }
     }
 
+    /// Stops the camera session.
     func stop() {
         let session = self.session
-        let output  = self.output
+        let output = self.output
         sessionQueue.async {
             if session.isRunning { session.stopRunning() }
             output.setSampleBufferDelegate(nil, queue: nil)
@@ -38,27 +53,23 @@ final class CameraManager {
     }
 
     // MARK: Session queue bridge
-    private func onSessionQueue<T>(
-        _ work: @escaping () throws -> T
-    ) async throws -> T {
+    private func onSessionQueue<T>(_ work: @escaping () throws -> T) async throws -> T {
         try await withCheckedThrowingContinuation { cont in
             sessionQueue.async {
-                do   { cont.resume(returning: try work()) }
+                do { cont.resume(returning: try work()) }
                 catch { cont.resume(throwing: error) }
             }
         }
     }
 
     // MARK: Orchestration (runs on sessionQueue)
-    private func configureAndStart<D: AVCaptureVideoDataOutputSampleBufferDelegate & Sendable>(
-            delegate: D) throws {
+    private func configureAndStart<D: AVCaptureVideoDataOutputSampleBufferDelegate & Sendable>(delegate: D) throws {
         if session.isRunning {
             applyDelegate(delegate)
             applyConnectionTuning()
             return
         }
 
-        // Configure session
         session.beginConfiguration()
         do {
             let device = try selectFrontDevice()
@@ -72,14 +83,17 @@ final class CameraManager {
             throw error
         }
 
-        // Start session after configuration
         try startSession()
     }
 
     // MARK: Building blocks (sessionQueue)
     private func selectFrontDevice() throws -> AVCaptureDevice {
-        if let d = AVCaptureDevice.default(.builtInTrueDepthCamera, for: .video, position: .front) { return d }
-        if let d = AVCaptureDevice.default(.builtInWideAngleCamera,  for: .video, position: .front) { return d }
+        if let d = deviceProvider.defaultDevice(for: .builtInTrueDepthCamera, mediaType: .video, position: .front) {
+            return d
+        }
+        if let d = deviceProvider.defaultDevice(for: .builtInWideAngleCamera, mediaType: .video, position: .front) {
+            return d
+        }
         throw AppError(code: .cameraUnavailable)
     }
 
@@ -102,8 +116,7 @@ final class CameraManager {
     private func ensureOutput() throws {
         if !session.outputs.contains(where: { $0 === output }) {
             output.videoSettings = [
-                kCVPixelBufferPixelFormatTypeKey as String:
-                    kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
             ]
             output.alwaysDiscardsLateVideoFrames = true
             guard session.canAddOutput(output) else { throw AppError(code: .cameraOutputFailed) }
