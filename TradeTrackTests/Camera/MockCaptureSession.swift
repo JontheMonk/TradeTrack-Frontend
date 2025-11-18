@@ -4,14 +4,10 @@ import AVFoundation
 
 final class MockCaptureSession: CaptureSessioning {
 
-    // MARK: - Underlying session (for preview compatibility)
-    // Not actually used in tests, but satisfies the protocol.
-    let underlyingSession = AVCaptureSession()
+    // MARK: - Stored state for tests
 
-    // MARK: - Stored state used by tests
-
-    var inputsStorage: [AVCaptureInput] = []
-    var outputsStorage: [AVCaptureOutput] = []
+    var inputsStorage: [CaptureDeviceInputAbility] = []
+    var outputsStorage: [VideoOutputting] = []
     var isRunningStorage: Bool = false
 
     var canAddInputResult: Bool = true
@@ -22,31 +18,38 @@ final class MockCaptureSession: CaptureSessioning {
     private(set) var startRunningCalled = false
     private(set) var stopRunningCalled = false
 
-    // MARK: - CaptureSessioning
 
-    var inputs: [AVCaptureInput] { inputsStorage }
-    var outputs: [AVCaptureOutput] { outputsStorage }
+    // MARK: - CaptureSessioning conformance
+
+    var inputs: [CaptureDeviceInputAbility] { inputsStorage }
+    var outputs: [VideoOutputting] { outputsStorage }
     var isRunning: Bool { isRunningStorage }
 
-    func canAddInput(_ input: AVCaptureInput) -> Bool {
+
+    func canAddInput(_ input: CaptureDeviceInputAbility) -> Bool {
         canAddInputResult
     }
 
-    func addInput(_ input: AVCaptureInput) {
+    func addInput(_ input: CaptureDeviceInputAbility) {
         inputsStorage.append(input)
     }
 
-    func removeInput(_ input: AVCaptureInput) {
-        inputsStorage.removeAll { $0 === input }
+    func removeInput(_ input: CaptureDeviceInputAbility) {
+        inputsStorage.removeAll { lhs in
+            // identity comparison for reference types
+            (lhs as AnyObject) === (input as AnyObject)
+        }
     }
 
-    func canAddOutput(_ output: AVCaptureOutput) -> Bool {
+
+    func canAddOutput(_ output: VideoOutputting) -> Bool {
         canAddOutputResult
     }
 
-    func addOutput(_ output: AVCaptureOutput) {
+    func addOutput(_ output: VideoOutputting) {
         outputsStorage.append(output)
     }
+
 
     func beginConfiguration() {
         beginConfigurationCalled = true

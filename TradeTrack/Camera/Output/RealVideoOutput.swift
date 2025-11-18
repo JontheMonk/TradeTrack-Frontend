@@ -3,8 +3,6 @@ import AVFoundation
 final class RealVideoOutput: VideoOutputting {
     private let output = AVCaptureVideoDataOutput()
 
-    var underlyingOutput: AVCaptureOutput { output }
-
     var videoSettings: [String : Any]! {
         get { output.videoSettings }
         set { output.videoSettings = newValue }
@@ -26,3 +24,4 @@ final class RealVideoOutput: VideoOutputting {
         output.setSampleBufferDelegate(sampleBufferDelegate, queue: queue)
     }
 }
+

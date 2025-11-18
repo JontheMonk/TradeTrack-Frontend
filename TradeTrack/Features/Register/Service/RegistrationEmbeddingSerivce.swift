@@ -7,24 +7,18 @@ protocol RegistrationEmbeddingServing {
 }
 
 final class RegistrationEmbeddingService: RegistrationEmbeddingServing {
-    private let detector: FaceDetector
+    private let analyzer: FaceAnalyzing
     private let processor: FaceProcessor
 
     // Designated: pure DI
-    init(detector: FaceDetector, processor: FaceProcessor) {
-        self.detector = detector
+    init(analyzer: FaceAnalyzing, processor: FaceProcessor) {
+        self.analyzer = analyzer
         self.processor = processor
-    }
-
-    // Convenience: build defaults (throws)
-    convenience init() throws {
-        try self.init(detector: FaceDetector(),
-                      processor: FaceProcessor())
     }
 
     func embedding(from image: UIImage) throws -> FaceEmbedding {
         let ciUpright = try Self.makeUprightCIImage(from: image)
-        guard let face = detector.detectAndValidate(in: ciUpright) else {
+        guard let face = analyzer.analyze(in: ciUpright) else {
             throw AppError(code: .faceValidationFailed)
         }
         return try processor.process(image: ciUpright, face: face)

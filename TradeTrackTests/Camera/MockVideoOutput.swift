@@ -3,9 +3,6 @@ import AVFoundation
 
 final class MockVideoOutput: VideoOutputting {
 
-    private let dummyOutput = AVCaptureVideoDataOutput()
-    var underlyingOutput: AVCaptureOutput { dummyOutput }
-
     // Track settings applied
     var videoSettings: [String : Any]! = [:]
     var alwaysDiscardsLateVideoFrames: Bool = false

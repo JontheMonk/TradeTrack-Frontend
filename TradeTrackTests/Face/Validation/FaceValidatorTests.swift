@@ -5,12 +5,7 @@ import CoreImage
 
 final class FaceValidatorTests: XCTestCase {
 
-    private var validator: FaceValidator!
-
-    override func setUp() {
-        super.setUp()
-        validator = FaceValidator()
-    }
+    private var validator = FaceValidator()
 
     // MARK: - Roll & Yaw
 
@@ -146,4 +141,114 @@ final class FaceValidatorTests: XCTestCase {
 
         XCTAssertTrue(result)
     }
+    
+    // MARK: - Additional Roll & Yaw Edge Cases
+
+    func testRejectsMissingYaw() {
+        let face = makeFace(roll: 0, yaw: nil)
+        let result = validator.isValid(
+            face: face,
+            in: CIImage(),
+            captureQualityProvider: { _, _ in 0.8 }
+        )
+        XCTAssertFalse(result)
+    }
+
+    func testAcceptsRollExactlyAtThreshold() {
+        let deg15 = Float(15 * Double.pi / 180)
+        let face = makeFace(roll: deg15, yaw: 0)
+        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        XCTAssertTrue(result)
+    }
+
+    func testRejectsRollJustAboveThreshold() {
+        let deg = Float((15.1 * Double.pi) / 180)
+        let face = makeFace(roll: deg, yaw: 0)
+        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        XCTAssertFalse(result)
+    }
+
+    func testAcceptsYawExactlyAtThreshold() {
+        let deg15 = Float(15 * Double.pi / 180)
+        let face = makeFace(roll: 0, yaw: deg15)
+        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        XCTAssertTrue(result)
+    }
+
+    func testRejectsYawJustAboveThreshold() {
+        let deg = Float((15.1 * Double.pi) / 180)
+        let face = makeFace(roll: 0, yaw: deg)
+        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        XCTAssertFalse(result)
+    }
+    
+    // MARK: - Face Size Boundaries
+
+    func testAcceptsFaceAtExactMinSize() {
+        let box = CGRect(x: 0.2, y: 0.2, width: 0.20, height: 0.20)
+        let face = makeFace(roll: 0, yaw: 0, boundingBox: box)
+
+        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        XCTAssertTrue(result)
+    }
+
+    func testRejectsFaceJustUnderMinSize() {
+        let box = CGRect(x: 0.2, y: 0.2, width: 0.199, height: 0.199)
+        let face = makeFace(roll: 0, yaw: 0, boundingBox: box)
+
+        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        XCTAssertFalse(result)
+    }
+
+    func testRejectsDegenerateBoundingBoxTallButNarrow() {
+        // Min side = 0.05 → should fail
+        let box = CGRect(x: 0.1, y: 0.1, width: 0.05, height: 0.9)
+        let face = makeFace(roll: 0, yaw: 0, boundingBox: box)
+
+        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        XCTAssertFalse(result)
+    }
+    
+    // MARK: - Capture Quality Boundaries
+
+    func testAcceptsQualityExactlyAtThreshold() {
+        let face = makeFace(roll: 0, yaw: 0)
+        let result = validator.isValid(
+            face: face,
+            in: CIImage(),
+            captureQualityProvider: { _, _ in 0.25 }
+        )
+        XCTAssertTrue(result)
+    }
+
+    func testRejectsQualityJustBelowThreshold() {
+        let face = makeFace(roll: 0, yaw: 0)
+        let result = validator.isValid(
+            face: face,
+            in: CIImage(),
+            captureQualityProvider: { _, _ in 0.249 }
+        )
+        XCTAssertFalse(result)
+    }
+
+    func testRejectsQualityNaN() {
+        let face = makeFace(roll: 0, yaw: 0)
+        let result = validator.isValid(
+            face: face,
+            in: CIImage(),
+            captureQualityProvider: { _, _ in Float.nan }
+        )
+        XCTAssertFalse(result)
+    }
+
+    func testAcceptsVeryHighQuality() {
+        let face = makeFace(roll: 0, yaw: 0)
+        let result = validator.isValid(
+            face: face,
+            in: CIImage(),
+            captureQualityProvider: { _, _ in 10.0 } // Should still be valid
+        )
+        XCTAssertTrue(result)
+    }
+
 }

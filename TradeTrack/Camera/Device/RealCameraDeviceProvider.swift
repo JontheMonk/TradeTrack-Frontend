@@ -6,7 +6,7 @@ final class RealCameraDeviceProvider: CameraDeviceProvider {
         for deviceType: AVCaptureDevice.DeviceType,
         mediaType: AVMediaType?,
         position: AVCaptureDevice.Position
-    ) -> AVCaptureDevice? {
+    ) -> CaptureDeviceAbility? {
         AVCaptureDevice.default(deviceType, for: mediaType, position: position)
     }
 

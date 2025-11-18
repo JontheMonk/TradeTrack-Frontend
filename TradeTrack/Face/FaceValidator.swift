@@ -62,7 +62,7 @@ struct FaceValidator: FaceValidating {
             return false
         }
 
-        logger.debug("Face accepted 👍")
+        logger.debug("Face accepted")
         return true
     }
 }

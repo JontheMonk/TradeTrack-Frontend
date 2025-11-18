@@ -41,7 +41,7 @@ final class CameraManagerTests: XCTestCase {
 
         do {
             try await sut.requestAuthorization()
-            XCTFail("Expected throw")
+            XCTFail("Expected to throw")
         } catch {
             XCTAssertEqual(error.appErrorCode, .cameraNotAuthorized)
         }
@@ -55,7 +55,7 @@ final class CameraManagerTests: XCTestCase {
 
             do {
                 try await sut.requestAuthorization()
-                XCTFail("Expected throw")
+                XCTFail("Expected to throw")
             } catch {
                 XCTAssertEqual(error.appErrorCode, .cameraNotAuthorized)
             }
@@ -73,7 +73,7 @@ final class CameraManagerTests: XCTestCase {
 
         do {
             try await sut.start(delegate: DummyDelegate())
-            XCTFail("Expected .cameraUnavailable")
+            XCTFail("Expected cameraUnavailable")
         } catch {
             XCTAssertEqual(error.appErrorCode, .cameraUnavailable)
         }
@@ -87,27 +87,26 @@ final class CameraManagerTests: XCTestCase {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
+        let device = MockCaptureDevice()
+        dp.defaultDeviceToReturn = device
+
         let session = MockCaptureSession()
         let output = MockVideoOutput()
-        let mockInputCreator = MockDeviceInputCreator()
 
-        // Real device (safe)
-        let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)!
-        let input = try AVCaptureDeviceInput(device: device)
-        session.inputsStorage = [input]
-        mockInputCreator.nextInput = input
+        let existingInput = MockCaptureDeviceInput(device: device)
+        session.inputsStorage = [existingInput]
 
-        dp.defaultDeviceToReturn = device
+        let creator = MockDeviceInputCreator()
+        creator.nextInput = existingInput
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: output,
-            inputCreator: mockInputCreator
+            inputCreator: creator
         )
 
         try await sut.start(delegate: DummyDelegate())
-
         XCTAssertEqual(session.inputsStorage.count, 1)
     }
 
@@ -115,52 +114,50 @@ final class CameraManagerTests: XCTestCase {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
-        // devices
-        let oldDev = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)!
-        let newDev = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
-        dp.defaultDeviceToReturn = newDev
+        let oldDevice = MockCaptureDevice(uniqueID: "old")
+        let newDevice = MockCaptureDevice(uniqueID: "new")
 
-        let oldInput = try AVCaptureDeviceInput(device: oldDev)
-        let newInput = try AVCaptureDeviceInput(device: newDev)
+        dp.defaultDeviceToReturn = newDevice
+
+        let oldInput = MockCaptureDeviceInput(device: oldDevice)
+        let newInput = MockCaptureDeviceInput(device: newDevice)
 
         let session = MockCaptureSession()
         session.inputsStorage = [oldInput]
 
-        let mockInputCreator = MockDeviceInputCreator()
-        mockInputCreator.nextInput = newInput
+        let creator = MockDeviceInputCreator()
+        creator.nextInput = newInput
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: MockVideoOutput(),
-            inputCreator: mockInputCreator
+            inputCreator: creator
         )
 
         try await sut.start(delegate: DummyDelegate())
 
         XCTAssertEqual(session.inputsStorage.count, 1)
-        XCTAssertEqual(
-            (session.inputsStorage.first as? AVCaptureDeviceInput)?.device.uniqueID,
-            newDev.uniqueID
-        )
+        XCTAssertEqual(session.inputsStorage.first?.captureDevice.uniqueID, "new")
     }
 
     func test_ensureInput_throwsWhenInputFactoryFails() async {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
-        let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
+        let device = MockCaptureDevice()
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
-        let mockFactory = MockDeviceInputCreator()
-        mockFactory.errorToThrow = NSError(domain: "x", code: 1)
+
+        let creator = MockDeviceInputCreator()
+        creator.errorToThrow = NSError(domain: "x", code: 1)
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: MockVideoOutput(),
-            inputCreator: mockFactory
+            inputCreator: creator
         )
 
         do {
@@ -175,20 +172,20 @@ final class CameraManagerTests: XCTestCase {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
-        let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
+        let device = MockCaptureDevice()
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
-        session.canAddInputResult = false // simulate failure
+        session.canAddInputResult = false
 
-        let mockFactory = MockDeviceInputCreator()
-        mockFactory.nextInput = try! AVCaptureDeviceInput(device: device)
+        let creator = MockDeviceInputCreator()
+        creator.nextInput = MockCaptureDeviceInput(device: device)
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: MockVideoOutput(),
-            inputCreator: mockFactory
+            inputCreator: creator
         )
 
         do {
@@ -205,19 +202,20 @@ final class CameraManagerTests: XCTestCase {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
-        let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
+        let device = MockCaptureDevice()
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
         let output = MockVideoOutput()
-        let inputCreator = MockDeviceInputCreator()
-        inputCreator.nextInput = try AVCaptureDeviceInput(device: device)
+
+        let creator = MockDeviceInputCreator()
+        creator.nextInput = MockCaptureDeviceInput(device: device)
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: output,
-            inputCreator: inputCreator
+            inputCreator: creator
         )
 
         try await sut.start(delegate: DummyDelegate())
@@ -230,20 +228,20 @@ final class CameraManagerTests: XCTestCase {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
-        let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
+        let device = MockCaptureDevice()
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
         session.canAddOutputResult = false
 
-        let mockFactory = MockDeviceInputCreator()
-        mockFactory.nextInput = try! AVCaptureDeviceInput(device: device)
+        let creator = MockDeviceInputCreator()
+        creator.nextInput = MockCaptureDeviceInput(device: device)
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: MockVideoOutput(),
-            inputCreator: mockFactory
+            inputCreator: creator
         )
 
         do {
@@ -260,19 +258,20 @@ final class CameraManagerTests: XCTestCase {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
-        let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
+        let device = MockCaptureDevice()
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
         let output = MockVideoOutput()
-        let inputCreator = MockDeviceInputCreator()
-        inputCreator.nextInput = try AVCaptureDeviceInput(device: device)
+
+        let creator = MockDeviceInputCreator()
+        creator.nextInput = MockCaptureDeviceInput(device: device)
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: output,
-            inputCreator: inputCreator
+            inputCreator: creator
         )
 
         let delegate = DummyDelegate()
@@ -288,19 +287,20 @@ final class CameraManagerTests: XCTestCase {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
-        let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
+        let device = MockCaptureDevice()
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
         let output = MockVideoOutput()
-        let inputCreator = MockDeviceInputCreator()
-        inputCreator.nextInput = try AVCaptureDeviceInput(device: device)
+
+        let creator = MockDeviceInputCreator()
+        creator.nextInput = MockCaptureDeviceInput(device: device)
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: output,
-            inputCreator: inputCreator
+            inputCreator: creator
         )
 
         try await sut.start(delegate: DummyDelegate())
@@ -314,20 +314,20 @@ final class CameraManagerTests: XCTestCase {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
-        let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
+        let device = MockCaptureDevice()
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
         session.isRunningStorage = false // simulate failure
 
-        let mockFactory = MockDeviceInputCreator()
-        mockFactory.nextInput = try! AVCaptureDeviceInput(device: device)
+        let creator = MockDeviceInputCreator()
+        creator.nextInput = MockCaptureDeviceInput(device: device)
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: MockVideoOutput(),
-            inputCreator: mockFactory
+            inputCreator: creator
         )
 
         do {
@@ -344,19 +344,20 @@ final class CameraManagerTests: XCTestCase {
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
-        let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
+        let device = MockCaptureDevice()
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
         let output = MockVideoOutput()
-        let mockInputCreator = MockDeviceInputCreator()
-        mockInputCreator.nextInput = try AVCaptureDeviceInput(device: device)
+
+        let creator = MockDeviceInputCreator()
+        creator.nextInput = MockCaptureDeviceInput(device: device)
 
         let sut = CameraManager(
             deviceProvider: dp,
             session: session,
             output: output,
-            inputCreator: mockInputCreator
+            inputCreator: creator
         )
 
         try await sut.start(delegate: DummyDelegate())

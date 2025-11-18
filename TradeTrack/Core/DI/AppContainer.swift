@@ -1,3 +1,5 @@
+import CoreML
+
 struct AppContainer {
     // Core infra
     let http: HTTPClient
@@ -22,10 +24,12 @@ struct AppContainer {
 
         // Face pipeline setup
         let pre  = FacePreprocessor()
-        let emb  = try FaceEmbedder()
-        let proc = FaceProcessor(preprocessor: pre, embedder: emb)
         let det  = FaceDetector()
         let val  = FaceValidator()
+        let realModel = try w600k_r50(configuration: MLModelConfiguration())
+        let preprocessor = RealPixelPreprocessor()
+        let emb  = FaceEmbedder( model: realModel, preprocessor: preprocessor)
+        let proc = FaceProcessor(preprocessor: pre, embedder: emb)
         let ana  = FaceAnalyzer(detector: det, validator: val)
 
         self.facePreprocessor = pre
@@ -35,7 +39,7 @@ struct AppContainer {
         self.faceValidator    = val
         self.faceAnalyzer     = ana
 
-        self.registrationService = RegistrationEmbeddingService(detector: det, processor: proc)
+        self.registrationService = RegistrationEmbeddingService(analyzer: ana, processor: proc)
         self.employeeAPI         = EmployeeRegistrationService(http: http)
         self.employeeLookupService = EmployeeLookupService(http: http)
     }

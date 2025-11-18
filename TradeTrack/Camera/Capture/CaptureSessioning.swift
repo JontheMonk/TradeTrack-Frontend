@@ -2,19 +2,17 @@
 import AVFoundation
 
 protocol CaptureSessioning: AnyObject {
-    /// The real AVCaptureSession to use for preview layers, etc.
-    var underlyingSession: AVCaptureSession { get }
 
-    var inputs: [AVCaptureInput] { get }
-    var outputs: [AVCaptureOutput] { get }
+    var inputs: [CaptureDeviceInputAbility] { get }
+    var outputs: [VideoOutputting] { get }
     var isRunning: Bool { get }
+    
+    func canAddInput(_ input: CaptureDeviceInputAbility) -> Bool
+    func addInput(_ input: CaptureDeviceInputAbility)
+    func removeInput(_ input: CaptureDeviceInputAbility)
 
-    func canAddInput(_ input: AVCaptureInput) -> Bool
-    func addInput(_ input: AVCaptureInput)
-    func removeInput(_ input: AVCaptureInput)
-
-    func canAddOutput(_ output: AVCaptureOutput) -> Bool
-    func addOutput(_ output: AVCaptureOutput)
+    func canAddOutput(_ output: VideoOutputting) -> Bool
+    func addOutput(_ output: VideoOutputting)
 
     func beginConfiguration()
     func commitConfiguration()

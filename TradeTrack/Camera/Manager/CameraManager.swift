@@ -8,6 +8,7 @@ final class CameraManager: CameraManaging {
     private let videoQueue: DispatchQueue
     private let deviceProvider: CameraDeviceProvider
     private let inputCreator : DeviceInputCreating
+    
 
     init(
         deviceProvider: CameraDeviceProvider = RealCameraDeviceProvider(),
@@ -112,20 +113,17 @@ final class CameraManager: CameraManaging {
     }
 
     // MARK: - Input
-
-    private func ensureInput(for device: AVCaptureDevice) throws {
+    private func ensureInput(for device: CaptureDeviceAbility) throws {
         // Reuse existing input if uniqueID matches
         if let current = session.inputs
-            .compactMap({ $0 as? AVCaptureDeviceInput })
-            .first(where: { $0.device.uniqueID == device.uniqueID }) {
+            .compactMap({$0})
+            .first(where: { $0.captureDevice.uniqueID == device.uniqueID }) {
             return
         }
 
         // Remove old video inputs
-        for input in session.inputs {
-            if let di = input as? AVCaptureDeviceInput, di.device.hasMediaType(.video) {
-                session.removeInput(di)
-            }
+        for input in session.inputs where input.captureDevice.hasMediaType(.video) {
+            session.removeInput(input)
         }
 
         let input = try inputCreator.makeInput(for: device)
@@ -133,20 +131,26 @@ final class CameraManager: CameraManaging {
         session.addInput(input)
 
     }
+    
     // MARK: - Output
 
     private func ensureOutput() throws {
-        if !session.outputs.contains(where: { $0 === output.underlyingOutput }) {
+        // If this exact output object isn't already attached, add it.
+        if !session.outputs.contains(where: { $0 === output }) {
+
             output.videoSettings = [
                 kCVPixelBufferPixelFormatTypeKey as String:
                     kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
             ]
             output.alwaysDiscardsLateVideoFrames = true
-            guard session.canAddOutput(output.underlyingOutput)
+
+            guard session.canAddOutput(output)
             else { throw AppError(code: .cameraOutputFailed) }
-            session.addOutput(output.underlyingOutput)
+
+            session.addOutput(output)
         }
     }
+
 
     // MARK: - Delegate & Tuning
 

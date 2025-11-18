@@ -1,7 +1,6 @@
 import AVFoundation
 
 protocol VideoOutputting: AnyObject {
-    var underlyingOutput: AVCaptureOutput { get }
 
     var videoSettings: [String: Any]! { get set }
     var alwaysDiscardsLateVideoFrames: Bool { get set }
@@ -12,3 +11,5 @@ protocol VideoOutputting: AnyObject {
         queue: DispatchQueue?
     )
 }
+
+extension AVCaptureVideoDataOutput : VideoOutputting {}
