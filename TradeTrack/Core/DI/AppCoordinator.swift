@@ -26,7 +26,7 @@ final class AppCoordinator: ObservableObject, Navigating {
         case .verification(let id):
             let vm = VerificationViewModel(
                 camera: container.cameraManager,
-                detector: container.faceDetector,
+                analyzer: container.faceAnalyzer,
                 processor: container.faceProcessor,
                 http: container.http,
                 errorManager: errorManager,

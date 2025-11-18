@@ -7,7 +7,7 @@ enum VerificationState: Equatable { case detecting, processing, matched(name: St
 @MainActor
 final class VerificationViewModel: NSObject, ObservableObject {
     private let camera: CameraManaging
-    private let analyzer: FaceAnalyzer
+    private let analyzer: FaceAnalyzing
     private let processor: FaceProcessor
     private let http: HTTPClient
     private let errorManager: ErrorManager
@@ -29,7 +29,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
     init(
         camera: CameraManaging,
-        analyzer: FaceAnalyzer,
+        analyzer: FaceAnalyzing,
         processor: FaceProcessor,
         http: HTTPClient,
         errorManager: ErrorManager,
@@ -44,7 +44,9 @@ final class VerificationViewModel: NSObject, ObservableObject {
         super.init()
     }
 
-    var session: AVCaptureSession { camera.session }
+    var session: AVCaptureSession {
+        camera.session.underlyingSession
+    }
 
     func start() async {
         do {
