@@ -24,6 +24,10 @@ real AVFoundation types.
 final class RealCaptureSession: CaptureSessioning {
 
     private let underlyingSession = AVCaptureSession()
+    
+    var uiSession: AVCaptureSession {
+            underlyingSession
+        }
 
     /// Returns the real AVFoundation inputs. Force casting is correct because
     /// `CameraManager` only ever adds `AVCaptureDeviceInput` objects.

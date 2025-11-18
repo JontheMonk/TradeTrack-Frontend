@@ -102,7 +102,7 @@ final class CameraManager: CameraManaging {
 
     // MARK: - Device selection
 
-    private func selectFrontDevice() throws -> AVCaptureDevice {
+    private func selectFrontDevice() throws -> CaptureDeviceAbility {
         if let d = deviceProvider.defaultDevice(for: .builtInTrueDepthCamera, mediaType: .video, position: .front) {
             return d
         }
@@ -115,7 +115,7 @@ final class CameraManager: CameraManaging {
     // MARK: - Input
     private func ensureInput(for device: CaptureDeviceAbility) throws {
         // Reuse existing input if uniqueID matches
-        if let current = session.inputs
+        if let _ = session.inputs
             .compactMap({$0})
             .first(where: { $0.captureDevice.uniqueID == device.uniqueID }) {
             return

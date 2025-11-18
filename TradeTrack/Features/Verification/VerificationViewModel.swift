@@ -45,7 +45,10 @@ final class VerificationViewModel: NSObject, ObservableObject {
     }
 
     var session: AVCaptureSession {
-        camera.session.underlyingSession
+        guard let real = camera.session as? RealCaptureSession else {
+                fatalError("UI attempted to use a mock session")
+            }
+        return real.uiSession
     }
 
     func start() async {
