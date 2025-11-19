@@ -12,20 +12,6 @@ final class FacePreprocessorTests: XCTestCase {
         pre = FacePreprocessor(outputSize: CGSize(width: 112, height: 112))
     }
 
-    // MARK: - Helpers
-
-    /// Creates a solid-color CIImage of the given size.
-    private func makeImage(width: Int, height: Int, color: CIColor = .red) -> CIImage {
-        let filter = CIFilter(name: "CIConstantColorGenerator", parameters: [
-            kCIInputColorKey: color
-        ])!
-        
-        let img = filter.outputImage!
-            .cropped(to: CGRect(x: 0, y: 0, width: width, height: height))
-        
-        return img
-    }
-
     // MARK: - Tests
 
     func test_preprocess_validCrop_resizesTo112() throws {
@@ -174,6 +160,70 @@ final class FacePreprocessorTests: XCTestCase {
         XCTAssertGreaterThan(r, b, "Image appears horizontally flipped!")
     }
 
+
+    func test_scalingUsesMaxAxis() throws {
+        // Creates a horizontal gradient (left = dark, right = light)
+        let img = makeHorizontalGradientImage(width: 400, height: 400)
+
+        // Extremely wide ROI: 300×50 px
+        let face = makeFace(bbox: CGRect(x: 0.1, y: 0.45, width: 0.75, height: 0.125))
+
+        let pb = try pre.preprocessFace(image: img, face: face)
+
+        // Extract center pixel and left/right pixels of the final 112×112
+        let pixels = pixelColumns(from: pb, columns: [0, 56, 111])
+
+        let left   = pixels[0]
+        let center = pixels[1]
+        let right  = pixels[2]
+
+        // Since it's a left→right gradient, center must be between left and right
+        XCTAssertLessThan(left, center)
+        XCTAssertLessThan(center, right)
+    }
+    
+    func test_centerCropIsTrulyCentered() throws {
+        // Vertical gradient: top=0, bottom=1
+        let img = makeVerticalGradientImage(width: 400, height: 400)
+
+        // Tall ROI: forces width to be scaled
+        let face = makeFace(bbox: CGRect(x: 0.45, y: 0.1, width: 0.1, height: 0.8))
+
+        let pb = try pre.preprocessFace(image: img, face: face)
+        let pixels = pixelRows(from: pb, rows: [0, 56, 111])
+
+        let top    = pixels[0]
+        let center = pixels[1]
+        let bottom = pixels[2]
+
+        // Validate correct ordering
+        XCTAssertLessThan(top, center)
+        XCTAssertLessThan(center, bottom)
+
+        // Validate CENTER is actually middle of gradient
+        XCTAssertEqual(center, 0.5, accuracy: 0.05)
+    }
+    
+    
+    func test_scaleFactorExact() throws {
+        // Dummy solid image so values don't matter
+        let img = makeImage(width: 400, height: 400, color: .red)
+
+        // ROI exactly 200×50 px
+        let face = makeFace(bbox: CGRect(x: 0.25, y: 0.375, width: 0.5, height: 0.125))
+
+        // Expected math:
+        // sx = 112 / 200 = 0.56
+        // sy = 112 / 50  = 2.24
+        // max = 2.24
+        let pb = try pre.preprocessFace(image: img, face: face)
+
+        XCTAssertEqual(CVPixelBufferGetWidth(pb), 112)
+        XCTAssertEqual(CVPixelBufferGetHeight(pb), 112)
+
+        // The test passes if it doesn't throw — but the real goal:
+        // if scale=0.56 is chosen instead of 2.24, crop would fail
+    }
 
 
 

@@ -96,7 +96,13 @@ final class FacePreprocessor {
             throw AppError(code: .facePreprocessingFailedRender)
         }
 
-        Self.ctx.render(image, to: buffer)
+        let h = image.extent.height
+        let flip = CGAffineTransform(scaleX: 1, y: -1)
+            .translatedBy(x: 0, y: -h)
+
+        let corrected = image.transformed(by: flip)
+        Self.ctx.render(corrected, to: buffer)
+
         return buffer
     }
 }
