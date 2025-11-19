@@ -18,7 +18,6 @@ final class FacePreprocessor {
         self.outputSize = outputSize
     }
 
-    /// Main API: pass the oriented CIImage and its corresponding face observation.
     func preprocessFace(image: CIImage, face: VNFaceObservation) throws -> CVPixelBuffer {
         let extent = image.extent.integral
 

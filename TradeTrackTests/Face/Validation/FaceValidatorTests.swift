@@ -60,7 +60,7 @@ final class FaceValidatorTests: XCTestCase {
 
     func testRejectsFaceTooSmall() {
         let smallBox = CGRect(x: 0.2, y: 0.2, width: 0.1, height: 0.1)
-        let face = makeFace(roll: 0, yaw: 0, boundingBox: smallBox)
+        let face = makeFace(bbox: smallBox, roll: 0, yaw: 0)
 
         let result = validator.isValid(
             face: face,
@@ -73,7 +73,7 @@ final class FaceValidatorTests: XCTestCase {
 
     func testAcceptsFaceSizeSufficient() {
         let box = CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3)
-        let face = makeFace(roll: 0, yaw: 0, boundingBox: box)
+        let face = makeFace(bbox: box, roll: 0, yaw: 0)
 
         let result = validator.isValid(
             face: face,
@@ -128,9 +128,9 @@ final class FaceValidatorTests: XCTestCase {
 
     func testAcceptsValidFace() {
         let face = makeFace(
+            bbox: CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3),
             roll: 0,
-            yaw: 0,
-            boundingBox: CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3)
+            yaw: 0
         )
 
         let result = validator.isValid(
@@ -186,7 +186,7 @@ final class FaceValidatorTests: XCTestCase {
 
     func testAcceptsFaceAtExactMinSize() {
         let box = CGRect(x: 0.2, y: 0.2, width: 0.20, height: 0.20)
-        let face = makeFace(roll: 0, yaw: 0, boundingBox: box)
+        let face = makeFace(bbox: box, roll: 0, yaw: 0)
 
         let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
         XCTAssertTrue(result)
@@ -194,7 +194,7 @@ final class FaceValidatorTests: XCTestCase {
 
     func testRejectsFaceJustUnderMinSize() {
         let box = CGRect(x: 0.2, y: 0.2, width: 0.199, height: 0.199)
-        let face = makeFace(roll: 0, yaw: 0, boundingBox: box)
+        let face = makeFace(bbox: box, roll: 0, yaw: 0)
 
         let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
         XCTAssertFalse(result)
@@ -203,7 +203,7 @@ final class FaceValidatorTests: XCTestCase {
     func testRejectsDegenerateBoundingBoxTallButNarrow() {
         // Min side = 0.05 → should fail
         let box = CGRect(x: 0.1, y: 0.1, width: 0.05, height: 0.9)
-        let face = makeFace(roll: 0, yaw: 0, boundingBox: box)
+        let face = makeFace(bbox: box, roll: 0, yaw: 0)
 
         let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
         XCTAssertFalse(result)

@@ -3,13 +3,12 @@ import CoreImage
 
 /// Creates a VNFaceObservation that can be used for unit testing.
 func makeFace(
-    roll: Float?,
-    yaw: Float?,
-    boundingBox: CGRect = CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3)
+    bbox: CGRect = CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3),
+    roll: Float? = nil,
+    yaw: Float? = nil
 ) -> VNFaceObservation {
 
-    // VNFaceObservation has no public init that sets roll/yaw
-    let obs = VNFaceObservation(boundingBox: boundingBox)
+    let obs = VNFaceObservation(boundingBox: bbox)
 
     if let r = roll {
         obs.setValue(NSNumber(value: r), forKey: "roll")
