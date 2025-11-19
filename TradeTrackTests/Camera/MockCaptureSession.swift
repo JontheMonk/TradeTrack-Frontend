@@ -6,12 +6,10 @@ final class MockCaptureSession: CaptureSessioning {
 
     // MARK: - Stored state for tests
 
-    var inputsStorage: [CaptureDeviceInputAbility] = []
-    var outputsStorage: [VideoOutputting] = []
-    var isRunningStorage: Bool = false
-
     var canAddInputResult: Bool = true
     var canAddOutputResult: Bool = true
+    
+    var shouldStartRunningSucceed: Bool = true
 
     private(set) var beginConfigurationCalled = false
     private(set) var commitConfigurationCalled = false
@@ -21,9 +19,9 @@ final class MockCaptureSession: CaptureSessioning {
 
     // MARK: - CaptureSessioning conformance
 
-    var inputs: [CaptureDeviceInputAbility] { inputsStorage }
-    var outputs: [VideoOutputting] { outputsStorage }
-    var isRunning: Bool { isRunningStorage }
+    var inputs: [CaptureDeviceInputAbility] = []
+    var outputs: [VideoOutputting] = []
+    var isRunning: Bool = false
 
 
     func canAddInput(_ input: CaptureDeviceInputAbility) -> Bool {
@@ -31,12 +29,11 @@ final class MockCaptureSession: CaptureSessioning {
     }
 
     func addInput(_ input: CaptureDeviceInputAbility) {
-        inputsStorage.append(input)
+        inputs.append(input)
     }
 
     func removeInput(_ input: CaptureDeviceInputAbility) {
-        inputsStorage.removeAll { lhs in
-            // identity comparison for reference types
+        inputs.removeAll { lhs in
             (lhs as AnyObject) === (input as AnyObject)
         }
     }
@@ -47,7 +44,7 @@ final class MockCaptureSession: CaptureSessioning {
     }
 
     func addOutput(_ output: VideoOutputting) {
-        outputsStorage.append(output)
+        outputs.append(output)
     }
 
 
@@ -61,11 +58,15 @@ final class MockCaptureSession: CaptureSessioning {
 
     func startRunning() {
         startRunningCalled = true
-        isRunningStorage = true
+
+        if shouldStartRunningSucceed {
+            isRunning = true
+        } else {
+            isRunning = false
+        }
     }
 
     func stopRunning() {
         stopRunningCalled = true
-        isRunningStorage = false
     }
 }

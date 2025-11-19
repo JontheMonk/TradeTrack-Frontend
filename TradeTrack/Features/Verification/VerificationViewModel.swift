@@ -60,10 +60,10 @@ final class VerificationViewModel: NSObject, ObservableObject {
         }
     }
 
-    func stop() {
+    func stop() async {
         task?.cancel()
         task = nil
-        camera.stop()
+        await camera.stop()
         state = .detecting
         lastProcessedTime = nil
     }

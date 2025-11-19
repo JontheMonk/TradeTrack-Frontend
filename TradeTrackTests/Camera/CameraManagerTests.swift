@@ -91,10 +91,11 @@ final class CameraManagerTests: XCTestCase {
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
+        
         let output = MockVideoOutput()
 
         let existingInput = MockCaptureDeviceInput(device: device)
-        session.inputsStorage = [existingInput]
+        session.inputs = [existingInput]
 
         let creator = MockDeviceInputCreator()
         creator.nextInput = existingInput
@@ -107,7 +108,7 @@ final class CameraManagerTests: XCTestCase {
         )
 
         try await sut.start(delegate: DummyDelegate())
-        XCTAssertEqual(session.inputsStorage.count, 1)
+        XCTAssertEqual(session.inputs.count, 1)
     }
 
     func test_ensureInput_replacesOldInput() async throws {
@@ -123,7 +124,7 @@ final class CameraManagerTests: XCTestCase {
         let newInput = MockCaptureDeviceInput(device: newDevice)
 
         let session = MockCaptureSession()
-        session.inputsStorage = [oldInput]
+        session.inputs = [oldInput]
 
         let creator = MockDeviceInputCreator()
         creator.nextInput = newInput
@@ -137,11 +138,13 @@ final class CameraManagerTests: XCTestCase {
 
         try await sut.start(delegate: DummyDelegate())
 
-        XCTAssertEqual(session.inputsStorage.count, 1)
-        XCTAssertEqual(session.inputsStorage.first?.captureDevice.uniqueID, "new")
+        XCTAssertEqual(session.inputs.count, 1)
+        XCTAssertEqual(session.inputs.first?.captureDevice.uniqueID, "new")
     }
 
     func test_ensureInput_throwsWhenInputFactoryFails() async {
+        enum MockError: Error { case boom }
+        
         let dp = MockCameraDeviceProvider()
         dp.authorizationStatusToReturn = .authorized
 
@@ -151,7 +154,7 @@ final class CameraManagerTests: XCTestCase {
         let session = MockCaptureSession()
 
         let creator = MockDeviceInputCreator()
-        creator.errorToThrow = NSError(domain: "x", code: 1)
+        creator.errorToThrow = MockError.boom
 
         let sut = CameraManager(
             deviceProvider: dp,
@@ -221,7 +224,7 @@ final class CameraManagerTests: XCTestCase {
         try await sut.start(delegate: DummyDelegate())
         try await sut.start(delegate: DummyDelegate())
 
-        XCTAssertEqual(session.outputsStorage.count, 1)
+        XCTAssertEqual(session.outputs.count, 1)
     }
 
     func test_ensureOutput_throwsWhenCannotAddOutput() async {
@@ -318,7 +321,7 @@ final class CameraManagerTests: XCTestCase {
         dp.defaultDeviceToReturn = device
 
         let session = MockCaptureSession()
-        session.isRunningStorage = false // simulate failure
+        session.shouldStartRunningSucceed = false
 
         let creator = MockDeviceInputCreator()
         creator.nextInput = MockCaptureDeviceInput(device: device)
@@ -361,7 +364,7 @@ final class CameraManagerTests: XCTestCase {
         )
 
         try await sut.start(delegate: DummyDelegate())
-        sut.stop()
+        await sut.stop()
 
         XCTAssertTrue(session.stopRunningCalled)
         XCTAssertNil(output.lastDelegate)

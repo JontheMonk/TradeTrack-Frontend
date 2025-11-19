@@ -40,7 +40,9 @@ struct VerificationView: View {
             await vm.start()
         }
         .onDisappear {
-            vm.stop()
+            Task {
+                    await vm.stop()
+                }
         }
     }
 }

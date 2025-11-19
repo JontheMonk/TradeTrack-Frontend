@@ -55,14 +55,53 @@ final class CameraManager: CameraManaging {
         }
     }
 
-    func stop() {
+    /// Stops the camera session and clears the output delegate.
+    ///
+    /// This method is `async` **only so callers (especially tests) can await
+    /// the completion of the cleanup work performed on `sessionQueue`.**
+    ///
+    /// The actual session–stopping logic still runs on the dedicated
+    /// `sessionQueue`, because AVFoundation requires all configuration and
+    /// session mutations to occur on a single serial queue.
+    ///
+    /// Why this is async:
+    /// ------------------
+    /// `stop()` schedules work asynchronously on `sessionQueue`. Without `async`,
+    /// callers would have no way to guarantee that the session has actually
+    /// stopped before they proceed.
+    ///
+    /// In production:
+    ///   The UI typically doesn't care about the exact moment the stop completes,
+    ///   but tests *must* wait for the queue work to finish to assert behavior
+    ///   deterministically.
+    ///
+    /// In tests:
+    ///   `await manager.stop()` ensures the stop logic has actually run before
+    ///   the test checks `stopRunningCalled`, `lastDelegate`, etc.
+    ///
+    /// Capturing `session` and `output`:
+    /// ---------------------------------
+    /// These are immutable references captured outside the queue to avoid any race
+    /// with `self` while still respecting AVFoundation's threading rules. The
+    /// captured references are safe because both objects are long–lived and owned
+    /// by the manager.
+    ///
+    /// This design keeps production code simple and test code reliable.
+    func stop() async {
         let session = self.session
         let output = self.output
-        sessionQueue.async {
-            if session.isRunning { session.stopRunning() }
-            output.setSampleBufferDelegate(nil, queue: nil)
+
+        await withCheckedContinuation { continuation in
+            sessionQueue.async {
+                if session.isRunning {
+                    session.stopRunning()
+                }
+                output.setSampleBufferDelegate(nil, queue: nil)
+                continuation.resume()
+            }
         }
     }
+
 
     // MARK: - Session queue bridge
 
@@ -116,7 +155,6 @@ final class CameraManager: CameraManaging {
     private func ensureInput(for device: CaptureDeviceAbility) throws {
         // Reuse existing input if uniqueID matches
         if let _ = session.inputs
-            .compactMap({$0})
             .first(where: { $0.captureDevice.uniqueID == device.uniqueID }) {
             return
         }
@@ -126,11 +164,26 @@ final class CameraManager: CameraManaging {
             session.removeInput(input)
         }
 
-        let input = try inputCreator.makeInput(for: device)
-        guard session.canAddInput(input) else { throw AppError(code: .cameraInputFailed) }
-        session.addInput(input)
+        // Create new input, wrap errors
+        let input: CaptureDeviceInputAbility
+        do {
+            input = try inputCreator.makeInput(for: device)
+        } catch {
+            throw AppError(
+                code: .cameraInputFailed,
+                debugMessage: "Failed to create device input",
+                underlyingError: error
+            )
+        }
 
+        // Add to session
+        guard session.canAddInput(input) else {
+            throw AppError(code: .cameraInputFailed)
+        }
+
+        session.addInput(input)
     }
+
     
     // MARK: - Output
 

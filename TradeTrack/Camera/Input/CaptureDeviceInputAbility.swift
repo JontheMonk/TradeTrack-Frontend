@@ -1,6 +1,6 @@
 import AVFoundation
 
-protocol CaptureDeviceInputAbility {
+protocol CaptureDeviceInputAbility : AnyObject {
     var captureDevice: CaptureDeviceAbility { get }
 }
 

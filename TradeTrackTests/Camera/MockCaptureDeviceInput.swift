@@ -1,6 +1,6 @@
 @testable import TradeTrack
 
-struct MockCaptureDeviceInput: CaptureDeviceInputAbility {
+final class MockCaptureDeviceInput: CaptureDeviceInputAbility {
     let captureDevice: CaptureDeviceAbility
     
     init(device: CaptureDeviceAbility) {
