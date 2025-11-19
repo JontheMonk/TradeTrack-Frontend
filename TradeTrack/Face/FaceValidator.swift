@@ -10,6 +10,9 @@ struct FaceValidator: FaceValidating {
     var minQuality: Float = 0.25
     var minFaceLength: CGFloat = 0.20
 
+    /// Vision often adds tiny garbage like 15.000019. This prevents false negatives.
+    private let angleEpsilon: Float = 0.0002
+
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "validator")
 
     func isValid(
@@ -29,12 +32,12 @@ struct FaceValidator: FaceValidating {
         let rollDeg = abs(roll * deg)
         let yawDeg  = abs(yaw  * deg)
 
-        guard rollDeg <= maxRollDeg else {
+        guard rollDeg <= maxRollDeg + angleEpsilon else {
             logger.debug("Rejected: roll too high (\(rollDeg, privacy: .public)° > \(maxRollDeg))")
             return false
         }
 
-        guard yawDeg <= maxYawDeg else {
+        guard yawDeg <= maxYawDeg + angleEpsilon else {
             logger.debug("Rejected: yaw too high (\(yawDeg, privacy: .public)° > \(maxYawDeg))")
             return false
         }
