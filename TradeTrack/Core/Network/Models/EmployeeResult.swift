@@ -8,7 +8,7 @@
 /// A lightweight, decoded employee object returned from backend APIs.
 ///
 /// This struct conforms to:
-/// - `Decodable` so it can be parsed directly from JSON responses.
+/// - `Codable` so it can be parsed directly from JSON responses.
 /// - `Identifiable` so it integrates cleanly with SwiftUI lists (using
 ///   `employeeId` as the stable identity).
 ///
@@ -28,7 +28,7 @@
 ///
 /// Because it’s intentionally small, this model is used only for *reading*
 /// employee data. For *writing* (creating/registration), use `EmployeeInput`.
-struct EmployeeResult: Identifiable, Decodable {
+struct EmployeeResult: Identifiable, Codable {
     let employeeId: String
     let name: String
     let role: String

@@ -47,6 +47,9 @@ import Foundation
 /// ```
 ///
 final class HTTPClient {
+    
+    private let urlBuilder: URLBuildProtocol
+
 
     /// Base API URL, e.g. `https://myserver.com/api`
     private let baseURL: URL
@@ -61,9 +64,10 @@ final class HTTPClient {
     /// JSON decoder with snake_case → camelCase conversion.
     private let decoder = JSONDecoder()
 
-    init(baseURL: URL, session: URLSession = .shared) {
+    init(baseURL: URL, session: URLSession = .shared, urlBuilder : URLBuildProtocol = RealURLBuilder()) {
         self.baseURL = baseURL
         self.session = session
+        self.urlBuilder = urlBuilder
 
         // Backend expects snake_case keys
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -110,7 +114,13 @@ final class HTTPClient {
         query: [String: String?],
         bodyData: Data?
     ) async throws -> Response? {
-        let url = try buildURL(path: path, query: query)
+        guard let url = urlBuilder.makeURL(
+                from: baseURL,
+                path: path,
+                query: query
+            ) else {
+                throw AppError(code: .badURL)
+            }
 
         var req = URLRequest(url: url)
         req.httpMethod = method
@@ -165,26 +175,4 @@ final class HTTPClient {
         }
     }
 
-    // MARK: - URL Builder
-
-    /// Safely builds a URL using the base URL, path, and optional query params.
-    private func buildURL(path: String, query: [String: String?]) throws -> URL {
-        var comps = URLComponents(
-            url: baseURL.appendingPathComponent(path),
-            resolvingAgainstBaseURL: false
-        )
-
-        // Convert `[String: String?]` → `[URLQueryItem]`
-        let items = query.compactMap { key, value in
-            value.map { URLQueryItem(name: key, value: $0) }
-        }
-
-        comps?.queryItems = items.isEmpty ? nil : items
-
-        guard let url = comps?.url else {
-            throw AppError(code: .badURL)
-        }
-
-        return url
-    }
 }

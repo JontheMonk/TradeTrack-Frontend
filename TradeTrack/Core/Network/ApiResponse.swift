@@ -38,7 +38,7 @@ import Foundation
 /// - `code` usually corresponds to a backend enum you map into `AppErrorCode`.
 /// - `message` is a backend-provided error description, not always user-friendly.
 ///
-struct APIResponse<T: Decodable>: Decodable {
+struct APIResponse<T> {
     /// Whether the request succeeded at the backend level.
     let success: Bool
 
@@ -54,6 +54,17 @@ struct APIResponse<T: Decodable>: Decodable {
     let message: String?
 }
 
+// MARK: - Conditional Conformances
+
+/// Decodable only when the underlying payload `T` is Decodable.
+/// This is what HTTPClient needs for JSON decoding.
+extension APIResponse: Decodable where T: Decodable {}
+
+/// Encodable only when the underlying payload `T` is Encodable.
+/// This allows tests to generate mock JSON envelopes.
+extension APIResponse: Encodable where T: Encodable {}
+
+
 /// Represents an empty response body for endpoints that return no data.
 ///
 /// Use this as the generic parameter when an API returns:
@@ -65,4 +76,4 @@ struct APIResponse<T: Decodable>: Decodable {
 /// ```swift
 /// let _: APIResponse<Empty> = try await http.post("/reset", body)
 /// ```
-struct Empty: Decodable {}
+struct Empty: Codable {}

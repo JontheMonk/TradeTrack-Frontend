@@ -54,6 +54,7 @@
 				Face/Preprocessing/Helpers.swift,
 				Face/Validation/FaceValidatorTests.swift,
 				Face/Validation/MockFaceObservation.swift,
+				Network/HttpClientTests.swift,
 				Support/ErrorHelper.swift,
 			);
 			target = C4029FA62E2D72BF00334A85 /* TradeTrackTests */;
@@ -75,6 +76,7 @@
 				Face/Preprocessing/Helpers.swift,
 				Face/Validation/FaceValidatorTests.swift,
 				Face/Validation/MockFaceObservation.swift,
+				Network/HttpClientTests.swift,
 				Support/ErrorHelper.swift,
 			);
 			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
