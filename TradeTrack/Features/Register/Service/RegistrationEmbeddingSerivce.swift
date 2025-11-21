@@ -2,31 +2,70 @@ import UIKit
 import Vision
 import CoreImage
 
+/// Service responsible for producing a **512-dimensional face embedding**
+/// from a user-selected image during employee registration.
+///
+/// This abstraction wraps the full pipeline:
+///   1. Convert `UIImage` → upright `CIImage` respecting EXIF orientation
+///   2. Detect a face using `FaceAnalyzer` (detector + validator)
+///   3. Preprocess + embed using `FaceProcessor` (crop, resize, NCHW, model)
+///
+/// ViewModels use this instead of talking to Vision or CoreML directly.
+/// Errors surface as `AppError` and should be displayed via `ErrorManager`.
 protocol RegistrationEmbeddingServing {
+    /// Extracts a normalized face embedding from the given image.
+    ///
+    /// - Parameter image: A user-selected photo (from camera or library).
+    /// - Returns: A normalized `FaceEmbedding` (512 floats).
+    /// - Throws:
+    ///   - `AppError(.faceValidationFailed)` if no valid face is found.
+    ///   - `AppError` bubbling up from preprocessing or the ML model.
     func embedding(from image: UIImage) throws -> FaceEmbedding
 }
 
+/// Concrete implementation of `RegistrationEmbeddingServing`.
+///
+/// Depends on:
+///   • `FaceAnalyzerProtocol` — finds a face and enforces validation rules
+///   • `FaceProcessor` — crops → resizes → pixel-preprocesses → embeds
+///
+/// This keeps the registration flow extremely modular and testable.
 final class RegistrationEmbeddingService: RegistrationEmbeddingServing {
-    private let analyzer: FaceAnalyzing
+    private let analyzer: FaceAnalyzerProtocol
     private let processor: FaceProcessor
 
-    // Designated: pure DI
-    init(analyzer: FaceAnalyzing, processor: FaceProcessor) {
+    /// Designated initializer using pure dependency injection.
+    init(analyzer: FaceAnalyzerProtocol, processor: FaceProcessor) {
         self.analyzer = analyzer
         self.processor = processor
     }
 
     func embedding(from image: UIImage) throws -> FaceEmbedding {
+        // Convert UIImage → correctly oriented CIImage.
         let ciUpright = try Self.makeUprightCIImage(from: image)
+
+        // Detect + validate face.
         guard let face = analyzer.analyze(in: ciUpright) else {
             throw AppError(code: .faceValidationFailed)
         }
+
+        // Run full preprocessing + embedding pipeline.
         return try processor.process(image: ciUpright, face: face)
     }
 }
 
 // MARK: - Private helpers
+
 private extension RegistrationEmbeddingService {
+    /// Produces an upright CIImage that reflects the UIImage’s EXIF orientation.
+    ///
+    /// Vision requires image orientation to be explicitly expressed.
+    /// This helper normalizes all the different `UIImage` storage cases:
+    ///  • backed by CGImage
+    ///  • backed by CIImage
+    ///  • or created dynamically
+    ///
+    /// Throws `AppError(.imageFailedToLoad)` if conversion is impossible.
     static func makeUprightCIImage(from image: UIImage) throws -> CIImage {
         if let cg = image.cgImage {
             let exif = CGImagePropertyOrientation(ui: image.imageOrientation)
@@ -36,7 +75,10 @@ private extension RegistrationEmbeddingService {
             let exif = CGImagePropertyOrientation(ui: image.imageOrientation)
             return ci.oriented(exif)
         }
-        if let ci = CIImage(image: image, options: [.applyOrientationProperty: false]) {
+        if let ci = CIImage(
+            image: image,
+            options: [.applyOrientationProperty: false]
+        ) {
             let exif = CGImagePropertyOrientation(ui: image.imageOrientation)
             return ci.oriented(exif)
         }
@@ -44,7 +86,11 @@ private extension RegistrationEmbeddingService {
     }
 }
 
+// MARK: - UIImage → EXIF orientation bridge
+
 private extension CGImagePropertyOrientation {
+    /// Converts UIKit's `UIImage.Orientation` into the EXIF orientation values
+    /// that Vision expects. This mapping is required for correct face detection.
     init(ui: UIImage.Orientation) {
         switch ui {
         case .up: self = .up

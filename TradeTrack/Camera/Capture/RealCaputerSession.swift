@@ -2,7 +2,7 @@ import AVFoundation
 
 /**
  `RealCaptureSession` is the concrete, hardware-backed implementation of
- `CaptureSessioning`. It directly wraps an `AVCaptureSession` and is used
+ `CaptureSessionProtocol`. It directly wraps an `AVCaptureSession` and is used
  **only** in real camera pipelines (never in unit tests).
 
  Because this type represents the real AVFoundation layer, it operates under
@@ -21,7 +21,7 @@ or a misconfigured dependency injection setup. Crashing immediately is the
 right behavior, because the capture pipeline cannot continue safely without
 real AVFoundation types.
 */
-final class RealCaptureSession: CaptureSessioning {
+final class RealCaptureSession: CaptureSessionProtocol {
 
     private let underlyingSession = AVCaptureSession()
     
@@ -31,14 +31,14 @@ final class RealCaptureSession: CaptureSessioning {
 
     /// Returns the real AVFoundation inputs. Force casting is correct because
     /// `CameraManager` only ever adds `AVCaptureDeviceInput` objects.
-    var inputs: [CaptureDeviceInputAbility] {
-        underlyingSession.inputs.map { $0 as! CaptureDeviceInputAbility }
+    var inputs: [CaptureDeviceInputProtocol] {
+        underlyingSession.inputs.map { $0 as! CaptureDeviceInputProtocol }
     }
 
     /// Returns the real AVFoundation outputs. All outputs in a real session are
-    /// guaranteed to be `AVCaptureVideoDataOutput`, which conforms to `VideoOutputting`.
-    var outputs: [VideoOutputting] {
-        underlyingSession.outputs.map { $0 as! VideoOutputting }
+    /// guaranteed to be `AVCaptureVideoDataOutput`, which conforms to `VideoOutput`.
+    var outputs: [VideoOutput] {
+        underlyingSession.outputs.map { $0 as! VideoOutput }
     }
 
     var isRunning: Bool {
@@ -47,29 +47,29 @@ final class RealCaptureSession: CaptureSessioning {
 
     /// Force-casting is intentional. In the real pipeline, inputs are always
     /// `AVCaptureInput` instances.
-    func canAddInput(_ input: CaptureDeviceInputAbility) -> Bool {
+    func canAddInput(_ input: CaptureDeviceInputProtocol) -> Bool {
         let av = input as! AVCaptureInput
         return underlyingSession.canAddInput(av)
     }
 
-    func addInput(_ input: CaptureDeviceInputAbility) {
+    func addInput(_ input: CaptureDeviceInputProtocol) {
         let av = input as! AVCaptureInput
         underlyingSession.addInput(av)
     }
 
-    func removeInput(_ input: CaptureDeviceInputAbility) {
+    func removeInput(_ input: CaptureDeviceInputProtocol) {
         let av = input as! AVCaptureInput
         underlyingSession.removeInput(av)
     }
 
     /// Force-casting is intentional. Only `AVCaptureVideoDataOutput` should ever
     /// be passed to this method in real usage.
-    func canAddOutput(_ output: VideoOutputting) -> Bool {
+    func canAddOutput(_ output: VideoOutput) -> Bool {
         let real = output as! AVCaptureVideoDataOutput
         return underlyingSession.canAddOutput(real)
     }
 
-    func addOutput(_ output: VideoOutputting) {
+    func addOutput(_ output: VideoOutput) {
         let real = output as! AVCaptureVideoDataOutput
         underlyingSession.addOutput(real)
     }

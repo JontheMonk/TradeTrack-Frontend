@@ -1,3 +1,27 @@
+/// A searchable employee directory.
+///
+/// This view renders:
+///   – A search bar bound to `LookupViewModel.query`
+///   – State-dependent UI:
+///       • Prompt for short queries
+///       • Spinner during network requests
+///       • Empty results feedback
+///       • A list of matching employees
+///   – Tappable result rows (`EmployeeCard`) that call
+///     `vm.selectEmployee(_:)`, allowing the VM to drive navigation.
+///
+/// Architectural notes:
+///   • The view owns its `LookupViewModel` via `@StateObject`.
+///   • All networking and navigation decisions live in the VM.
+///   • The view is a pure renderer with no business logic.
+///   • Clear transitions between states ensure predictable updates.
+///
+/// This pattern aligns with modern SwiftUI:
+///   – View: presentation
+///   – ViewModel: async work + state + navigation
+///   – Coordinator: handles actual route pushing
+
+
 import SwiftUI
 
 struct LookupView: View {

@@ -1,3 +1,25 @@
+/// A lightweight, reusable list row used in employee-search results.
+///
+/// `EmployeeCard` displays:
+///  • the employee’s name
+///  • role (as a colored chip)
+///  • employee ID (also as a chip)
+///  • a leading avatar icon
+///  • a trailing chevron indicating navigability
+///
+/// This view is intentionally presentation-only:
+/// it contains **no navigation logic** and delegates taps to the parent
+/// (e.g., a `NavigationLink` or `.onTapGesture` in the list).
+///
+/// Designed for:
+///   – LookupView search results
+///   – Any compact employee summary UI
+///
+/// Visual notes:
+///   – `.ultraThinMaterial` background provides iOS-style blur
+///   – subtle shadow + stroke for card separation
+///   – chips use continuous corners to fit the modern UI style
+
 import SwiftUI
 
 struct EmployeeCard: View {

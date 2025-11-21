@@ -1,16 +1,31 @@
 import SwiftUI
 
+/// Screen for registering a new employee.
+///
+/// Responsibilities:
+/// ---------------------------
+/// • Renders the registration form (ID, name, role)
+/// • Lets the user pick a face image
+/// • Previews the selected image
+/// • Binds directly to `RegisterViewModel` for validation and submission
+/// • Runs `vm.registerEmployee()` inside a Task
+///
+/// Notes:
+/// • The view owns its ViewModel via `@StateObject`, keeping its lifetime stable.
+/// • Navigation & business logic are entirely inside the ViewModel.
+/// • The keyboard is dismissed when tapping the background.
 struct RegisterView: View {
     @StateObject private var vm: RegisterViewModel
     @State private var showPicker = false
 
+    /// Injects the ViewModel from outside, allowing previews/tests to pass mocks.
     init(viewModel: RegisterViewModel) {
         _vm = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
         ZStack {
-            // Invisible tappable background to dismiss keyboard anywhere
+            // Background tap → hide keyboard
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { hideKeyboard() }
@@ -20,17 +35,21 @@ struct RegisterView: View {
                     .font(.largeTitle.bold())
                     .padding(.top)
 
+                // MARK: - Form Fields
                 Group {
                     customTextField("Employee ID", text: $vm.employeeID)
                     customTextField("Full Name", text: $vm.name)
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Role").font(.subheadline).foregroundColor(.secondary)
+                        Text("Role")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                         RolePicker(role: $vm.role)
                     }
                     .padding(.horizontal)
                 }
 
+                // MARK: - Photo Selector
                 Button {
                     showPicker = true
                 } label: {
@@ -46,6 +65,7 @@ struct RegisterView: View {
                     .shadow(radius: 4)
                 }
 
+                // MARK: - Image Preview
                 if let image = vm.selectedImage {
                     Image(uiImage: image)
                         .resizable()
@@ -56,6 +76,7 @@ struct RegisterView: View {
                         .padding(.top, 10)
                 }
 
+                // MARK: - Submit Button
                 Button {
                     Task { await vm.registerEmployee() }
                 } label: {
@@ -71,6 +92,7 @@ struct RegisterView: View {
                 }
                 .disabled(!vm.isFormValid)
 
+                // MARK: - Status Text
                 if !vm.status.isEmpty {
                     Text(vm.status)
                         .font(.footnote)
@@ -87,8 +109,14 @@ struct RegisterView: View {
         }
     }
 
+    // MARK: - Custom Text Field Builder
+
+    /// Shared styling for the ID + Name fields.
     @ViewBuilder
-    private func customTextField(_ placeholder: String, text: Binding<String>) -> some View {
+    private func customTextField(
+        _ placeholder: String,
+        text: Binding<String>
+    ) -> some View {
         TextField(placeholder, text: text)
             .padding()
             .background(
@@ -101,6 +129,6 @@ struct RegisterView: View {
             )
             .padding(.horizontal)
             .textInputAutocapitalization(.never)
-            .onSubmit { hideKeyboard() } // dismiss when user taps return
+            .onSubmit { hideKeyboard() }
     }
 }
