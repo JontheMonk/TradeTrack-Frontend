@@ -35,7 +35,7 @@ import os.log
 /// ```
 ///
 /// The UI observes `currentError` and animates in a banner when set.
-final class ErrorManager: ObservableObject {
+final class ErrorManager: ObservableObject, ErrorHandling {
 
     /// The currently displayed error for the UI.
     /// When non-nil, `ErrorBannerView` animates into view.

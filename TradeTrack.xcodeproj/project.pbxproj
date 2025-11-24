@@ -48,14 +48,17 @@
 				Camera/MockCaptureSessionTests.swift,
 				Camera/MockDeviceInputCreator.swift,
 				Camera/MockVideoOutput.swift,
+				ErrorHandling/ErrorHelper.swift,
+				ErrorHandling/MockErrorManager.swift,
 				Face/Analysis/FaceAnalyzerTests.swift,
 				Face/Embedding/FaceEmbedderTests.swift,
 				Face/Preprocessing/FacePreProcessorTests.swift,
 				Face/Preprocessing/Helpers.swift,
 				Face/Validation/FaceValidatorTests.swift,
 				Face/Validation/MockFaceObservation.swift,
+				Lookup/LookupViewModelTests.swift,
+				Navigating/MockNavigator.swift,
 				Network/HttpClientTests.swift,
-				Support/ErrorHelper.swift,
 			);
 			target = C4029FA62E2D72BF00334A85 /* TradeTrackTests */;
 		};
@@ -70,14 +73,17 @@
 				Camera/MockCaptureSessionTests.swift,
 				Camera/MockDeviceInputCreator.swift,
 				Camera/MockVideoOutput.swift,
+				ErrorHandling/ErrorHelper.swift,
+				ErrorHandling/MockErrorManager.swift,
 				Face/Analysis/FaceAnalyzerTests.swift,
 				Face/Embedding/FaceEmbedderTests.swift,
 				Face/Preprocessing/FacePreProcessorTests.swift,
 				Face/Preprocessing/Helpers.swift,
 				Face/Validation/FaceValidatorTests.swift,
 				Face/Validation/MockFaceObservation.swift,
+				Lookup/LookupViewModelTests.swift,
+				Navigating/MockNavigator.swift,
 				Network/HttpClientTests.swift,
-				Support/ErrorHelper.swift,
 			);
 			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
 		};

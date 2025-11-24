@@ -41,7 +41,7 @@ final class LookupViewModel: ObservableObject {
     private let service: EmployeeLookupServing
 
     /// Centralized error reporter shown via the `ErrorBannerView`.
-    private let errorManager: ErrorManager
+    private let errorManager: ErrorHandling
 
 
     // MARK: - Internal Search State
@@ -63,7 +63,7 @@ final class LookupViewModel: ObservableObject {
 
     init(
         service: EmployeeLookupServing,
-        errorManager: ErrorManager,
+        errorManager: ErrorHandling,
         navigator: LookupNavigator
     ) {
         self.service = service
@@ -170,7 +170,7 @@ final class LookupViewModel: ObservableObject {
                     if self.generation == gen {
                         self.isLoading = false
                     }
-                    self.errorManager.show(error)
+                    self.errorManager.showError(error)
                 }
             }
         }
