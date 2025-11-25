@@ -42,6 +42,7 @@
 			membershipExceptions = (
 				Camera/CameraManagerTests.swift,
 				Camera/MockCameraDeviceProvider.swift,
+				Camera/MockCameraManager.swift,
 				Camera/MockCaptureDevice.swift,
 				Camera/MockCaptureDeviceInput.swift,
 				Camera/MockCaptureSession.swift,
@@ -62,6 +63,10 @@
 				Register/MockEmbeddingService.swift,
 				Register/MockRegistrationAPI.swift,
 				Register/RegisterViewModelTests.swift,
+				Verification/MockFaceAnalyzer.swift,
+				Verification/MockFaceProcessor.swift,
+				Verification/MockFaceVerificationService.swift,
+				Verification/VerificationViewModelTests.swift,
 			);
 			target = C4029FA62E2D72BF00334A85 /* TradeTrackTests */;
 		};
@@ -70,6 +75,7 @@
 			membershipExceptions = (
 				Camera/CameraManagerTests.swift,
 				Camera/MockCameraDeviceProvider.swift,
+				Camera/MockCameraManager.swift,
 				Camera/MockCaptureDevice.swift,
 				Camera/MockCaptureDeviceInput.swift,
 				Camera/MockCaptureSession.swift,
@@ -90,6 +96,10 @@
 				Register/MockEmbeddingService.swift,
 				Register/MockRegistrationAPI.swift,
 				Register/RegisterViewModelTests.swift,
+				Verification/MockFaceAnalyzer.swift,
+				Verification/MockFaceProcessor.swift,
+				Verification/MockFaceVerificationService.swift,
+				Verification/VerificationViewModelTests.swift,
 			);
 			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
 		};

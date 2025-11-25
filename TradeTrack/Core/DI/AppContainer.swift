@@ -76,6 +76,9 @@ struct AppContainer {
 
     /// Looks up employees and retrieves stored embeddings.
     let employeeLookupService: EmployeeLookupServing
+    
+    /// Checks backend for face
+    let faceVerificationService: FaceVerificationProtocol
 
 
     // MARK: - Init
@@ -112,5 +115,6 @@ struct AppContainer {
         self.registrationService   = RegistrationEmbeddingService(analyzer: ana, processor: proc)
         self.employeeAPI           = EmployeeRegistrationService(http: http)
         self.employeeLookupService = EmployeeLookupService(http: http)
+        self.faceVerificationService = FaceVerificationService(http: http)
     }
 }

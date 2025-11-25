@@ -85,7 +85,7 @@ final class AppCoordinator: ObservableObject, Navigating {
                 camera: container.cameraManager,
                 analyzer: container.faceAnalyzer,
                 processor: container.faceProcessor,
-                http: container.http,
+                verifier: container.faceVerificationService,
                 errorManager: errorManager,
                 employeeId: id
             )

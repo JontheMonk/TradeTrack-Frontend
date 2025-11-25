@@ -37,7 +37,7 @@ import CoreImage
 /// - `.modelOutputMissing`
 ///
 /// This ensures the UI can display clear failure states (“Try again,” etc.)
-final class FaceProcessor {
+final class FaceProcessor : FaceProcessing {
 
     /// Handles cropping and resizing of the face region.
     private let preprocessor: FacePreprocessor
