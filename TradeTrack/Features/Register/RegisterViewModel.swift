@@ -45,7 +45,7 @@ final class RegisterViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let errorManager: ErrorManager
+    private let errorManager: ErrorHandling
     private let face: RegistrationEmbeddingServing
     private let api: EmployeeRegistrationServing
 
@@ -55,13 +55,11 @@ final class RegisterViewModel: ObservableObject {
     /// Creates a registration ViewModel.
     ///
     /// - Parameters:
-    ///   - http: Used indirectly via `EmployeeRegistrationServing`.
     ///   - errorManager: Centralized UI error reporter.
     ///   - face: Responsible for extracting a 512-d face embedding.
     ///   - api: Responsible for sending registration data to the backend.
     init(
-        http: HTTPClient,
-        errorManager: ErrorManager,
+        errorManager: ErrorHandling,
         face: RegistrationEmbeddingServing,
         api: EmployeeRegistrationServing
     ) {
@@ -154,7 +152,7 @@ final class RegisterViewModel: ObservableObject {
             status = "⚠️ Registration cancelled"
 
         } catch {
-            errorManager.show(error)
+            errorManager.showError(error)
             status = "❌ Failed to register face"
         }
     }

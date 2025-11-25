@@ -93,7 +93,6 @@ final class AppCoordinator: ObservableObject, Navigating {
         
         case .register:
             let vm = RegisterViewModel(
-                http: container.http,
                 errorManager: errorManager,
                 face: container.registrationService,
                 api: container.employeeAPI

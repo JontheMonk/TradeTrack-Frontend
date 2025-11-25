@@ -59,6 +59,9 @@
 				Lookup/LookupViewModelTests.swift,
 				Navigating/MockNavigator.swift,
 				Network/HttpClientTests.swift,
+				Register/MockEmbeddingService.swift,
+				Register/MockRegistrationAPI.swift,
+				Register/RegisterViewModelTests.swift,
 			);
 			target = C4029FA62E2D72BF00334A85 /* TradeTrackTests */;
 		};
@@ -84,6 +87,9 @@
 				Lookup/LookupViewModelTests.swift,
 				Navigating/MockNavigator.swift,
 				Network/HttpClientTests.swift,
+				Register/MockEmbeddingService.swift,
+				Register/MockRegistrationAPI.swift,
+				Register/RegisterViewModelTests.swift,
 			);
 			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
 		};
