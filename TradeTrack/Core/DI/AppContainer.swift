@@ -81,40 +81,56 @@ struct AppContainer {
     let faceVerificationService: FaceVerificationProtocol
 
 
-    // MARK: - Init
+    init(environment: AppMode) throws {
 
-    /// Constructs the full dependency tree.
-    ///
-    /// This initializer creates the entire face-recognition pipeline, loads
-    /// the ML model, and sets up HTTP-based services.
-    ///
-    /// - Parameter http: The HTTP client used for all network calls.
-    init(http: HTTPClient) throws {
+        // Decide base URL
+        let baseURL: URL = {
+            switch environment {
+            case .normal:
+                return URL(string: "TODO")!
+            case .uiTest:
+                return URL(string: "http://localhost")!
+            }
+        }()
+
+        // Decide session
+        let session: URLSession = {
+            switch environment {
+            case .normal:
+                return .shared
+            case .uiTest:
+                return .mock()
+            }
+        }()
+
+        let http = HTTPClient(baseURL: baseURL, session: session)
         self.http = http
+
+        // Camera
         self.cameraManager = CameraManager()
 
-        // Face pipeline setup
-        let pre  = FacePreprocessor()
-        let det  = FaceDetector()
-        let val  = FaceValidator()
+        // Face pipeline (real — cheap enough, no side effects)
+        let pre = FacePreprocessor()
+        let det = FaceDetector()
+        let val = FaceValidator()
 
-        let realModel = try w600k_r50(configuration: MLModelConfiguration())
-        let preprocessor = RealPixelPreprocessor()
-        let emb  = FaceEmbedder(model: realModel, preprocessor: preprocessor)
+        let model = try w600k_r50(configuration: MLModelConfiguration())
+        let emb = FaceEmbedder(model: model, preprocessor: RealPixelPreprocessor())
         let proc = FaceProcessor(preprocessor: pre, embedder: emb)
-        let ana  = FaceAnalyzer(detector: det, validator: val)
+        let ana = FaceAnalyzer(detector: det, validator: val)
 
         self.facePreprocessor = pre
-        self.faceEmbedder     = emb
-        self.faceProcessor    = proc
-        self.faceDetector     = det
-        self.faceValidator    = val
-        self.faceAnalyzer     = ana
+        self.faceEmbedder = emb
+        self.faceProcessor = proc
+        self.faceDetector = det
+        self.faceValidator = val
+        self.faceAnalyzer = ana
 
-        // Backend services
-        self.registrationService   = RegistrationEmbeddingService(analyzer: ana, processor: proc)
-        self.employeeAPI           = EmployeeRegistrationService(http: http)
+        // Services (unchanged)
+        self.registrationService = RegistrationEmbeddingService(analyzer: ana, processor: proc)
+        self.employeeAPI = EmployeeRegistrationService(http: http)
         self.employeeLookupService = EmployeeLookupService(http: http)
         self.faceVerificationService = FaceVerificationService(http: http)
     }
+
 }

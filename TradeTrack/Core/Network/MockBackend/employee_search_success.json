@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "data": [
+    {
+      "employeeId": "test_user",
+      "name": "Test User",
+      "role": "employee"
+    }
+  ],
+  "code": null,
+  "message": null
+}
+
