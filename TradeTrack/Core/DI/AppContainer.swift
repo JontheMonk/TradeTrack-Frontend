@@ -83,15 +83,11 @@ struct AppContainer {
 
     init(environment: AppMode) throws {
 
-        // Decide base URL
-        let baseURL: URL = {
-            switch environment {
-            case .normal:
-                return URL(string: "TODO")!
-            case .uiTest:
-                return URL(string: "http://localhost")!
-            }
-        }()
+        if environment == .uiTest {
+            let world = BackendWorldReader.current()
+            MockURLProtocol.requestHandler =
+                MockBackendRouter.handler(for: world)
+        }
 
         // Decide session
         let session: URLSession = {
@@ -103,6 +99,7 @@ struct AppContainer {
             }
         }()
 
+        let baseURL = URL(string: "http://localhost")!
         let http = HTTPClient(baseURL: baseURL, session: session)
         self.http = http
 

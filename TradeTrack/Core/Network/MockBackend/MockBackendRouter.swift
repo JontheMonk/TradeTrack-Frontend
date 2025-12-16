@@ -2,65 +2,31 @@ import Foundation
 
 enum MockBackendRouter {
 
-    static func handler(for world: BackendWorld) -> (URLRequest) throws -> (Data, URLResponse) {
+    static func handler(for world: BackendWorld)
+    -> (URLRequest) throws -> (Data, URLResponse) {
 
-        switch world {
+        return { request in
+            guard let endpoint = MockEndpoint.from(request) else {
+                fatalError("Unhandled endpoint: \(request.url?.path ?? "nil")")
+            }
 
-        case .employeeExistsAndMatches:
-            return handleEmployeeExists
+            guard let fixtureName = world.fixtures[endpoint] else {
+                fatalError(
+                    "No fixture for endpoint \(endpoint) in world \(world)"
+                )
+            }
 
-        case .employeeDoesNotExist:
-            return handleEmployeeMissing
-
-        case .verificationFails:
-            return handleVerificationFails
-        }
-    }
-
-    // MARK: - Worlds
-
-    private static func handleEmployeeExists(_ request: URLRequest)
-    throws -> (Data, URLResponse) {
-
-        if request.url?.path.contains("/employee/search") == true {
-            let data = mockJSON("employee_search_success")
+            let data = loadJSON(named: fixtureName)
             return ok(request, data)
         }
-
-        if request.url?.path.contains("/verify") == true {
-            let data = mockJSON("verification_success")
-            return ok(request, data)
-        }
-
-        fatalError("Unhandled request: \(request)")
-    }
-
-    private static func handleEmployeeMissing(_ request: URLRequest)
-    throws -> (Data, URLResponse) {
-
-        if request.url?.path.contains("/employee/search") == true {
-            let data = mockJSON("employee_search_empty")
-            return ok(request, data)
-        }
-
-        fatalError("Unhandled request: \(request)")
-    }
-
-    private static func handleVerificationFails(_ request: URLRequest)
-    throws -> (Data, URLResponse) {
-
-        if request.url?.path.contains("/verify") == true {
-            let data = mockJSON("verification_failed")
-            return ok(request, data)
-        }
-
-        fatalError("Unhandled request: \(request)")
     }
 
     // MARK: - Helpers
 
-    private static func ok(_ request: URLRequest, _ data: Data)
-    -> (Data, URLResponse) {
+    private static func ok(
+        _ request: URLRequest,
+        _ data: Data
+    ) -> (Data, URLResponse) {
         let response = HTTPURLResponse(
             url: request.url!,
             statusCode: 200,
@@ -70,8 +36,11 @@ enum MockBackendRouter {
         return (data, response)
     }
 
-    private static func mockJSON(_ name: String) -> Data {
-        let url = Bundle.main.url(forResource: name, withExtension: "json")!
+    private static func loadJSON(named name: String) -> Data {
+        let url = Bundle.main.url(
+            forResource: name,
+            withExtension: "json"
+        )!
         return try! Data(contentsOf: url)
     }
 }
