@@ -4,30 +4,7 @@ enum BackendWorld : String {
     case employeeExistsAndMatches
     case employeeDoesNotExist
     case verificationFails
-}
-
-enum MockEndpoint {
-    case employees
-    case verify
-
-    static func from(_ request: URLRequest) -> MockEndpoint? {
-        guard let path = request.url?.path else { return nil }
-
-        if path == "/employees" {
-            return .employees
-        }
-
-        if path == "/verify" {
-            return .verify
-        }
-
-        return nil
-    }
-}
-
-
-
-extension BackendWorld {
+    
     var fixtures: [MockEndpoint: String] {
         switch self {
         case .employeeExistsAndMatches:
@@ -49,5 +26,23 @@ extension BackendWorld {
     }
 }
 
+enum MockEndpoint {
+    case employees
+    case verify
+
+    static func from(_ request: URLRequest) -> MockEndpoint? {
+        guard let path = request.url?.path else { return nil }
+
+        if path == "/employees" {
+            return .employees
+        }
+
+        if path == "/verify" {
+            return .verify
+        }
+
+        return nil
+    }
+}
 
 
