@@ -134,14 +134,21 @@ struct AppContainer {
                 return .mock()
             }
         }()
+        
+        // Camera
+        if environment == .uiTest {
+            let world = CameraWorldReader.current()
+            self.cameraManager = UITestCameraManager(world: world)
+        }
+        else {
+            self.cameraManager = CameraManager()
+        }
 
         let baseURL = URL(string: "http://localhost")!
         let http = HTTPClient(baseURL: baseURL, session: session)
         self.http = http
 
-        // Camera
-        self.cameraManager = CameraManager()
-
+        
         let pre = FacePreprocessor()
         let det = FaceDetector()
         let val = FaceValidator()
