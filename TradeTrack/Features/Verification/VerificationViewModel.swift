@@ -26,7 +26,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     ///   - authorization flow
     ///   - delivering frames to a delegate
     ///
-    /// Tests can substitute `MockCameraManagerProtocol`.
+    /// Tests can substitute mocks.
     private let camera: CameraManagerProtocol
 
     /// Performs Vision face detection + validation checks:
@@ -88,6 +88,9 @@ final class VerificationViewModel: NSObject, ObservableObject {
     ///
     /// 0.5s = only 2 frames/sec max are processed.
     private let minimumInterval: TimeInterval = 0.5
+    
+    ///UI Test Signal Handling
+    private var uiTestObservers: [NSObjectProtocol] = []
 
 
     // MARK: - Capture Delegate
@@ -154,6 +157,8 @@ final class VerificationViewModel: NSObject, ObservableObject {
     ///   2. Start the camera session
     ///   3. Begin receiving frames → handled by `outputDelegate`
     func start() async {
+        installUITestSignalBridgeIfNeeded()
+        
         do {
             try await camera.requestAuthorization()
             try await camera.start(delegate: outputDelegate)
@@ -172,7 +177,92 @@ final class VerificationViewModel: NSObject, ObservableObject {
     }
 
     deinit {
+        for o in uiTestObservers {
+            NotificationCenter.default.removeObserver(o)
+        }
         task?.cancel()
+    }
+    
+    /// Installs a notification → UI-state bridge used **only during UI tests**.
+    ///
+    /// ## Purpose
+    /// UI tests do not drive the real camera pipeline. Instead, a test-specific
+    /// camera manager (`UITestCameraManager`) emits high-level outcome signals
+    /// (e.g. "no face", "invalid face", "valid face") via `NotificationCenter`.
+    ///
+    /// This method translates those **external, unstructured signals** into
+    /// deterministic `VerificationState` transitions that SwiftUI can render.
+    ///
+    /// ## When this is active
+    /// The bridge is installed **only** when the app is launched with the
+    /// `"UITest"` launch argument. In normal production runs, this method
+    /// returns immediately and has no effect.
+    ///
+    /// ## Concurrency model
+    /// `NotificationCenter` delivers observer callbacks from an unstructured,
+    /// `@Sendable` context. Because this view model is `@MainActor`-isolated,
+    /// each observer explicitly hops to the `MainActor` using
+    /// `Task { @MainActor in ... }` before mutating UI state.
+    ///
+    /// This preserves:
+    /// - actor isolation
+    /// - serialized access to `state`
+    /// - correctness under Swift 6 concurrency rules
+    ///
+    /// ## Memory management
+    /// Each observer registration returns an opaque token that is stored in
+    /// `uiTestObservers`. These tokens are removed in `deinit` to prevent
+    /// retained observers or callbacks after the view model has been released.
+    ///
+    /// - Important:
+    ///   This method is idempotent only if guarded externally (e.g. by ensuring
+    ///   it is called once during startup). Multiple calls will register
+    ///   duplicate observers.
+    private func installUITestSignalBridgeIfNeeded() {
+        guard
+            AppRuntime.mode == .uiTest,
+            uiTestObservers.isEmpty
+        else {
+            return
+        }
+
+        let center = NotificationCenter.default
+
+        uiTestObservers.append(
+            center.addObserver(
+                forName: .uiTestCameraNoFace,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.state = .detecting
+                }
+            }
+        )
+
+        uiTestObservers.append(
+            center.addObserver(
+                forName: .uiTestCameraInvalidFace,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.state = .detecting
+                }
+            }
+        )
+
+        uiTestObservers.append(
+            center.addObserver(
+                forName: .uiTestCameraValidFace,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.state = .matched(name: "Test User")
+                }
+            }
+        )
     }
 
 
