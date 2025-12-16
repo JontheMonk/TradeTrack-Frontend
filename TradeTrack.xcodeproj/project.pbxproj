@@ -40,14 +40,16 @@
 		C47E3E002EF06E7E005E373D /* Exceptions for "TradeTrackUITests" folder in "TradeTrack" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LookupToVerificationTests.swift,
+				BaseUITestCase.swift,
+				VerificationUITests.swift,
 			);
 			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
 		};
 		C47E3E022EF06E81005E373D /* Exceptions for "TradeTrackUITests" folder in "TradeTrackUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LookupToVerificationTests.swift,
+				BaseUITestCase.swift,
+				VerificationUITests.swift,
 			);
 			target = C4029FB02E2D72BF00334A85 /* TradeTrackUITests */;
 		};
