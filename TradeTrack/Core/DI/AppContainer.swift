@@ -4,12 +4,18 @@
 //  Central dependency container for the entire app.
 //
 //  `AppContainer` wires together all core subsystems — camera pipeline,
-//  face-processing pipeline, HTTP layer, and registration/lookup services.
-//  This acts as a single, predictable place where objects are constructed,
-//  making the app easier to reason about and dramatically simplifying testing.
+//  face-processing pipeline, HTTP layer, and application services.
 //
-//  The container does not own UI state or business logic; it simply builds
-//  and holds the long-lived service objects used throughout the app.
+//  In addition, it is responsible for selecting the correct backend
+//  execution environment (real backend vs. simulated backend world)
+//  at app launch.
+//
+//  This acts as a single, predictable place where long-lived objects
+//  are constructed, making the app easier to reason about and
+//  dramatically simplifying testing.
+//
+//  The container does not own UI state or business logic; it only
+//  constructs infrastructure and services.
 //
 
 import CoreML
@@ -18,12 +24,35 @@ import CoreML
 ///
 /// `AppContainer` constructs and stores:
 /// - core infrastructure (HTTP client, camera manager)
-/// - the entire face-analysis/embedding pipeline
-/// - registration and employee-lookup services
+/// - the entire face analysis and embedding pipeline
+/// - registration, lookup, and verification services
 ///
-/// Nothing inside `AppContainer` is tied to SwiftUI or UIKit; it is pure
-/// infrastructure setup. This makes the dependencies easy to mock in tests
-/// and easy to swap out in previews.
+/// ### Backend environments
+/// At initialization time, the container selects how backend requests
+/// should be handled based on the provided `AppMode`:
+///
+/// - `.normal`:
+///   - Uses a real `URLSession`
+///   - Sends requests to the actual backend
+///
+/// - `.uiTest`:
+///   - Installs a mock URL protocol
+///   - Routes all network requests through a deterministic
+///     `BackendWorld` selected via launch arguments
+///
+/// This ensures UI tests:
+/// - are fully deterministic
+/// - never depend on real backend state
+/// - fail loudly on unexpected network calls
+///
+/// ### Design notes
+/// - The backend world is chosen **once**, at app launch
+/// - The world does **not** change during runtime
+/// - Missing or invalid test configuration is treated as a fatal error
+///
+/// Nothing inside `AppContainer` is tied to SwiftUI or UIKit; it is
+/// pure infrastructure setup. This makes dependencies easy to mock
+/// in tests and easy to swap out in previews.
 ///
 /// ### Usage
 /// Typically, the app creates one shared instance at launch:
@@ -31,12 +60,19 @@ import CoreML
 /// ```swift
 /// @main
 /// struct TradeTrackApp: App {
-///     let container = try! AppContainer(http: RealHTTPClient())
+///     let container = try! AppContainer(environment: .normal)
 /// }
 /// ```
 ///
-/// or injects it into SwiftUI environment objects.
+/// UI tests launch the app with:
+///
+/// ```text
+/// -BackendWorld <world>
+/// ```
+///
+/// to select a simulated backend universe.
 struct AppContainer {
+
 
     // MARK: - Core Infrastructure
 
@@ -106,7 +142,6 @@ struct AppContainer {
         // Camera
         self.cameraManager = CameraManager()
 
-        // Face pipeline (real — cheap enough, no side effects)
         let pre = FacePreprocessor()
         let det = FaceDetector()
         let val = FaceValidator()
