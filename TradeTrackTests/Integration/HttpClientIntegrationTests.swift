@@ -39,6 +39,19 @@ final class HTTPClientIntegrationTests: XCTestCase {
         client = nil
         super.tearDown()
     }
+    
+    // MARK: - Health ------------------------------------------------------------
+
+    /// Verifies that the backend is running and reachable.
+    func test_healthEndpoint_returnsSuccess() async throws {
+        let res: Empty? = try await client.send(
+            "GET",
+            path: "/health"
+        )
+
+        // success == true, data == null → res == nil
+        XCTAssertNil(res)
+    }
 
     // MARK: - Verify Face (Happy Path) ---------------------------------------
 
