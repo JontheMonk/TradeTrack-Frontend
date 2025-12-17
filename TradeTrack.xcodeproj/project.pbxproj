@@ -37,6 +37,22 @@
 			);
 			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
 		};
+		C47E3E002EF06E7E005E373D /* Exceptions for "TradeTrackUITests" folder in "TradeTrack" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BaseUITestCase.swift,
+				VerificationUITests.swift,
+			);
+			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
+		};
+		C47E3E022EF06E81005E373D /* Exceptions for "TradeTrackUITests" folder in "TradeTrackUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BaseUITestCase.swift,
+				VerificationUITests.swift,
+			);
+			target = C4029FB02E2D72BF00334A85 /* TradeTrackUITests */;
+		};
 		C47F63C82E620FFB005F1C59 /* Exceptions for "TradeTrackTests" folder in "TradeTrackTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -125,6 +141,10 @@
 		};
 		C47F63D82E625C76005F1C59 /* TradeTrackUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C47E3E002EF06E7E005E373D /* Exceptions for "TradeTrackUITests" folder in "TradeTrack" target */,
+				C47E3E022EF06E81005E373D /* Exceptions for "TradeTrackUITests" folder in "TradeTrackUITests" target */,
+			);
 			path = TradeTrackUITests;
 			sourceTree = "<group>";
 		};

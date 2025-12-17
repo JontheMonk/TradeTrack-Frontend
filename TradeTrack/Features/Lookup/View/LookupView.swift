@@ -45,6 +45,7 @@ struct LookupView: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                 TextField("Search employees (min 3 chars)…", text: searchBinding)
+                    .accessibilityIdentifier("lookup.search")
                     .textInputAutocapitalization(.never)
                     .disableAutocorrection(true)
                     .submitLabel(.search)
@@ -78,6 +79,7 @@ struct LookupView: View {
                     } label: {
                         EmployeeCard(employee: emp)
                     }
+                    .accessibilityIdentifier("lookup.result.\(emp.employeeId)")
                     .buttonStyle(.plain)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)

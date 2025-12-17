@@ -1,0 +1,8 @@
+{
+  "success": false,
+  "data": null,
+  "code": "EMPLOYEE_NOT_FOUND",
+  "message": "Employee not found"
+}
+
+

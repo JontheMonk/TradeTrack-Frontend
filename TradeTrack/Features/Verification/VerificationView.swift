@@ -67,6 +67,7 @@ struct VerificationView: View {
     // MARK: - UI Helpers
     private func statusBubble(_ text: String) -> some View {
         Text(text)
+            .accessibilityIdentifier("verification.status")
             .padding()
             .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 12))

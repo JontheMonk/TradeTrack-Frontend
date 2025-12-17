@@ -113,10 +113,29 @@ final class CameraManager: CameraManagerProtocol {
         }
     }
 
-    /// Stops the camera session.
+    /// Stops the camera session and performs deterministic cleanup.
     ///
-    /// This *must* be async so callers (tests especially) can await the
-    /// completion of cleanup work done inside the `sessionQueue`.
+    /// This method is intentionally `async` so callers
+    /// can await the completion of all teardown work before continuing.
+    ///
+    /// ### Concurrency model
+    /// All interaction with the underlying capture session and video output
+    /// is serialized onto `sessionQueue`. This guarantees exclusive access
+    /// and prevents data races, even though the involved types are not
+    /// `Sendable`.
+    ///
+    /// Swift concurrency cannot statically prove this queue confinement,
+    /// which may result in Sendable-related warnings. These are safe and
+    /// expected here because the serialization invariant is enforced
+    /// by design.
+    ///
+    /// ### Behavior
+    /// - Stops the capture session if it is currently running
+    /// - Clears the sample buffer delegate
+    /// - Resumes only after all cleanup has completed on `sessionQueue`
+    ///
+    /// Callers may safely assume that once this method returns, the camera
+    /// pipeline is fully stopped and quiescent.
     func stop() async {
         let session = self.session
         let output = self.output
@@ -131,6 +150,7 @@ final class CameraManager: CameraManagerProtocol {
             }
         }
     }
+
 
 
     // MARK: - Session Queue Bridge
