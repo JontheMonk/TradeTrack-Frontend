@@ -48,6 +48,7 @@ struct ErrorBannerView: View {
 
                 HStack(spacing: 8) {
                     Text(userMessage(for: error.code))
+                        .accessibilityIdentifier("error.banner")
                         .font(.callout)
                         .foregroundColor(.white)
 
@@ -70,7 +71,7 @@ struct ErrorBannerView: View {
         }
         .padding(.top, 8)
         .animation(.easeInOut, value: errorManager.currentError != nil)
-        .onChange(of: errorManager.currentError != nil) { show in
+        .onChange(of: errorManager.currentError != nil) { _, show in
             if show { autoDismiss(after: 4) }
         }
     }
