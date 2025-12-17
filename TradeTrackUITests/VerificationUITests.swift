@@ -97,10 +97,8 @@ final class CameraInvalidFaceUITests: BaseUITestCase {
         let status = app.staticTexts["verification.status"]
         XCTAssertTrue(status.waitForExistence(timeout: 2))
 
-        // Returned to detecting
         expectLabel(status, contains: "Looking")
 
-        // ❗ Distinguishing assertion
         let banner = app.staticTexts["error.banner"]
         XCTAssertTrue(banner.waitForExistence(timeout: 2))
     }
