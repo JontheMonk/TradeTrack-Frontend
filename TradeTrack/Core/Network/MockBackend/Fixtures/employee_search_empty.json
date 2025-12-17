@@ -1,7 +1,8 @@
 {
-  "success": true,
-  "data": [],
-  "code": null,
-  "message": null
+  "success": false,
+  "data": null,
+  "code": "EMPLOYEE_NOT_FOUND",
+  "message": "Employee not found"
 }
+
 

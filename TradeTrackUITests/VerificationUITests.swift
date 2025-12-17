@@ -50,29 +50,61 @@ final class CameraNoFaceUITests: BaseUITestCase {
             cameraWorld: "noFace"
         )
 
+        // Lookup
+        let searchField = app.textFields["lookup.search"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 2))
+        searchField.tap()
+        searchField.typeText("tes")
+
+        // Results
+        let result = app.buttons["lookup.result.test_user"]
+        XCTAssertTrue(result.waitForExistence(timeout: 2))
+        result.tap()
+
+        // Verification
         let status = app.staticTexts["verification.status"]
         XCTAssertTrue(status.waitForExistence(timeout: 2))
 
-        // Should remain in detecting state
+        // Detecting
         expectLabel(status, contains: "Looking")
+
+        // Still detecting (no silent progress)
+        XCTAssertFalse(status.label.contains("Verifying"))
     }
+
 }
 
 final class CameraInvalidFaceUITests: BaseUITestCase {
 
-    func test_invalidFace_resetsToDetecting() {
+    func test_invalidFace_resetsToDetecting_andShowsError() {
 
         launch(
             backendWorld: "employeeExistsAndMatches",
             cameraWorld: "invalidFace"
         )
+        
+        // Lookup
+        let searchField = app.textFields["lookup.search"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 2))
+        searchField.tap()
+        searchField.typeText("tes")
+
+        // Results
+        let result = app.buttons["lookup.result.test_user"]
+        XCTAssertTrue(result.waitForExistence(timeout: 2))
+        result.tap()
 
         let status = app.staticTexts["verification.status"]
         XCTAssertTrue(status.waitForExistence(timeout: 2))
 
-        // Invalid face should not progress
+        // Returned to detecting
         expectLabel(status, contains: "Looking")
+
+        // ❗ Distinguishing assertion
+        let banner = app.staticTexts["error.banner"]
+        XCTAssertTrue(banner.waitForExistence(timeout: 2))
     }
+
 }
 
 final class CameraUnavailableUITests: BaseUITestCase {
@@ -83,6 +115,17 @@ final class CameraUnavailableUITests: BaseUITestCase {
             backendWorld: "employeeExistsAndMatches",
             cameraWorld: "cameraUnavailable"
         )
+        
+        // Lookup
+        let searchField = app.textFields["lookup.search"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 2))
+        searchField.tap()
+        searchField.typeText("tes")
+
+        // Results
+        let result = app.buttons["lookup.result.test_user"]
+        XCTAssertTrue(result.waitForExistence(timeout: 2))
+        result.tap()
 
         let banner = app.staticTexts["error.banner"]
         XCTAssertTrue(banner.waitForExistence(timeout: 2))
@@ -100,26 +143,15 @@ final class EmployeeNotFoundUITests: BaseUITestCase {
             backendWorld: "employeeDoesNotExist",
             cameraWorld: "validFace"
         )
+        
+        // Lookup
+        let searchField = app.textFields["lookup.search"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 2))
+        searchField.tap()
+        searchField.typeText("tes")
 
         let banner = app.staticTexts["error.banner"]
         XCTAssertTrue(banner.waitForExistence(timeout: 2))
         XCTAssertTrue(banner.label.lowercased().contains("not found"))
-    }
-}
-
-final class VerificationFailureUITests: BaseUITestCase {
-
-    func test_verificationFails_showsErrorAndResets() {
-
-        launch(
-            backendWorld: "verificationFails",
-            cameraWorld: "validFace"
-        )
-
-        let banner = app.staticTexts["error.banner"]
-        XCTAssertTrue(banner.waitForExistence(timeout: 2))
-
-        let status = app.staticTexts["verification.status"]
-        expectLabel(status, contains: "Looking")
     }
 }

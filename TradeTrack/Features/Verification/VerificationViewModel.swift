@@ -138,14 +138,17 @@ final class VerificationViewModel: NSObject, ObservableObject {
     // MARK: - Session Bridge (UI Only)
 
     /// Exposes the real `AVCaptureSession` to SwiftUI's `CameraPreview`.
-    ///
-    /// - Important:
-    ///   This intentionally fails if a mock camera is used in UI previews,
-    ///   because previews should not load camera infrastructure.
     var session: AVCaptureSession {
-        guard let real = camera.session as? RealCaptureSession else {
-            fatalError("UI attempted to use a mock session")
+        // UI tests: provide a dummy session so CameraPreview can mount
+        if AppRuntime.mode == .uiTest {
+            return AVCaptureSession()
         }
+
+        // Production invariant
+        guard let real = camera.session as? RealCaptureSession else {
+            fatalError("Production UI attempted to use a mock camera session")
+        }
+        
         return real.uiSession
     }
 
@@ -247,7 +250,13 @@ final class VerificationViewModel: NSObject, ObservableObject {
                 queue: .main
             ) { [weak self] _ in
                 Task { @MainActor in
-                    self?.state = .detecting
+                    guard let self else { return }
+
+                    self.state = .detecting
+                    
+                    self.errorManager.showError(
+                        AppError(code: .faceConfidenceTooLow)
+                    )
                 }
             }
         )
