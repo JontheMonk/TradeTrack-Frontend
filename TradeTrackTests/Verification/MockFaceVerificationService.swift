@@ -1,5 +1,5 @@
 import Foundation
-@testable import TradeTrack
+@testable import TradeTrackCore
 
 final class MockFaceVerificationService: FaceVerificationProtocol {
 

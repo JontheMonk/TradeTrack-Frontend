@@ -1,3 +1,5 @@
+@testable import TradeTrackCore
+
 final class MockEmployeeLookupService: EmployeeLookupServing {
 
     private(set) var callCount = 0   // observed by tests, not set by tests

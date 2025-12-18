@@ -1,6 +1,7 @@
 import UIKit
 import Vision
 import CoreImage
+import TradeTrackCore
 
 /// Service responsible for producing a **512-dimensional face embedding**
 /// from a user-selected image during employee registration.
@@ -30,27 +31,17 @@ protocol RegistrationEmbeddingServing {
 ///   • `FaceProcessor` — crops → resizes → pixel-preprocesses → embeds
 ///
 /// This keeps the registration flow extremely modular and testable.
-final class RegistrationEmbeddingService: RegistrationEmbeddingServing {
-    private let analyzer: FaceAnalyzerProtocol
-    private let processor: FaceProcessor
+final class RegistrationEmbeddingService {
 
-    /// Designated initializer using pure dependency injection.
-    init(analyzer: FaceAnalyzerProtocol, processor: FaceProcessor) {
-        self.analyzer = analyzer
-        self.processor = processor
+    private let extractor: FaceEmbeddingExtracting
+
+    init(extractor: FaceEmbeddingExtracting) {
+        self.extractor = extractor
     }
 
     func embedding(from image: UIImage) throws -> FaceEmbedding {
-        // Convert UIImage → correctly oriented CIImage.
         let ciUpright = try Self.makeUprightCIImage(from: image)
-
-        // Detect + validate face.
-        guard let face = analyzer.analyze(in: ciUpright) else {
-            throw AppError(code: .faceValidationFailed)
-        }
-
-        // Run full preprocessing + embedding pipeline.
-        return try processor.process(image: ciUpright, face: face)
+        return try extractor.embedding(from: ciUpright)
     }
 }
 
