@@ -1,4 +1,5 @@
 import Foundation
+import TradeTrackCore
 
 /// ViewModel for the employee lookup screen.
 ///

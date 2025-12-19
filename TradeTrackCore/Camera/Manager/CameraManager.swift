@@ -35,6 +35,10 @@ final class CameraManager: CameraManagerProtocol {
 
     /// The capture session abstraction (`AVCaptureSession` in production).
     let session: CaptureSessionProtocol
+    
+    public var uiCaptureSession: AVCaptureSession {
+            return session.uiSession
+    }
 
     /// Output responsible for delivering video frames to delegates.
     private let output: VideoOutput

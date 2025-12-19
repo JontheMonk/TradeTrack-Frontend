@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import os.log
+import TradeTrackCore
 
 /// A centralized controller for presenting errors to the UI and logging them.
 ///

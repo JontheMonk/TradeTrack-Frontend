@@ -39,14 +39,14 @@ public struct FaceEmbedding {
 
     /// Invariant: `values` is L2-normalized (`||values|| ≈ 1`),
     /// unless the input vector was all zeros.
-    let values: [Float]
+    public let values: [Float]
 
     /// Creates a new embedding by L2-normalizing the input vector.
     ///
     /// If the input vector has a norm of zero (rare, but possible in corrupted
     /// or invalid model output), normalization is skipped and the raw values
     /// are preserved to avoid division by zero.
-    init(_ raw: [Float]) {
+    public init(_ raw: [Float]) {
         let sumsq = raw.reduce(Float(0)) { $0 + $1 * $1 }
         let norm = sqrt(sumsq)
 

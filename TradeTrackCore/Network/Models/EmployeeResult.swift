@@ -29,9 +29,9 @@
 /// Because it’s intentionally small, this model is used only for *reading*
 /// employee data. For *writing* (creating/registration), use `EmployeeInput`.
 public struct EmployeeResult: Identifiable, Codable {
-    let employeeId: String
-    let name: String
-    let role: String
+    public let employeeId: String
+    public let name: String
+    public let role: String
 
     /// The unique key used by SwiftUI to identify the item.
     public var id: String { employeeId }

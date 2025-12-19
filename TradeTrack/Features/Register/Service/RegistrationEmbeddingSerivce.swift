@@ -31,7 +31,7 @@ protocol RegistrationEmbeddingServing {
 ///   • `FaceProcessor` — crops → resizes → pixel-preprocesses → embeds
 ///
 /// This keeps the registration flow extremely modular and testable.
-final class RegistrationEmbeddingService {
+final class RegistrationEmbeddingService : RegistrationEmbeddingServing {
 
     private let extractor: FaceEmbeddingExtracting
 

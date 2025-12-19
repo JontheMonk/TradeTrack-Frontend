@@ -7,12 +7,12 @@ struct AppContainer {
     // MARK: - Core Infrastructure
     
     let cameraManager: CameraManagerProtocol
-    let faceAnalzyer: FaceAnalyzerProtocol
+    let faceAnalyzer: FaceAnalyzerProtocol
     let faceProcessor: FaceProcessing
     
     // MARK: - Application Services
 
-    let registrationService: FaceEmbeddingExtracting
+    let registrationService: RegistrationEmbeddingServing
     let employeeAPI: EmployeeRegistrationServing
     let employeeLookupService: EmployeeLookupServing
     let faceVerificationService: FaceVerificationProtocol
@@ -27,18 +27,20 @@ struct AppContainer {
         let session: URLSession = (environment == .normal) ? .shared : .mock()
         
         // 2. Build Pipeline Components
-        self.faceAnalzyer = CoreFactory.makeFaceAnalyzer()
+        self.faceAnalyzer = CoreFactory.makeFaceAnalyzer()
         self.faceProcessor = try CoreFactory.makeFaceProcessor()
         
         // 3. Build Camera Manager
         // The factory handles switching between UITestCameraManager and the real one.
         self.cameraManager = CoreFactory.makeCameraManager(for: environment)
 
-        // 4. Build Application Services
-        self.registrationService = CoreFactory.makeRegistrationService(
-            analyzer: self.faceAnalzyer,
+        let extractor = CoreFactory.makeRegistrationService(
+            analyzer: self.faceAnalyzer,
             processor: self.faceProcessor
         )
+        
+        // 4. Build Application Services
+        self.registrationService = RegistrationEmbeddingService(extractor: extractor)
         
         self.employeeAPI = CoreFactory.makeEmployeeAPI(session: session)
         self.employeeLookupService = CoreFactory.makeEmployeeLookupService(session: session)

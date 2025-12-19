@@ -42,13 +42,13 @@ public struct AppError: Error, LocalizedError, Equatable, Identifiable {
     public let id = UUID()
 
     /// High-level category of error for user-facing descriptions.
-    let code: AppErrorCode
+    public let code: AppErrorCode
 
     /// Additional internal context for logs or debugging.
-    let debugMessage: String?
+    public let debugMessage: String?
 
     /// The underlying system or domain error that triggered this one.
-    let underlyingError: Error?
+    public let underlyingError: Error?
 
     /// Creates a new application error with optional debugging details.
     public init(

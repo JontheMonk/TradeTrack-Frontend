@@ -13,6 +13,7 @@
 //
 
 import SwiftUI
+import TradeTrackCore
 
 /// A slide-down error banner that appears at the top of the screen whenever
 /// `ErrorManager` publishes a new `AppError`.

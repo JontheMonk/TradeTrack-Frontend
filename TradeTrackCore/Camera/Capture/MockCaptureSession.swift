@@ -1,6 +1,5 @@
 // MockCaptureSession.swift
 import AVFoundation
-@testable import TradeTrackCore
 
 /// Mock implementation of `CaptureSessionProtocol`.
 ///
@@ -23,6 +22,7 @@ import AVFoundation
 /// - Calls are recorded via boolean flags for verification.
 final class MockCaptureSession: CaptureSessionProtocol {
 
+    let uiSession = AVCaptureSession()
     // MARK: - Configurable Behavior
 
     /// Controls return value of `canAddInput(_:)`.

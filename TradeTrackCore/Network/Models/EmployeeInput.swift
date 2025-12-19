@@ -30,8 +30,15 @@ import Foundation
 /// try await http.post("/register", payload)
 /// ```
 public struct EmployeeInput: Codable {
-    let employeeId: String
-    let name: String
-    let embedding: [Float]
-    let role: String
+    public let employeeId: String
+    public let name: String
+    public let embedding: [Float]
+    public let role: String
+
+    public init(employeeId: String, name: String, embedding: [Float], role: String) {
+        self.employeeId = employeeId
+        self.name = name
+        self.embedding = embedding
+        self.role = role
+    }
 }

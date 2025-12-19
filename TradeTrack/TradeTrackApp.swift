@@ -1,4 +1,5 @@
 import SwiftUI
+import TradeTrackCore
 
 /// Application entry point for TradeTrack.
 ///

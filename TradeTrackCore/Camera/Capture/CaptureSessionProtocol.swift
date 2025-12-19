@@ -21,7 +21,9 @@ import AVFoundation
 /// the app: managing inputs/outputs, configuring session state, and starting/stopping
 /// capture.
 protocol CaptureSessionProtocol: AnyObject {
-
+    
+    var uiSession: AVCaptureSession { get }
+    
     /// The current list of device inputs added to the session.
     /// Mirrors `AVCaptureSession.inputs`.
     var inputs: [CaptureDeviceInputProtocol] { get }

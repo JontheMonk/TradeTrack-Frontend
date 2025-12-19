@@ -15,7 +15,7 @@
 ///
 /// By depending on this protocol instead of the concrete class, view models
 /// become fully testable and independent from UI infrastructure.
-protocol ErrorHandling {
+public protocol ErrorHandling {
     /// Notify the handler that an error occurred and should be presented.
     ///
     /// Implementations may log, normalize, or publish UI state.

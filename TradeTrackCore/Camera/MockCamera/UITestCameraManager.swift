@@ -11,8 +11,13 @@ import AVFoundation
 /// camera mechanics.
 final class UITestCameraManager: CameraManagerProtocol {
 
-    let session: CaptureSessionProtocol = NullCaptureSession()
-    // MARK: - State
+    // Use the MockCaptureSession instead of a Null one
+    private let mockSession = MockCaptureSession()
+    
+    /// Publicly exposed via the protocol for the ViewModel/UI
+    public var uiCaptureSession: AVCaptureSession {
+        return mockSession.uiSession
+    }
 
     private let world: CameraWorld
     private(set) var isRunning = false

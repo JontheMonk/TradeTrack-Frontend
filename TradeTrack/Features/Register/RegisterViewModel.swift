@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import UIKit
 import Vision
+import TradeTrackCore
 
 /// ViewModel for the employee registration screen.
 ///

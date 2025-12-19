@@ -103,7 +103,7 @@ public enum AppErrorCode: String, Equatable {
 ///
 /// The UI always calls this instead of using error codes directly, allowing
 /// you to localize or revise messages later without touching the rest of the app.
-func userMessage(for code: AppErrorCode) -> String {
+public func userMessage(for code: AppErrorCode) -> String {
     switch code {
 
     // MARK: Camera & Session

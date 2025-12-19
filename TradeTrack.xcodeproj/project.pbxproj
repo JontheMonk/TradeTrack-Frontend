@@ -76,7 +76,6 @@
 		C403ED592EF4B42400F3A427 /* Exceptions for "TradeTrackCoreTests" folder in "TradeTrackTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Face/Validation/MockFaceObservation.swift,
 				Integration/HttpClientIntegrationTests.swift,
 			);
 			target = C4029FA62E2D72BF00334A85 /* TradeTrackTests */;
@@ -84,7 +83,6 @@
 		C403ED5A2EF4B42400F3A427 /* Exceptions for "TradeTrackCoreTests" folder in "TradeTrackCoreTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Face/Validation/MockFaceObservation.swift,
 				Integration/HttpClientIntegrationTests.swift,
 			);
 			target = C403ECDB2EF4A3D000F3A427 /* TradeTrackCoreTests */;

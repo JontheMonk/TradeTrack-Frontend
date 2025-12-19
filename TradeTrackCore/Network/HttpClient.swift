@@ -56,7 +56,7 @@ import Foundation
 
     /// URLSession used for all requests. Defaults to `.shared` but can be
     /// injected for UI tests or mocking.
-    internal  let session: URLSession
+    internal let session: URLSession
 
     /// JSON encoder with snake_case output for backend compatibility.
     private let encoder = JSONEncoder()

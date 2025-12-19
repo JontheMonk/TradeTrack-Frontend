@@ -25,6 +25,8 @@ import AVFoundation
 /// - support clean asynchronous stopping (important for testing)
 public protocol CameraManagerProtocol {
 
+    var uiCaptureSession: AVCaptureSession { get }
+    
     /// Requests camera access from the system.
     ///
     /// - Throws: `.cameraNotAuthorized` if access is denied or restricted.
