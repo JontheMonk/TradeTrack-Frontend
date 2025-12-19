@@ -20,6 +20,10 @@ final class MockCameraManager: CameraManagerProtocol {
     /// Backing session exposed to callers as `CaptureSessionProtocol`.
     /// Uses `MockCaptureSession` by default but can be overridden in tests.
     let session: CaptureSessionProtocol
+    
+    public var uiCaptureSession: AVCaptureSession {
+        return session.uiSession
+    }
 
     // MARK: - Configurable Behavior
 
