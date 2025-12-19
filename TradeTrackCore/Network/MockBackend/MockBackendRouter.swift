@@ -89,24 +89,12 @@ enum MockBackendRouter {
 
     // MARK: - Fixture Loading
 
-    /// Loads a JSON fixture from the main bundle.
-    ///
-    /// Fixtures are expected to:
-    /// - live in the app bundle
-    /// - be valid JSON
-    /// - exist for every endpoint used by a backend world
-    ///
-    /// Missing or unreadable fixtures cause an intentional crash.
-    /// This is a test configuration error, not a recoverable runtime failure.
-    ///
-    /// - Parameter name: The fixture filename (without `.json`)
-    /// - Returns: Raw JSON data
+    /// Loads a JSON fixture from the TradeTrackCore bundle.
     private static func loadJSON(named name: String) -> Data {
-        let url = Bundle.main.url(
-            forResource: name,
-            withExtension: "json"
-        )!
-
+        // This is clean, readable, and safe from shadowing
+        guard let url = Bundle.tradeTrackCore.url(forResource: name, withExtension: "json") else {
+            fatalError("❌ Fixture '\(name).json' not found in TradeTrackCore.")
+        }
         return try! Data(contentsOf: url)
     }
 }
