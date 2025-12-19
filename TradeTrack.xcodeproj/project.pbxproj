@@ -77,6 +77,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Face/Validation/MockFaceObservation.swift,
+				Integration/HttpClientIntegrationTests.swift,
 			);
 			target = C4029FA62E2D72BF00334A85 /* TradeTrackTests */;
 		};
@@ -84,6 +85,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Face/Validation/MockFaceObservation.swift,
+				Integration/HttpClientIntegrationTests.swift,
 			);
 			target = C403ECDB2EF4A3D000F3A427 /* TradeTrackCoreTests */;
 		};
@@ -115,7 +117,6 @@
 			membershipExceptions = (
 				ErrorHandling/ErrorHelper.swift,
 				ErrorHandling/MockErrorManager.swift,
-				Integration/HttpClientIntegrationTests.swift,
 				Lookup/LookupViewModelTests.swift,
 				Navigating/MockNavigator.swift,
 				Register/MockEmbeddingService.swift,
@@ -133,7 +134,6 @@
 			membershipExceptions = (
 				ErrorHandling/ErrorHelper.swift,
 				ErrorHandling/MockErrorManager.swift,
-				Integration/HttpClientIntegrationTests.swift,
 				Lookup/LookupViewModelTests.swift,
 				Navigating/MockNavigator.swift,
 				Register/MockEmbeddingService.swift,

@@ -11,7 +11,7 @@
 ///   • testable (you can inject a mock service)
 ///   • decoupled from HTTPClient
 ///   • flexible if backend endpoints ever change
-protocol EmployeeLookupServing {
+public protocol EmployeeLookupServing {
     /// Searches the backend for employees whose identifiers begin with `prefix`.
     ///
     /// - Parameter prefix: The beginning of the employee ID or name.

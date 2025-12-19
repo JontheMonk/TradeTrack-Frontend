@@ -46,7 +46,7 @@ import Foundation
 /// }
 /// ```
 ///
-final class HTTPClient {
+ final class HTTPClient {
     
     private let urlBuilder: URLBuildProtocol
 
@@ -56,7 +56,7 @@ final class HTTPClient {
 
     /// URLSession used for all requests. Defaults to `.shared` but can be
     /// injected for UI tests or mocking.
-    private let session: URLSession
+    internal  let session: URLSession
 
     /// JSON encoder with snake_case output for backend compatibility.
     private let encoder = JSONEncoder()

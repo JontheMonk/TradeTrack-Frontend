@@ -42,7 +42,7 @@ import Foundation
 /// let embedding = try embedder.embed(from: pb)
 /// let vector = embedding.values  // normalized [Float]
 /// ```
-final class FaceEmbedder {
+final class FaceEmbedder : FaceEmbeddingProtocol {
 
     /// CoreML model wrapper that exposes a `prediction` method.
     private let model: FaceEmbeddingModelProtocol

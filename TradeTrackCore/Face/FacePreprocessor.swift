@@ -50,7 +50,7 @@ import Vision
 ///
 /// These errors allow the upstream `FaceAnalyzer` or `FaceProcessor` to
 /// reject the frame cleanly.
-final class FacePreprocessor {
+final class FacePreprocessor : FacePreprocessorProtocol {
 
     /// Target output size, typically 112×112 for InsightFace.
     private let outputSize: CGSize

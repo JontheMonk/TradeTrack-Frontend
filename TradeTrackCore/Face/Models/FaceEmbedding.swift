@@ -35,7 +35,7 @@ import Foundation
 /// print(embedding.values)
 /// ```
 ///
-struct FaceEmbedding {
+public struct FaceEmbedding {
 
     /// Invariant: `values` is L2-normalized (`||values|| ≈ 1`),
     /// unless the input vector was all zeros.

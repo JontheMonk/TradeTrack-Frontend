@@ -18,7 +18,7 @@
 //
 
 import XCTest
-@testable import TradeTrack
+@testable import TradeTrackCore
 
 final class HTTPClientIntegrationTests: XCTestCase {
 

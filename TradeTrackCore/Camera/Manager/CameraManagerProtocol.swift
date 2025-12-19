@@ -23,13 +23,7 @@ import AVFoundation
 /// - configure and start a capture session
 /// - deliver frames via a delegate passed to `start(delegate:)`
 /// - support clean asynchronous stopping (important for testing)
-protocol CameraManagerProtocol {
-
-    /// The capture session backing the camera pipeline.
-    ///
-    /// This is exposed primarily so tests can inspect session inputs/outputs
-    /// or assert state transitions (e.g. `isRunning` changes).
-    var session: CaptureSessionProtocol { get }
+public protocol CameraManagerProtocol {
 
     /// Requests camera access from the system.
     ///

@@ -2,18 +2,18 @@ import CoreImage
 import Vision
 
 /// Core service that extracts a face embedding from a CIImage.
-protocol FaceEmbeddingExtracting {
+public protocol FaceEmbeddingExtracting {
     func embedding(from image: CIImage) throws -> FaceEmbedding
 }
 
 final class FaceEmbeddingExtractor: FaceEmbeddingExtracting {
 
     private let analyzer: FaceAnalyzerProtocol
-    private let processor: FaceProcessor
+    private let processor: FaceProcessing
 
     init(
         analyzer: FaceAnalyzerProtocol,
-        processor: FaceProcessor
+        processor: FaceProcessing
     ) {
         self.analyzer = analyzer
         self.processor = processor

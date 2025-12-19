@@ -32,7 +32,7 @@ import CoreImage
 /// - Makes the whole face pipeline mockable for tests
 /// - Allows you to swap implementations (e.g., multi-face selection later)
 ///
-protocol FaceAnalyzerProtocol {
+public protocol FaceAnalyzerProtocol {
     /// Attempts to detect and validate a single high-quality face in the image.
     ///
     /// - Parameter image: The CIImage frame to inspect.

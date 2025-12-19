@@ -29,7 +29,7 @@ import Foundation
 /// )
 /// try await http.post("/register", payload)
 /// ```
-struct EmployeeInput: Codable {
+public struct EmployeeInput: Codable {
     let employeeId: String
     let name: String
     let embedding: [Float]

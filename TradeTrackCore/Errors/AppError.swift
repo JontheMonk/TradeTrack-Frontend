@@ -35,11 +35,11 @@ import Foundation
 /// `AppError` is identifiable so SwiftUI alerts can bind to it directly.
 /// Equality uses the UUID so each instance is unique, even if the code
 /// and debug info match.
-struct AppError: Error, LocalizedError, Equatable, Identifiable {
+public struct AppError: Error, LocalizedError, Equatable, Identifiable {
 
     /// Unique identity for this particular error instance.
     /// Allows SwiftUI views to present alerts bound to `AppError?`.
-    let id = UUID()
+    public let id = UUID()
 
     /// High-level category of error for user-facing descriptions.
     let code: AppErrorCode
@@ -51,7 +51,7 @@ struct AppError: Error, LocalizedError, Equatable, Identifiable {
     let underlyingError: Error?
 
     /// Creates a new application error with optional debugging details.
-    init(
+    public init(
         code: AppErrorCode,
         debugMessage: String? = nil,
         underlyingError: Error? = nil
@@ -63,14 +63,14 @@ struct AppError: Error, LocalizedError, Equatable, Identifiable {
 
     /// Human-readable description shown to the user.
     /// Resolved through your `userMessage(for:)` helper.
-    var errorDescription: String? {
+    public var errorDescription: String? {
         userMessage(for: code)
     }
 
     /// Error equality is defined by identity, not contents.
     /// This ensures that two separate errors with the same code do **not**
     /// collapse into the same SwiftUI alert.
-    static func == (lhs: AppError, rhs: AppError) -> Bool {
+    public static func == (lhs: AppError, rhs: AppError) -> Bool {
         lhs.id == rhs.id
     }
 }

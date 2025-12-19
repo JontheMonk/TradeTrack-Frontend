@@ -13,7 +13,7 @@
 ///    surfaced as `AppError` via the `HTTPClient`.
 ///  • Callers should handle these errors and display an appropriate message
 ///    through `ErrorManager`.
-protocol EmployeeRegistrationServing {
+public protocol EmployeeRegistrationServing {
     /// Registers a new employee with their metadata and face embedding.
     ///
     /// - Parameter input: The full employee record including ID, name, role,

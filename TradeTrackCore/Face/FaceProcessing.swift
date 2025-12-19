@@ -34,6 +34,6 @@ import CoreImage
 ///   - image: The full, upright `CIImage` of the camera frame.
 ///   - face: A validated `VNFaceObservation` describing the face region.
 /// - Returns: A fully normalized `FaceEmbedding`.
-protocol FaceProcessing {
+public protocol FaceProcessing : AnyObject {
     func process(image: CIImage, face: VNFaceObservation) throws -> FaceEmbedding
 }

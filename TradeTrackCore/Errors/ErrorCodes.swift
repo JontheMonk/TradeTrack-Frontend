@@ -15,7 +15,7 @@ import Foundation
 /// - the backend can send structured errors,
 /// - the UI can show appropriate user-facing messages,
 /// - logging/debugging can rely on consistent identifiers.
-enum AppErrorCode: String, Equatable {
+public enum AppErrorCode: String, Equatable {
 
     // MARK: Camera & Session
     /// User denied camera permissions, or permissions not yet granted.

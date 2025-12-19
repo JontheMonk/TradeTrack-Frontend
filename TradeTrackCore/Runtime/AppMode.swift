@@ -12,7 +12,7 @@ import Foundation
 ///
 /// - normal: Standard runtime (manual dev testing or production)
 /// - uiTest: App launched via XCUITest; use mocks and deterministic behavior.
-enum AppMode {
+public enum AppMode {
     case normal
     case uiTest
 }
