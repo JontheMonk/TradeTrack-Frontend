@@ -9,6 +9,7 @@
 
 import Vision
 import CoreImage
+import ImageIO
 import os.log
 
 /// A lightweight wrapper around `VNDetectFaceLandmarksRequest` that extracts the
@@ -29,34 +30,34 @@ import os.log
 /// - Allows easy swapping for multi-face detection or future VN APIs
 ///
 final class FaceDetector: FaceDetectorProtocol {
-
+    /// For tests
+    private let usesCPUOnly: Bool
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "face-detection")
 
-    /// Runs a Vision face-landmark detection request and returns the first face
-    /// found in the image.
-    ///
-    /// - Parameter image: A `CIImage` to inspect.
-    /// - Returns: A `VNFaceObservation` if Vision detects at least one face,
-    ///            or `nil` otherwise.
-    ///
-    /// This method logs Vision failures using unified logging.
+    init(usesCPUOnly: Bool = false) {
+        self.usesCPUOnly = usesCPUOnly
+    }
+
     func detect(in image: CIImage) -> VNFaceObservation? {
         let request = VNDetectFaceLandmarksRequest()
+        
+        // Use the injected setting
+        request.usesCPUOnly = self.usesCPUOnly
 
-        // Use the most recent revision available.
         if #available(iOS 17.0, *) {
             request.revision = VNDetectFaceLandmarksRequestRevision3
         }
 
-        let handler = VNImageRequestHandler(ciImage: image, orientation: .up)
+        // Safely extract orientation
+        let orientationKey = kCGImagePropertyOrientation as String
+        let orientationRawValue = image.properties[orientationKey] as? UInt32 ?? 1
+        let orientation = CGImagePropertyOrientation(rawValue: orientationRawValue) ?? .up
+
+        let handler = VNImageRequestHandler(ciImage: image, orientation: orientation)
 
         do {
             try handler.perform([request])
-            guard let face = request.results?.first else {
-                logger.debug("No face detected")
-                return nil
-            }
-            return face
+            return request.results?.first
         } catch {
             logger.error("Vision error: \(error.localizedDescription)")
             return nil

@@ -3,15 +3,6 @@ import CoreML
 
 public struct CoreFactory {
     
-    /// Returns a fully configured extractor.
-    /// Use this in Scripts, CLTs, or the AppContainer to get the
-    /// entire pipeline without manual wiring.
-    public static func makeFaceExtractor() throws -> FaceEmbeddingExtracting {
-        let analyzer = makeFaceAnalyzer()
-        let processor = try makeFaceProcessor()
-        return FaceEmbeddingExtractor(analyzer: analyzer, processor: processor)
-    }
-    
     // MARK: - Private Storage
     
     private static var sharedHTTPClient: HTTPClient?
@@ -55,12 +46,29 @@ public struct CoreFactory {
         )
     }
     
+    /// Helper to determine if we are in an environment that requires CPU-only Vision
+    private static var shouldForceCPU: Bool {
+        #if targetEnvironment(simulator)
+        return true
+        #else
+        return false
+        #endif
+    }
+    
     // MARK: - Face Pipeline
     
+    public static func makeFaceExtractor() throws -> FaceEmbeddingExtracting {
+            let analyzer = makeFaceAnalyzer()
+            let processor = try makeFaceProcessor()
+            return FaceEmbeddingExtractor(analyzer: analyzer, processor: processor)
+        }
+
+
     public static func makeFaceAnalyzer() -> FaceAnalyzerProtocol {
         return FaceAnalyzer(
-            detector: FaceDetector(),
-            validator: FaceValidator()
+            detector: FaceDetector(usesCPUOnly: shouldForceCPU),
+            validator: FaceValidator(),
+            usesCPUOnly: shouldForceCPU
         )
     }
     

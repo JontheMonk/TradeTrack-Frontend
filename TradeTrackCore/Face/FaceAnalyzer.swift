@@ -34,9 +34,17 @@ final class FaceAnalyzer: FaceAnalyzerProtocol {
     /// Applies quality, geometry, and Vision capture-quality constraints.
     private let validator: FaceValidatorProtocol
 
-    init(detector: FaceDetectorProtocol, validator: FaceValidatorProtocol) {
+    /// For tests
+    private let usesCPUOnly: Bool
+
+    init(
+        detector: FaceDetectorProtocol,
+        validator: FaceValidatorProtocol,
+        usesCPUOnly: Bool = false // Default for Prod
+    ) {
         self.detector = detector
         self.validator = validator
+        self.usesCPUOnly = usesCPUOnly
     }
 
     /// Attempts to detect and validate a usable face in the image.
@@ -74,9 +82,23 @@ final class FaceAnalyzer: FaceAnalyzerProtocol {
 
         let req = VNDetectFaceCaptureQualityRequest()
         req.inputFaceObservations = [face]
+        
+        // 1. Force CPU usage here as well to prevent the inference context crash
+        req.usesCPUOnly = self.usesCPUOnly
 
-        let handler = VNImageRequestHandler(ciImage: image, orientation: .up)
-        try handler.perform([req])
+        // 2. Extract orientation from the image properties (just like the detector)
+        let orientationKey = kCGImagePropertyOrientation as String
+        let orientationRawValue = image.properties[orientationKey] as? UInt32 ?? 1
+        let orientation = CGImagePropertyOrientation(rawValue: orientationRawValue) ?? .up
+
+        let handler = VNImageRequestHandler(ciImage: image, orientation: orientation)
+        
+        do {
+            try handler.perform([req])
+        } catch {
+            print("❌ Quality Request Failed: \(error.localizedDescription)")
+            throw error
+        }
 
         guard
             let obs = req.results?.first as? VNFaceObservation,
