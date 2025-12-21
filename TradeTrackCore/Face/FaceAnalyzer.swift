@@ -27,86 +27,26 @@ import CoreImage
 /// This class is intentionally lightweight and synchronous so it can be used
 /// directly from frame-processing pipelines.
 final class FaceAnalyzer: FaceAnalyzerProtocol {
-
-    /// Detects faces from the input image.
     private let detector: FaceDetectorProtocol
-
-    /// Applies quality, geometry, and Vision capture-quality constraints.
     private let validator: FaceValidatorProtocol
 
-    /// For tests
-    private let usesCPUOnly: Bool
-
-    init(
-        detector: FaceDetectorProtocol,
-        validator: FaceValidatorProtocol,
-        usesCPUOnly: Bool = false // Default for Prod
-    ) {
+    init(detector: FaceDetectorProtocol, validator: FaceValidatorProtocol) {
         self.detector = detector
         self.validator = validator
-        self.usesCPUOnly = usesCPUOnly
     }
 
-    /// Attempts to detect and validate a usable face in the image.
-    ///
-    /// - Returns: A verified `VNFaceObservation`, or `nil` if no face meets the
-    ///            required quality thresholds.
-    func analyze(in image: CIImage) -> VNFaceObservation? {
-        // Step 1: Detect
-        guard let face = detector.detect(in: image) else {
+    func analyze(in image: CIImage) -> (VNFaceObservation, Float)? {
+        // Step 1: Detect and get quality in one shot
+        guard let (face, quality) = detector.detect(in: image) else {
             return nil
         }
 
-        // Step 2: Validate geometry + brightness + blur + capture-quality score
+        // Step 2: Validate using the pre-computed quality
         let isValid = validator.isValid(
             face: face,
-            in: image,
-            captureQualityProvider: faceCaptureQuality
+            quality: quality // Pass the float directly now
         )
 
-        return isValid ? face : nil
-    }
-
-    // MARK: - Vision Capture Quality
-
-    /// Wrapper for Apple's Vision "capture quality" API.
-    ///
-    /// This produces a `Float` representing how usable the face is based on
-    /// sharpness, brightness, contrast, and facial feature tracking confidence.
-    ///
-    /// Throws if Vision fails to compute the score.
-    private func faceCaptureQuality(
-        face: VNFaceObservation,
-        image: CIImage
-    ) throws -> Float {
-
-        let req = VNDetectFaceCaptureQualityRequest()
-        req.inputFaceObservations = [face]
-        
-        // 1. Force CPU usage here as well to prevent the inference context crash
-        req.usesCPUOnly = self.usesCPUOnly
-
-        // 2. Extract orientation from the image properties (just like the detector)
-        let orientationKey = kCGImagePropertyOrientation as String
-        let orientationRawValue = image.properties[orientationKey] as? UInt32 ?? 1
-        let orientation = CGImagePropertyOrientation(rawValue: orientationRawValue) ?? .up
-
-        let handler = VNImageRequestHandler(ciImage: image, orientation: orientation)
-        
-        do {
-            try handler.perform([req])
-        } catch {
-            print("❌ Quality Request Failed: \(error.localizedDescription)")
-            throw error
-        }
-
-        guard
-            let obs = req.results?.first as? VNFaceObservation,
-            let quality = obs.faceCaptureQuality
-        else {
-            throw AppError(code: .faceValidationFailed)
-        }
-
-        return quality
+        return isValid ? (face, quality) : nil
     }
 }

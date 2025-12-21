@@ -25,13 +25,11 @@ final class MockValidator: FaceValidatorProtocol {
     ///
     /// - Parameters:
     ///   - face: Ignored.
-    ///   - image: Ignored.
-    ///   - captureQualityProvider: Ignored.
+    ///   - quality: Ignored
     /// - Returns: Whatever `result` is set to.
     func isValid(
         face: VNFaceObservation,
-        in image: CIImage,
-        captureQualityProvider: (VNFaceObservation, CIImage) throws -> Float
+        quality : Float
     ) -> Bool {
         return result
     }

@@ -38,5 +38,5 @@ public protocol FaceAnalyzerProtocol {
     /// - Parameter image: The CIImage frame to inspect.
     /// - Returns: A validated `VNFaceObservation`, or `nil` if no face
     ///            meets quality requirements.
-    func analyze(in image: CIImage) -> VNFaceObservation?
+    func analyze(in image: CIImage) -> (VNFaceObservation, Float)?
 }

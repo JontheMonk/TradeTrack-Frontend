@@ -30,25 +30,33 @@ import os.log
 /// - Allows easy swapping for multi-face detection or future VN APIs
 ///
 final class FaceDetector: FaceDetectorProtocol {
-    /// For tests
+    // 1. All stored properties must be assigned in init
     private let usesCPUOnly: Bool
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "face-detection")
-
+    
+    // MARK: - Reusable Requests
+    private let detectionReq = VNDetectFaceLandmarksRequest()
+    private let qualityReq = VNDetectFaceCaptureQualityRequest()
+    
     init(usesCPUOnly: Bool = false) {
         self.usesCPUOnly = usesCPUOnly
-    }
-
-    func detect(in image: CIImage) -> VNFaceObservation? {
-        let request = VNDetectFaceLandmarksRequest()
         
-        // Use the injected setting
-        request.usesCPUOnly = self.usesCPUOnly
-
+        // Handle CPU constraint across OS versions
         if #available(iOS 17.0, *) {
-            request.revision = VNDetectFaceLandmarksRequestRevision3
+            // On iOS 17+, Apple prefers letting the system manage resources.
+            // If you MUST use CPU, you would set detectionReq.applicableDevices = [.cpu]
+        } else {
+            detectionReq.usesCPUOnly = usesCPUOnly
+            qualityReq.usesCPUOnly = usesCPUOnly
         }
 
-        // Safely extract orientation
+        // Use Revision 3 for better accuracy on newer devices
+        if #available(iOS 17.0, *) {
+            detectionReq.revision = VNDetectFaceLandmarksRequestRevision3
+        }
+    }
+
+    func detect(in image: CIImage) -> (VNFaceObservation, Float)? {
         let orientationKey = kCGImagePropertyOrientation as String
         let orientationRawValue = image.properties[orientationKey] as? UInt32 ?? 1
         let orientation = CGImagePropertyOrientation(rawValue: orientationRawValue) ?? .up
@@ -56,11 +64,21 @@ final class FaceDetector: FaceDetectorProtocol {
         let handler = VNImageRequestHandler(ciImage: image, orientation: orientation)
 
         do {
-            try handler.perform([request])
-            return request.results?.first
+            try handler.perform([detectionReq, qualityReq])
+            
+            // This guard ensures we return a non-optional (VNFaceObservation, Float)
+            guard let face = detectionReq.results?.first as? VNFaceObservation,
+                  let qualityFace = qualityReq.results?.first as? VNFaceObservation,
+                  let quality = qualityFace.faceCaptureQuality else {
+                return nil
+            }
+            
+            return (face, quality)
         } catch {
             logger.error("Vision error: \(error.localizedDescription)")
             return nil
         }
     }
 }
+
+

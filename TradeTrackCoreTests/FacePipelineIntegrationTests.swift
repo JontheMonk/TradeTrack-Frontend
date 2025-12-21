@@ -22,6 +22,27 @@ final class FacePipelineIntegrationTests: XCTestCase {
         let squaredSum = vector.reduce(0) { $0 + ($1 * $1) }
         return sqrt(squaredSum)
     }
+    
+    func test_extractor_returnsNil_whenChairIsProvided() throws {
+        // 1. Arrange
+        let extractor = try CoreFactory.makeFaceExtractor()
+        let chairImage = loadCIImage(named: "chair")
+        
+        let result = try? extractor.embedding(from: chairImage)
+
+        // 3. Assert
+        XCTAssertNil(result, "The pipeline should return nil for a chair, not an embedding.")
+    }
+    
+    func test_extractor_returnsNil_forBlurryFace() throws {
+        let extractor = try CoreFactory.makeFaceExtractor()
+        
+        let blurryImage = loadCIImage(named: "blurry")
+        
+        let result = try? extractor.embedding(from: blurryImage)
+        
+        XCTAssertNil(result, "The pipeline should reject the blurry image due to low capture quality.")
+    }
 }
 
 // MARK: - Private Helpers

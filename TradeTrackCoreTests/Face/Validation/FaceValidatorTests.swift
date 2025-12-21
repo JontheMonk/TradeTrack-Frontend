@@ -46,8 +46,7 @@ final class FaceValidatorTests: XCTestCase {
         let face = makeFace(roll: nil, yaw: 0)
         let result = validator.isValid(
             face: face,
-            in: CIImage(),
-            captureQualityProvider: { _, _ in 0.8 }
+            quality: 0.8,
         )
         XCTAssertFalse(result)
     }
@@ -60,8 +59,7 @@ final class FaceValidatorTests: XCTestCase {
         )
         let result = validator.isValid(
             face: face,
-            in: CIImage(),
-            captureQualityProvider: { _, _ in 0.8 }
+            quality: 0.8,
         )
         XCTAssertFalse(result)
     }
@@ -74,8 +72,7 @@ final class FaceValidatorTests: XCTestCase {
         )
         let result = validator.isValid(
             face: face,
-            in: CIImage(),
-            captureQualityProvider: { _, _ in 0.8 }
+            quality: 0.8,
         )
         XCTAssertFalse(result)
     }
@@ -85,8 +82,7 @@ final class FaceValidatorTests: XCTestCase {
         let face = makeFace(roll: 0, yaw: 0)
         let result = validator.isValid(
             face: face,
-            in: CIImage(),
-            captureQualityProvider: { _, _ in 0.8 }
+            quality: 0.8,
         )
         XCTAssertTrue(result)
     }
@@ -98,7 +94,10 @@ final class FaceValidatorTests: XCTestCase {
         let smallBox = CGRect(x: 0.2, y: 0.2, width: 0.1, height: 0.1)
         let face = makeFace(bbox: smallBox, roll: 0, yaw: 0)
 
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertFalse(result)
     }
 
@@ -107,7 +106,10 @@ final class FaceValidatorTests: XCTestCase {
         let box = CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3)
         let face = makeFace(bbox: box, roll: 0, yaw: 0)
 
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertTrue(result)
     }
 
@@ -119,21 +121,7 @@ final class FaceValidatorTests: XCTestCase {
 
         let result = validator.isValid(
             face: face,
-            in: CIImage(),
-            captureQualityProvider: { _, _ in 0.1 }
-        )
-
-        XCTAssertFalse(result)
-    }
-
-    /// If the capture quality provider throws, the validator should reject the face.
-    func testRejectsWhenQualityProviderThrows() {
-        let face = makeFace(roll: 0, yaw: 0)
-
-        let result = validator.isValid(
-            face: face,
-            in: CIImage(),
-            captureQualityProvider: { _, _ in throw NSError(domain: "test", code: 1) }
+            quality: 0.1,
         )
 
         XCTAssertFalse(result)
@@ -143,7 +131,10 @@ final class FaceValidatorTests: XCTestCase {
     func testAcceptsValidCaptureQuality() {
         let face = makeFace(roll: 0, yaw: 0)
 
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.9 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.9,
+        )
         XCTAssertTrue(result)
     }
 
@@ -159,8 +150,7 @@ final class FaceValidatorTests: XCTestCase {
 
         let result = validator.isValid(
             face: face,
-            in: CIImage(),
-            captureQualityProvider: { _, _ in 0.95 }
+            quality: 0.95,
         )
 
         XCTAssertTrue(result)
@@ -171,7 +161,10 @@ final class FaceValidatorTests: XCTestCase {
     /// Missing yaw should trigger rejection.
     func testRejectsMissingYaw() {
         let face = makeFace(roll: 0, yaw: nil)
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertFalse(result)
     }
 
@@ -179,7 +172,10 @@ final class FaceValidatorTests: XCTestCase {
     func testAcceptsRollExactlyAtThreshold() {
         let deg15 = Float(15 * Double.pi / 180)
         let face = makeFace(roll: deg15, yaw: 0)
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertTrue(result)
     }
 
@@ -187,7 +183,10 @@ final class FaceValidatorTests: XCTestCase {
     func testRejectsRollJustAboveThreshold() {
         let deg = Float((15.1 * Double.pi) / 180)
         let face = makeFace(roll: deg, yaw: 0)
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertFalse(result)
     }
 
@@ -195,7 +194,10 @@ final class FaceValidatorTests: XCTestCase {
     func testAcceptsYawExactlyAtThreshold() {
         let deg15 = Float(15 * Double.pi / 180)
         let face = makeFace(roll: 0, yaw: deg15)
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertTrue(result)
     }
 
@@ -203,7 +205,10 @@ final class FaceValidatorTests: XCTestCase {
     func testRejectsYawJustAboveThreshold() {
         let deg = Float((15.1 * Double.pi) / 180)
         let face = makeFace(roll: 0, yaw: deg)
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertFalse(result)
     }
 
@@ -214,7 +219,10 @@ final class FaceValidatorTests: XCTestCase {
         let box = CGRect(x: 0.2, y: 0.2, width: 0.20, height: 0.20)
         let face = makeFace(bbox: box, roll: 0, yaw: 0)
 
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertTrue(result)
     }
 
@@ -223,7 +231,10 @@ final class FaceValidatorTests: XCTestCase {
         let box = CGRect(x: 0.2, y: 0.2, width: 0.199, height: 0.199)
         let face = makeFace(bbox: box, roll: 0, yaw: 0)
 
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertFalse(result)
     }
 
@@ -232,7 +243,10 @@ final class FaceValidatorTests: XCTestCase {
         let box = CGRect(x: 0.1, y: 0.1, width: 0.05, height: 0.9)
         let face = makeFace(bbox: box, roll: 0, yaw: 0)
 
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.8 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8,
+        )
         XCTAssertFalse(result)
     }
 
@@ -241,28 +255,40 @@ final class FaceValidatorTests: XCTestCase {
     /// Accepts capture quality exactly at the threshold (0.25).
     func testAcceptsQualityExactlyAtThreshold() {
         let face = makeFace(roll: 0, yaw: 0)
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.25 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.25,
+        )
         XCTAssertTrue(result)
     }
 
     /// Rejects capture quality just below threshold.
     func testRejectsQualityJustBelowThreshold() {
         let face = makeFace(roll: 0, yaw: 0)
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 0.249 })
+        let result = validator.isValid(
+            face: face,
+            quality: 0.249,
+        )
         XCTAssertFalse(result)
     }
 
     /// Rejects NaN capture quality because it provides no meaningful confidence.
     func testRejectsQualityNaN() {
         let face = makeFace(roll: 0, yaw: 0)
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in Float.nan })
+        let result = validator.isValid(
+            face: face,
+            quality: Float.nan,
+        )
         XCTAssertFalse(result)
     }
 
     /// Accepts excessively high capture quality (upper-bounded only by positivity).
     func testAcceptsVeryHighQuality() {
         let face = makeFace(roll: 0, yaw: 0)
-        let result = validator.isValid(face: face, in: CIImage(), captureQualityProvider: { _, _ in 10.0 })
+        let result = validator.isValid(
+            face: face,
+            quality: 10.0,
+        )
         XCTAssertTrue(result)
     }
 }

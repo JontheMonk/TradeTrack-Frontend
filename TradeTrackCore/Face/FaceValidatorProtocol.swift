@@ -19,18 +19,8 @@ import CoreImage
 /// Vision’s `VNDetectFaceCaptureQualityRequest`, which keeps the validator
 /// testable and easier to mock.
 protocol FaceValidatorProtocol {
-    /// Returns `true` only if the face meets all validation criteria.
-    ///
-    /// - Parameters:
-    ///   - face: The detected face to evaluate.
-    ///   - image: The source image the face was detected in.
-    ///   - captureQualityProvider: A closure that computes Vision’s face-capture
-    ///     quality score for this face. It can throw if the request fails.
-    ///
-    /// - Returns: `true` if the face is acceptable for recognition; otherwise `false`.
     func isValid(
         face: VNFaceObservation,
-        in image: CIImage,
-        captureQualityProvider: (VNFaceObservation, CIImage) throws -> Float
+        quality : Float
     ) -> Bool
 }

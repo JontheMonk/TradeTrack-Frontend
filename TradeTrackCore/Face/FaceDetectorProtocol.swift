@@ -33,5 +33,5 @@ protocol FaceDetectorProtocol {
     ///
     /// - Parameter image: The CIImage frame to analyze.
     /// - Returns: A `VNFaceObservation` if a face is detected; otherwise `nil`.
-    func detect(in image: CIImage) -> VNFaceObservation?
+    func detect(in image: CIImage) -> (VNFaceObservation, Float)?
 }
