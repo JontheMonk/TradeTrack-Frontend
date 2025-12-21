@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 @testable import TradeTrackCore
 
@@ -23,3 +24,4 @@ final class MockFaceVerificationService: FaceVerificationProtocol {
         }
     }
 }
+#endif

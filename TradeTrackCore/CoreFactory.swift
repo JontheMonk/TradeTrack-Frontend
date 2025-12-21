@@ -68,7 +68,6 @@ public struct CoreFactory {
         return FaceAnalyzer(
             detector: FaceDetector(usesCPUOnly: shouldForceCPU),
             validator: FaceValidator(),
-            usesCPUOnly: shouldForceCPU
         )
     }
     

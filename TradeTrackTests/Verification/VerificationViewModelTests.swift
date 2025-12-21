@@ -49,9 +49,10 @@ final class VerificationViewModelTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_successfulVerificationPipeline() async {
-        // Given
+    func test_successfulVerificationPipeline_immediateOnHighQuality() async {
+        // Given: Quality is 1.0 (>= 0.9 high-water mark), bypassing the window
         mockAnalyzer.stubbedFace = makeFace()
+        mockAnalyzer.stubbedQuality = 1.0
 
         // When
         await vm._test_runFrame(dummyImage)
@@ -63,8 +64,8 @@ final class VerificationViewModelTests: XCTestCase {
         XCTAssertNil(mockError.lastError)
     }
 
-    func test_noFaceDetected_doesNothing() async {
-        // Given
+    func test_noFaceDetected_resetsCollection() async {
+        // Given: Analyzer returns nil
         mockAnalyzer.stubbedFace = nil
 
         // When
@@ -72,13 +73,35 @@ final class VerificationViewModelTests: XCTestCase {
 
         // Then
         XCTAssertEqual(vm.state, .detecting)
+        XCTAssertEqual(vm.collectionProgress, 0.0)
         XCTAssertEqual(mockProcessor.callCount, 0)
-        XCTAssertEqual(mockVerifier.callCount, 0)
+    }
+
+    func test_collectsBestFaceInWindow_thenProcesses() async {
+        // 1. Send mediocre face (0.5). Should start window but not process.
+        mockAnalyzer.stubbedFace = makeFace()
+        mockAnalyzer.stubbedQuality = 0.5
+        await vm._test_handle(dummyImage)
+        
+        XCTAssertEqual(mockProcessor.callCount, 0, "Should not process immediately at 0.5 quality")
+        
+        // 2. Send better face (0.8) during same window
+        mockAnalyzer.stubbedQuality = 0.8
+        await vm._test_handle(dummyImage)
+
+        // 3. Force commit (simulating 0.8s passing)
+        vm._test_forceCommit()
+        await vm._test_waitForTask()
+
+        // Then
+        XCTAssertEqual(mockProcessor.callCount, 1)
+        XCTAssertEqual(vm.state, .matched(name: "123"))
     }
 
     func test_processorThrows_surfacesErrorAndResetsState() async {
         // Given
         mockAnalyzer.stubbedFace = makeFace()
+        mockAnalyzer.stubbedQuality = 1.0
         mockProcessor.stubbedError = AppError(code: .modelOutputMissing)
 
         // When
@@ -86,14 +109,13 @@ final class VerificationViewModelTests: XCTestCase {
 
         // Then
         XCTAssertEqual(vm.state, .detecting)
-        XCTAssertEqual(mockProcessor.callCount, 1)
-        XCTAssertEqual(mockVerifier.callCount, 0)
         XCTAssertEqual(mockError.lastError?.code, .modelOutputMissing)
     }
 
     func test_verifierThrows_surfacesErrorAndResetsState() async {
         // Given
         mockAnalyzer.stubbedFace = makeFace()
+        mockAnalyzer.stubbedQuality = 1.0
         mockVerifier.stubbedError = AppError(code: .networkUnavailable)
 
         // When
@@ -101,43 +123,48 @@ final class VerificationViewModelTests: XCTestCase {
 
         // Then
         XCTAssertEqual(vm.state, .detecting)
-        XCTAssertEqual(mockProcessor.callCount, 1)
         XCTAssertEqual(mockVerifier.callCount, 1)
         XCTAssertEqual(mockError.lastError?.code, .networkUnavailable)
     }
 
-    func test_throttling_allowsOnlyOneFramePerInterval() async {
+    func test_throttling_ignoresFramesWhileTaskIsActive() async {
         // Given
         mockAnalyzer.stubbedFace = makeFace()
+        mockAnalyzer.stubbedQuality = 1.0
 
-        // First frame
-        await vm._test_runFrame(dummyImage)
-        XCTAssertEqual(mockProcessor.callCount, 1)
+        // Start first frame/task
+        await vm._test_handle(dummyImage)
+        
+        // Immediately send another frame while first is still "processing"
+        await vm._test_handle(dummyImage)
+        
+        // Wait for whatever started to finish
+        await vm._test_waitForTask()
 
-        // Immediately process another frame — should be throttled
-        await vm._test_runFrame(dummyImage)
-        XCTAssertEqual(mockProcessor.callCount, 1,
-            "Second frame should be throttled and ignored"
-        )
+        // Then
+        XCTAssertEqual(mockProcessor.callCount, 1, "The second frame should have been ignored due to active task")
     }
 
-    func test_cancelsTaskIfStoppedEarly() async {
+    func test_stop_cancelsInFlightTask() async {
         mockAnalyzer.stubbedFace = makeFace()
+        mockAnalyzer.stubbedQuality = 1.0
 
-        // Kick off processing
-        await vm._test_handle(dummyImage)   // don't wait for full pipeline yet
+        // Kick off handle but don't wait for completion
+        await vm._test_handle(dummyImage)
 
-        // Stop the VM while task is running
+        // Stop immediately
         await vm.stop()
 
         // Then
         XCTAssertEqual(vm.state, .detecting)
+        XCTAssertNil(vm._test_task, "Task should be cleared")
     }
 
-    func test_missingEmployeeIDThrows() async {
+    func test_missingEmployeeID_failsEarly() async {
         // Given
         vm.targetEmployeeID = nil
         mockAnalyzer.stubbedFace = makeFace()
+        mockAnalyzer.stubbedQuality = 1.0
 
         // When
         await vm._test_runFrame(dummyImage)

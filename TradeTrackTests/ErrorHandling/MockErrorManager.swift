@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 @testable import TradeTrackCore
 
@@ -33,3 +34,4 @@ final class MockErrorManager: ErrorHandling {
         lastError = (error as? AppError) ?? AppError(code: .unknown)
     }
 }
+#endif

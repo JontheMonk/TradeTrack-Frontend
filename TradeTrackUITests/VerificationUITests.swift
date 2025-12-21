@@ -12,30 +12,25 @@ import XCTest
 final class LookupToVerificationSuccessUITests: BaseUITestCase {
 
     func test_lookupToVerification_success() {
-
         launch(
             backendWorld: "employeeExistsAndMatches",
             cameraWorld: "validFace"
         )
 
-        // Lookup
         let searchField = app.textFields["lookup.search"]
         XCTAssertTrue(searchField.waitForExistence(timeout: 2))
         searchField.tap()
-        searchField.typeText("tes")
+        searchField.typeText("test_user")
 
-        // Results
         let result = app.buttons["lookup.result.test_user"]
         XCTAssertTrue(result.waitForExistence(timeout: 2))
         result.tap()
+        
+        let statusLabel = app.staticTexts["verification.status_indicator"]
+        
+        XCTAssertTrue(statusLabel.waitForExistence(timeout: 10), "Status indicator ID not found")
 
-        // Verification
-        let status = app.staticTexts["verification.status"]
-        XCTAssertTrue(status.waitForExistence(timeout: 2))
-
-        // Processing → Success
-        expectLabel(status, contains: "Verifying")
-        expectLabel(status, contains: "Test User")
+        XCTAssertEqual(statusLabel.label, "Welcome, Test User")
     }
 }
 

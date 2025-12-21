@@ -28,27 +28,27 @@ import os.log
 /// which allows the validator to stay testable and avoids tying it directly to
 /// `VNDetectFaceCaptureQualityRequest`.
 struct FaceValidator: FaceValidatorProtocol {
-
+    
     // MARK: - Thresholds
-
+    
     /// Maximum roll (head tilt) in degrees.
     var maxRollDeg: Float = 15
-
+    
     /// Maximum yaw (looking sideways) in degrees.
     var maxYawDeg: Float = 15
-
+    
     /// Minimum acceptable Vision `faceCaptureQuality` score.
     var minQuality: Float = 0.25
-
+    
     /// Smallest acceptable normalized bounding-box side.
     /// (e.g. 0.20 means the face must cover at least 20% of the frame height/width.)
     var minFaceLength: CGFloat = 0.20
-
+    
     /// Vision sometimes spits out angles like 15.000019 — this prevents false rejects.
     private let angleEpsilon: Float = 0.0002
-
+    
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "validator")
-
+    
     /// Returns `true` only if the face meets all geometric + quality requirements.
     ///
     /// - Parameters:
@@ -58,57 +58,52 @@ struct FaceValidator: FaceValidatorProtocol {
     ///     Vision capture-quality score, or throws.
     func isValid(
         face: VNFaceObservation,
-        in image: CIImage,
-        captureQualityProvider: (VNFaceObservation, CIImage) throws -> Float
+        quality : Float
     ) -> Bool {
-
+        
         // MARK: - Roll / Yaw
-
+        
         guard let roll = face.roll?.floatValue,
               let yaw  = face.yaw?.floatValue else {
             logger.debug("Rejected: missing roll/yaw")
             return false
         }
-
+        
         let deg = Float(180) / .pi
         let rollDeg = abs(roll * deg)
         let yawDeg  = abs(yaw  * deg)
-
+        
         guard rollDeg <= maxRollDeg + angleEpsilon else {
             logger.debug("Rejected: roll too high (\(rollDeg)° > \(maxRollDeg))")
             return false
         }
-
+        
         guard yawDeg <= maxYawDeg + angleEpsilon else {
             logger.debug("Rejected: yaw too high (\(yawDeg)° > \(maxYawDeg))")
             return false
         }
-
+        
         // MARK: - Face size
-
+        
         let box = face.boundingBox
         let minSide = min(box.width, box.height)
-
+        
         guard minSide >= minFaceLength else {
             logger.debug("Rejected: face too small (minSide \(minSide) < \(minFaceLength))")
             return false
         }
-
+        
         // MARK: - Capture Quality
-
+        
         do {
-            let q = try captureQualityProvider(face, image)
-
-            guard q >= minQuality else {
-                logger.debug("Rejected: capture quality low (\(q) < \(minQuality))")
+            
+            guard quality >= minQuality else {
+                logger.debug("Rejected: capture quality low (\(quality) < \(minQuality))")
                 return false
             }
-        } catch {
-            logger.error("Rejected: capture quality provider threw error: \(error.localizedDescription)")
-            return false
+            
+            logger.debug("Face accepted")
+            return true
         }
-
-        logger.debug("Face accepted")
-        return true
     }
 }

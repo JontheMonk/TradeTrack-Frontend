@@ -1,3 +1,4 @@
+#if DEBUG
 import Vision
 import CoreImage
 @testable import TradeTrackCore
@@ -15,9 +16,18 @@ final class MockFaceAnalyzer: FaceAnalyzerProtocol {
     /// The observation to return from `analyze(in:)`.
     /// If `nil`, the analyzer reports “no face found”.
     var stubbedFace: VNFaceObservation?
+    
+    var stubbedQuality: Float = 1.0
 
-    func analyze(in image: CIImage) -> VNFaceObservation? {
+    func analyze(in image: CIImage) -> (VNFaceObservation, Float)? {
         callCount += 1
-        return stubbedFace
+        
+        guard let face = stubbedFace else {
+            return nil
+        }
+        
+        return (face, stubbedQuality)
     }
 }
+#endif
+
