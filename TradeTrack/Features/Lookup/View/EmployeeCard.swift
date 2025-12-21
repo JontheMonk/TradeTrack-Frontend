@@ -21,6 +21,7 @@
 ///   – chips use continuous corners to fit the modern UI style
 
 import SwiftUI
+import TradeTrackCore
 
 struct EmployeeCard: View {
     let employee: EmployeeResult

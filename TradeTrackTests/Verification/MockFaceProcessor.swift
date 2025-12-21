@@ -1,6 +1,7 @@
 import Vision
 import CoreImage
 @testable import TradeTrack
+@testable import TradeTrackCore
 
 /// A lightweight test double for the `FaceProcessing` capability.
 ///

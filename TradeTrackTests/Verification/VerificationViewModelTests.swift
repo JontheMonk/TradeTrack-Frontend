@@ -6,6 +6,7 @@
 import XCTest
 import Vision
 import CoreImage
+@testable import TradeTrackCore
 @testable import TradeTrack
 
 @MainActor

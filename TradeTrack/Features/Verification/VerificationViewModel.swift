@@ -1,6 +1,7 @@
 @preconcurrency import AVFoundation
 import Vision
 import SwiftUI
+import TradeTrackCore
 
 /// High-level verification state for the UI.
 ///
@@ -139,17 +140,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
     /// Exposes the real `AVCaptureSession` to SwiftUI's `CameraPreview`.
     var session: AVCaptureSession {
-        // UI tests: provide a dummy session so CameraPreview can mount
-        if AppRuntime.mode == .uiTest {
-            return AVCaptureSession()
-        }
-
-        // Production invariant
-        guard let real = camera.session as? RealCaptureSession else {
-            fatalError("Production UI attempted to use a mock camera session")
-        }
-        
-        return real.uiSession
+        return camera.uiCaptureSession
     }
 
 

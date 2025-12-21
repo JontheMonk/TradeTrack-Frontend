@@ -52,6 +52,17 @@
                ReferencedContainer = "container:TradeTrack.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C403ECDB2EF4A3D000F3A427"
+               BuildableName = "TradeTrackCoreTests.xctest"
+               BlueprintName = "TradeTrackCoreTests"
+               ReferencedContainer = "container:TradeTrack.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
