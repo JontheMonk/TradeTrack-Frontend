@@ -11,7 +11,6 @@ import TradeTrackCore
 ///
 /// This type is intentionally *thin*:
 /// no business logic, no feature decisions — just wiring.
-@main
 struct TradeTrackApp: App {
 
     /// Root dependency container.

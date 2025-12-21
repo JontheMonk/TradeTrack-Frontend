@@ -132,16 +132,11 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ErrorHandling/ErrorHelper.swift,
-				ErrorHandling/MockErrorManager.swift,
 				Lookup/LookupViewModelTests.swift,
 				Navigating/MockNavigator.swift,
 				Register/MockEmbeddingService.swift,
 				Register/MockRegistrationAPI.swift,
 				Register/RegisterViewModelTests.swift,
-				Verification/MockCameraManager.swift,
-				Verification/MockFaceAnalyzer.swift,
-				Verification/MockFaceProcessor.swift,
-				Verification/MockFaceVerificationService.swift,
 				Verification/VerificationViewModelTests.swift,
 			);
 			target = C4029F992E2D72BD00334A85 /* TradeTrack */;

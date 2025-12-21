@@ -36,15 +36,13 @@ final class FaceAnalyzer: FaceAnalyzerProtocol {
     }
 
     func analyze(in image: CIImage) -> (VNFaceObservation, Float)? {
-        // Step 1: Detect and get quality in one shot
         guard let (face, quality) = detector.detect(in: image) else {
             return nil
         }
 
-        // Step 2: Validate using the pre-computed quality
         let isValid = validator.isValid(
             face: face,
-            quality: quality // Pass the float directly now
+            quality: quality
         )
 
         return isValid ? (face, quality) : nil

@@ -1,3 +1,4 @@
+#if DEBUG
 import Vision
 import CoreImage
 @testable import TradeTrackCore
@@ -28,3 +29,5 @@ final class MockFaceAnalyzer: FaceAnalyzerProtocol {
         return (face, stubbedQuality)
     }
 }
+#endif
+

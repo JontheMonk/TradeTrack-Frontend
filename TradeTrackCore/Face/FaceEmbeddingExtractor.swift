@@ -15,7 +15,7 @@ final class FaceEmbeddingExtractor: FaceEmbeddingExtracting {
     }
 
     func embedding(from image: CIImage) throws -> FaceEmbedding {
-        guard let (face, quality) = analyzer.analyze(in: image) else {
+        guard let (face, _) = analyzer.analyze(in: image) else {
             throw AppError(code: .faceValidationFailed)
         }
         return try processor.process(image: image, face: face)

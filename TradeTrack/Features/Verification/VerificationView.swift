@@ -138,6 +138,7 @@ private extension VerificationView {
         .clipShape(Capsule())
         .shadow(color: .black.opacity(0.2), radius: 10)
         .animation(.spring(), value: vm.state)
+        .accessibilityIdentifier("verification.status_indicator")
     }
 }
 

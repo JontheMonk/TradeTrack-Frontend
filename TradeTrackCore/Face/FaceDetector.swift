@@ -41,16 +41,10 @@ final class FaceDetector: FaceDetectorProtocol {
     init(usesCPUOnly: Bool = false) {
         self.usesCPUOnly = usesCPUOnly
         
-        // Handle CPU constraint across OS versions
-        if #available(iOS 17.0, *) {
-            // On iOS 17+, Apple prefers letting the system manage resources.
-            // If you MUST use CPU, you would set detectionReq.applicableDevices = [.cpu]
-        } else {
-            detectionReq.usesCPUOnly = usesCPUOnly
-            qualityReq.usesCPUOnly = usesCPUOnly
-        }
+        detectionReq.usesCPUOnly = usesCPUOnly
+        qualityReq.usesCPUOnly = usesCPUOnly
 
-        // Use Revision 3 for better accuracy on newer devices
+
         if #available(iOS 17.0, *) {
             detectionReq.revision = VNDetectFaceLandmarksRequestRevision3
         }
@@ -66,7 +60,6 @@ final class FaceDetector: FaceDetectorProtocol {
         do {
             try handler.perform([detectionReq, qualityReq])
             
-            // This guard ensures we return a non-optional (VNFaceObservation, Float)
             guard let face = detectionReq.results?.first as? VNFaceObservation,
                   let qualityFace = qualityReq.results?.first as? VNFaceObservation,
                   let quality = qualityFace.faceCaptureQuality else {
