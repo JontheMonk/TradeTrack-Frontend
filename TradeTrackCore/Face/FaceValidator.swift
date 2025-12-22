@@ -37,8 +37,11 @@ struct FaceValidator: FaceValidatorProtocol {
     /// Maximum yaw (looking sideways) in degrees.
     var maxYawDeg: Float = 15
     
+    /// Maximum pitch (looking up/down) in degrees.
+    var maxPitchDeg: Float = 20
+    
     /// Minimum acceptable Vision `faceCaptureQuality` score.
-    var minQuality: Float = 0.25
+    var minQuality: Float = 0.60
     
     /// Smallest acceptable normalized bounding-box side.
     /// (e.g. 0.20 means the face must cover at least 20% of the frame height/width.)
@@ -64,14 +67,16 @@ struct FaceValidator: FaceValidatorProtocol {
         // MARK: - Roll / Yaw
         
         guard let roll = face.roll?.floatValue,
-              let yaw  = face.yaw?.floatValue else {
-            logger.debug("Rejected: missing roll/yaw")
+              let yaw  = face.yaw?.floatValue,
+              let pitch = face.pitch?.floatValue else {
+            logger.debug("Rejected: missing pitch/roll/yaw")
             return false
         }
         
         let deg = Float(180) / .pi
         let rollDeg = abs(roll * deg)
         let yawDeg  = abs(yaw  * deg)
+        let pitchDeg = abs(pitch * deg)
         
         guard rollDeg <= maxRollDeg + angleEpsilon else {
             logger.debug("Rejected: roll too high (\(rollDeg)° > \(maxRollDeg))")
@@ -80,6 +85,12 @@ struct FaceValidator: FaceValidatorProtocol {
         
         guard yawDeg <= maxYawDeg + angleEpsilon else {
             logger.debug("Rejected: yaw too high (\(yawDeg)° > \(maxYawDeg))")
+            return false
+        }
+        
+
+        guard pitchDeg <= maxPitchDeg + angleEpsilon else {
+            logger.debug("Rejected: pitch too high (\(pitchDeg)° > \(maxPitchDeg))")
             return false
         }
         

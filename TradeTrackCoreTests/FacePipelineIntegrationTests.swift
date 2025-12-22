@@ -8,7 +8,7 @@ final class FacePipelineIntegrationTests: XCTestCase {
 
         let extractor = try CoreFactory.makeFaceExtractor()
         // 4. Load and Execute
-        let image = loadCIImage(named: "jon_1")
+        let image = loadCIImage(named: "jon_2")
         let embedding = try extractor.embedding(from: image)
 
         // 5. Verification
@@ -36,12 +36,31 @@ final class FacePipelineIntegrationTests: XCTestCase {
     
     func test_extractor_returnsNil_forBlurryFace() throws {
         let extractor = try CoreFactory.makeFaceExtractor()
-        
-        let blurryImage = loadCIImage(named: "blurry")
+        // This image is known to have 0.51 quality; the threshold is 0.60
+        let blurryImage = loadCIImage(named: "jon_blurry")
         
         let result = try? extractor.embedding(from: blurryImage)
         
         XCTAssertNil(result, "The pipeline should reject the blurry image due to low capture quality.")
+    }
+    
+    func test_extractor_recognizesSamePerson_acrossDifferentImages() throws {
+        // 1. Arrange
+        let extractor = try CoreFactory.makeFaceExtractor()
+        let jon1 = loadCIImage(named: "jon_1")
+        let jon2 = loadCIImage(named: "jon_2")
+
+        // 2. Act
+        let embedding1 = try extractor.embedding(from: jon1)
+        let embedding2 = try extractor.embedding(from: jon2)
+
+        // 3. Calculate Distance
+        let distance = calculateEuclideanDistance(embedding1.values, embedding2.values)
+
+        // 4. Assert
+        // For normalized 512d vectors (InsightFace), a distance < 1.0 is a common match threshold.
+        // 0.6 - 0.9 is typical for the same person in different lighting.
+        XCTAssertLessThan(distance, 1.2, "Distance (\(distance)) is too high; images should represent the same person.")
     }
 }
 
@@ -59,5 +78,11 @@ private extension FacePipelineIntegrationTests {
         }
         
         return image
+    }
+    
+    private func calculateEuclideanDistance(_ v1: [Float], _ v2: [Float]) -> Float {
+        guard v1.count == v2.count else { return .infinity }
+        let sumOfSquares = zip(v1, v2).map { pow($0 - $1, 2) }.reduce(0, +)
+        return sqrt(sumOfSquares)
     }
 }

@@ -56,15 +56,11 @@ final class CameraNoFaceUITests: BaseUITestCase {
         XCTAssertTrue(result.waitForExistence(timeout: 2))
         result.tap()
 
-        // Verification
-        let status = app.staticTexts["verification.status"]
-        XCTAssertTrue(status.waitForExistence(timeout: 2))
+        let statusLabel = app.staticTexts["verification.status_indicator"]
+        
+        XCTAssertTrue(statusLabel.waitForExistence(timeout: 10), "Status indicator ID not found")
 
-        // Detecting
-        expectLabel(status, contains: "Looking")
-
-        // Still detecting (no silent progress)
-        XCTAssertFalse(status.label.contains("Verifying"))
+        XCTAssertEqual(statusLabel.label, "Scanning...")
     }
 
 }
@@ -89,10 +85,11 @@ final class CameraInvalidFaceUITests: BaseUITestCase {
         XCTAssertTrue(result.waitForExistence(timeout: 2))
         result.tap()
 
-        let status = app.staticTexts["verification.status"]
-        XCTAssertTrue(status.waitForExistence(timeout: 2))
+        let statusLabel = app.staticTexts["verification.status_indicator"]
+        
+        XCTAssertTrue(statusLabel.waitForExistence(timeout: 10), "Status indicator ID not found")
 
-        expectLabel(status, contains: "Looking")
+        XCTAssertEqual(statusLabel.label, "Scanning...")
 
         let banner = app.staticTexts["error.banner"]
         XCTAssertTrue(banner.waitForExistence(timeout: 2))

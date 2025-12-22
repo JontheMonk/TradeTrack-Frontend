@@ -55,7 +55,8 @@ final class FaceValidatorTests: XCTestCase {
     func testRejectsHighRoll() {
         let face = makeFace(
             roll: Float(40 * Double.pi / 180),
-            yaw: 0
+            yaw: 0,
+            pitch: 0
         )
         let result = validator.isValid(
             face: face,
@@ -68,7 +69,8 @@ final class FaceValidatorTests: XCTestCase {
     func testRejectsHighYaw() {
         let face = makeFace(
             roll: 0,
-            yaw: Float(30 * Double.pi / 180)
+            yaw: Float(30 * Double.pi / 180),
+            pitch: 0
         )
         let result = validator.isValid(
             face: face,
@@ -79,7 +81,7 @@ final class FaceValidatorTests: XCTestCase {
 
     /// Accepts a face with perfectly centered roll/yaw.
     func testAcceptsValidRollAndYaw() {
-        let face = makeFace(roll: 0, yaw: 0)
+        let face = makeFace(roll: 0, yaw: 0, pitch: 0)
         let result = validator.isValid(
             face: face,
             quality: 0.8,
@@ -92,7 +94,7 @@ final class FaceValidatorTests: XCTestCase {
     /// Rejects faces whose normalized bounding box is below the minimum size threshold.
     func testRejectsFaceTooSmall() {
         let smallBox = CGRect(x: 0.2, y: 0.2, width: 0.1, height: 0.1)
-        let face = makeFace(bbox: smallBox, roll: 0, yaw: 0)
+        let face = makeFace(bbox: smallBox, roll: 0, yaw: 0, pitch: 0)
 
         let result = validator.isValid(
             face: face,
@@ -104,7 +106,7 @@ final class FaceValidatorTests: XCTestCase {
     /// Accepts faces with sufficient bounding box area.
     func testAcceptsFaceSizeSufficient() {
         let box = CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3)
-        let face = makeFace(bbox: box, roll: 0, yaw: 0)
+        let face = makeFace(bbox: box, roll: 0, yaw: 0, pitch: 0)
 
         let result = validator.isValid(
             face: face,
@@ -117,7 +119,7 @@ final class FaceValidatorTests: XCTestCase {
 
     /// Rejects images with poor capture quality scores.
     func testRejectsLowCaptureQuality() {
-        let face = makeFace(roll: 0, yaw: 0)
+        let face = makeFace(roll: 0, yaw: 0, pitch: 0)
 
         let result = validator.isValid(
             face: face,
@@ -129,7 +131,7 @@ final class FaceValidatorTests: XCTestCase {
 
     /// Accepts images with sufficient capture quality.
     func testAcceptsValidCaptureQuality() {
-        let face = makeFace(roll: 0, yaw: 0)
+        let face = makeFace(roll: 0, yaw: 0, pitch: 0)
 
         let result = validator.isValid(
             face: face,
@@ -145,7 +147,8 @@ final class FaceValidatorTests: XCTestCase {
         let face = makeFace(
             bbox: CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3),
             roll: 0,
-            yaw: 0
+            yaw: 0,
+            pitch: 0
         )
 
         let result = validator.isValid(
@@ -171,7 +174,7 @@ final class FaceValidatorTests: XCTestCase {
     /// Accepts roll exactly at threshold (15°).
     func testAcceptsRollExactlyAtThreshold() {
         let deg15 = Float(15 * Double.pi / 180)
-        let face = makeFace(roll: deg15, yaw: 0)
+        let face = makeFace(roll: deg15, yaw: 0, pitch: 0)
         let result = validator.isValid(
             face: face,
             quality: 0.8,
@@ -193,7 +196,7 @@ final class FaceValidatorTests: XCTestCase {
     /// Accepts yaw exactly at threshold (15°).
     func testAcceptsYawExactlyAtThreshold() {
         let deg15 = Float(15 * Double.pi / 180)
-        let face = makeFace(roll: 0, yaw: deg15)
+        let face = makeFace(roll: 0, yaw: deg15, pitch: 0)
         let result = validator.isValid(
             face: face,
             quality: 0.8,
@@ -211,13 +214,61 @@ final class FaceValidatorTests: XCTestCase {
         )
         XCTAssertFalse(result)
     }
+    
+    // MARK: - Pitch
+
+    /// Rejects faces with excessive pitch (e.g., looking too far down at the phone).
+    func testRejectsHighPitch() {
+        let face = makeFace(
+            roll: 0,
+            yaw: 0,
+            pitch: Float(45 * Double.pi / 180)
+        )
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8
+        )
+        XCTAssertFalse(result, "Face looking too far down should be rejected.")
+    }
+
+    /// Missing pitch field should automatically invalidate the face.
+    func testRejectsMissingPitch() {
+        let face = makeFace(roll: 0, yaw: 0, pitch: nil)
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8
+        )
+        XCTAssertFalse(result)
+    }
+
+    /// Accepts pitch exactly at threshold (20°).
+    func testAcceptsPitchExactlyAtThreshold() {
+        let deg20 = Float(20 * Double.pi / 180)
+        let face = makeFace(roll: 0, yaw: 0, pitch: deg20)
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8
+        )
+        XCTAssertTrue(result)
+    }
+
+    /// Rejects pitch slightly above threshold.
+    func testRejectsPitchJustAboveThreshold() {
+        let deg = Float((20.1 * Double.pi) / 180)
+        let face = makeFace(roll: 0, yaw: 0, pitch: deg)
+        let result = validator.isValid(
+            face: face,
+            quality: 0.8
+        )
+        XCTAssertFalse(result)
+    }
 
     // MARK: - Face Size Boundaries
 
     /// Accepts ROI exactly at minimum side length.
     func testAcceptsFaceAtExactMinSize() {
         let box = CGRect(x: 0.2, y: 0.2, width: 0.20, height: 0.20)
-        let face = makeFace(bbox: box, roll: 0, yaw: 0)
+        let face = makeFace(bbox: box, roll: 0, yaw: 0, pitch: 0)
 
         let result = validator.isValid(
             face: face,
@@ -229,7 +280,7 @@ final class FaceValidatorTests: XCTestCase {
     /// Rejects ROI just under the minimum allowed size.
     func testRejectsFaceJustUnderMinSize() {
         let box = CGRect(x: 0.2, y: 0.2, width: 0.199, height: 0.199)
-        let face = makeFace(bbox: box, roll: 0, yaw: 0)
+        let face = makeFace(bbox: box, roll: 0, yaw: 0, pitch: 0)
 
         let result = validator.isValid(
             face: face,
@@ -241,7 +292,7 @@ final class FaceValidatorTests: XCTestCase {
     /// Rejects degenerate ROIs where one side is extremely thin.
     func testRejectsDegenerateBoundingBoxTallButNarrow() {
         let box = CGRect(x: 0.1, y: 0.1, width: 0.05, height: 0.9)
-        let face = makeFace(bbox: box, roll: 0, yaw: 0)
+        let face = makeFace(bbox: box, roll: 0, yaw: 0, pitch: 0)
 
         let result = validator.isValid(
             face: face,
@@ -254,10 +305,10 @@ final class FaceValidatorTests: XCTestCase {
 
     /// Accepts capture quality exactly at the threshold (0.25).
     func testAcceptsQualityExactlyAtThreshold() {
-        let face = makeFace(roll: 0, yaw: 0)
+        let face = makeFace(roll: 0, yaw: 0, pitch: 0)
         let result = validator.isValid(
             face: face,
-            quality: 0.25,
+            quality: 0.60,
         )
         XCTAssertTrue(result)
     }
@@ -267,14 +318,14 @@ final class FaceValidatorTests: XCTestCase {
         let face = makeFace(roll: 0, yaw: 0)
         let result = validator.isValid(
             face: face,
-            quality: 0.249,
+            quality: 0.599,
         )
         XCTAssertFalse(result)
     }
 
     /// Rejects NaN capture quality because it provides no meaningful confidence.
     func testRejectsQualityNaN() {
-        let face = makeFace(roll: 0, yaw: 0)
+        let face = makeFace(roll: 0, yaw: 0, pitch: 0)
         let result = validator.isValid(
             face: face,
             quality: Float.nan,
@@ -284,7 +335,7 @@ final class FaceValidatorTests: XCTestCase {
 
     /// Accepts excessively high capture quality (upper-bounded only by positivity).
     func testAcceptsVeryHighQuality() {
-        let face = makeFace(roll: 0, yaw: 0)
+        let face = makeFace(roll: 0, yaw: 0, pitch: 0)
         let result = validator.isValid(
             face: face,
             quality: 10.0,
