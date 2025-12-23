@@ -1,7 +1,7 @@
 import XCTest
 import CoreImage
 @testable import TradeTrackCore
-
+@MainActor
 final class FacePipelineIntegrationTests: XCTestCase {
 
     func test_extractor_producesNormalized512Vector() throws {

@@ -9,6 +9,7 @@ import AVFoundation
 ///
 /// Its purpose is to drive UI state transitions, not to simulate
 /// camera mechanics.
+@MainActor
 final class UITestCameraManager: CameraManagerProtocol {
 
     // Use the MockCaptureSession instead of a Null one

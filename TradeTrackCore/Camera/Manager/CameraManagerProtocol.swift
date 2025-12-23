@@ -23,6 +23,7 @@ import AVFoundation
 /// - configure and start a capture session
 /// - deliver frames via a delegate passed to `start(delegate:)`
 /// - support clean asynchronous stopping (important for testing)
+@MainActor
 public protocol CameraManagerProtocol {
 
     var uiCaptureSession: AVCaptureSession { get }

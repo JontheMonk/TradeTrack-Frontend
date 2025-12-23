@@ -12,6 +12,7 @@ import CoreML
 /// 1. Concrete classes can remain `internal` to prevent leakage.
 /// 2. The App Target only depends on `public` protocols.
 /// 3. Dependencies (like CoreML models) are hidden from the main app's scope
+@MainActor
 public struct CoreFactory {
     
     // MARK: - Private Storage
