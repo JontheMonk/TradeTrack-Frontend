@@ -62,16 +62,12 @@ final class RealCaptureSession: CaptureSessionProtocol {
         underlyingSession.removeInput(av)
     }
 
-    /// Force-casting is intentional. Only `AVCaptureVideoDataOutput` should ever
-    /// be passed to this method in real usage.
     func canAddOutput(_ output: VideoOutput) -> Bool {
-        let real = output as! AVCaptureVideoDataOutput
-        return underlyingSession.canAddOutput(real)
+        return underlyingSession.canAddOutput(output.asAVOutput)
     }
 
     func addOutput(_ output: VideoOutput) {
-        let real = output as! AVCaptureVideoDataOutput
-        underlyingSession.addOutput(real)
+        underlyingSession.addOutput(output.asAVOutput)
     }
 
     func beginConfiguration() {

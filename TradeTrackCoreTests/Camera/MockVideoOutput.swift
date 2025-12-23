@@ -29,7 +29,12 @@ import AVFoundation
 /// XCTAssertEqual(output.requestedConnections, [.video])
 /// ```
 final class MockVideoOutput: VideoOutput {
-
+    /// Satisfies the VideoOutput protocol requirement.
+    /// Returns a dummy instance so the CaptureSession doesn't crash
+    /// during unit/UI tests.
+    var asAVOutput: AVCaptureOutput {
+        return AVCaptureVideoDataOutput()
+    }
     // MARK: - Configuration tracking
     
     /// Captures the last video settings applied by the system under test.

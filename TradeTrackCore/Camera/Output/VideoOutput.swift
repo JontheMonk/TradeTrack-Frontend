@@ -28,6 +28,8 @@ import AVFoundation
 /// also conforms so it can be injected directly if desired.
 protocol VideoOutput: AnyObject {
 
+    var asAVOutput: AVCaptureOutput { get }
+    
     /// Dictionary of video settings used by the capture output.
     ///
     /// Common keys include pixel format type or compression options.
@@ -64,6 +66,3 @@ protocol VideoOutput: AnyObject {
         queue: DispatchQueue?
     )
 }
-
-/// Allows `AVCaptureVideoDataOutput` to be used directly as a `VideoOutput`.
-extension AVCaptureVideoDataOutput: VideoOutput {}

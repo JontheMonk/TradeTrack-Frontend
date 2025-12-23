@@ -27,7 +27,7 @@ public struct CoreFactory {
             return existing
         }
         
-        let baseURL = URL(string: "http://localhost")!
+        let baseURL = URL(string: "http://localhost:8000")!
         let client = HTTPClient(baseURL: baseURL, session: session)
         sharedHTTPClient = client
         return client

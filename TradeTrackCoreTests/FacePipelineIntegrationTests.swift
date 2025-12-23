@@ -8,7 +8,7 @@ final class FacePipelineIntegrationTests: XCTestCase {
 
         let extractor = try CoreFactory.makeFaceExtractor()
         // 4. Load and Execute
-        let image = loadCIImage(named: "jon_2")
+        let image = loadCIImage(named: "jon_1")
         let embedding = try extractor.embedding(from: image)
 
         // 5. Verification
