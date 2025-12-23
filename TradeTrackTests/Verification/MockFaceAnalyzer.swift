@@ -12,6 +12,8 @@ import CoreImage
 final class MockFaceAnalyzer: FaceAnalyzerProtocol {
 
     private(set) var callCount = 0
+    
+    private(set) var resetWasCalled = false
 
     /// The observation to return from `analyze(in:)`.
     /// If `nil`, the analyzer reports “no face found”.
@@ -27,6 +29,11 @@ final class MockFaceAnalyzer: FaceAnalyzerProtocol {
         }
         
         return (face, stubbedQuality)
+    }
+    
+    func reset() {
+        resetWasCalled = true
+        callCount = 0
     }
 }
 #endif

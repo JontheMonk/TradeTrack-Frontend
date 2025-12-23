@@ -308,17 +308,17 @@ final class FaceValidatorTests: XCTestCase {
         let face = makeFace(roll: 0, yaw: 0, pitch: 0)
         let result = validator.isValid(
             face: face,
-            quality: 0.60,
+            quality: 0.50,
         )
         XCTAssertTrue(result)
     }
 
     /// Rejects capture quality just below threshold.
     func testRejectsQualityJustBelowThreshold() {
-        let face = makeFace(roll: 0, yaw: 0)
+        let face = makeFace(roll: 0, yaw: 0, pitch: 0)
         let result = validator.isValid(
             face: face,
-            quality: 0.599,
+            quality: 0.499,
         )
         XCTAssertFalse(result)
     }

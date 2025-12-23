@@ -34,4 +34,11 @@ protocol FaceDetectorProtocol {
     /// - Parameter image: The CIImage frame to analyze.
     /// - Returns: A `VNFaceObservation` if a face is detected; otherwise `nil`.
     func detect(in image: CIImage) -> (VNFaceObservation, Float)?
+    
+    /// Clears the internal tracking state of the detector.
+    ///
+    /// Call this when the camera starts, stops, or when switching
+    /// between enrollment and verification modes to ensure previous
+    /// frames don't influence current quality assessments.
+    func reset()
 }

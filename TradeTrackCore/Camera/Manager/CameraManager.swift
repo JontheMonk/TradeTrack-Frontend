@@ -59,10 +59,10 @@ final class CameraManager: CameraManagerProtocol {
 
     // MARK: - Init
     init(
-        deviceProvider: CameraDeviceProvider,
-        session: CaptureSessionProtocol,
-        output: VideoOutput,
-        inputCreator: DeviceInputFactory,
+        deviceProvider: CameraDeviceProvider = RealCameraDeviceProvider(),
+        session: CaptureSessionProtocol = RealCaptureSession(),
+        output: VideoOutput = RealVideoOutput(),
+        inputCreator: DeviceInputFactory = RealDeviceInputCreator(),
         sessionQueue: DispatchQueue = DispatchQueue(label: "camera.session"),
         videoQueue: DispatchQueue = DispatchQueue(label: "camera.frames")
     ) {

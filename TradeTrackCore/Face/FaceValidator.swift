@@ -41,7 +41,7 @@ struct FaceValidator: FaceValidatorProtocol {
     var maxPitchDeg: Float = 20
     
     /// Minimum acceptable Vision `faceCaptureQuality` score.
-    var minQuality: Float = 0.60
+    var minQuality: Float = 0.50
     
     /// Smallest acceptable normalized bounding-box side.
     /// (e.g. 0.20 means the face must cover at least 20% of the frame height/width.)

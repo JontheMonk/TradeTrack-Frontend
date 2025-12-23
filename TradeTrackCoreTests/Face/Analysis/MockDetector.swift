@@ -15,4 +15,8 @@ class MockDetector: FaceDetectorProtocol {
         guard let face = resultFace else { return nil }
         return (face, resultQuality)
     }
+    
+    func reset() {
+        // No-op: The mock doesn't maintain a sequence handler
+    }
 }

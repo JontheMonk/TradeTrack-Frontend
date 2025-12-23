@@ -7,31 +7,22 @@ import os.log
 final class FaceDetector: FaceDetectorProtocol {
     
     // MARK: - Properties
-    
     private let usesCPUOnly: Bool
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "face-detection")
     
-    /// Reusable requests to avoid re-allocating them for every frame.
     private let detectionReq = VNDetectFaceRectanglesRequest()
     private let qualityReq = VNDetectFaceCaptureQualityRequest()
     
-    private lazy var sequenceHandler: VNSequenceRequestHandler = {
-        let handler = VNSequenceRequestHandler()
-        if usesCPUOnly {
-        }
-        return handler
-    }()
+    private var sequenceHandler = VNSequenceRequestHandler()
     
     // MARK: - Initialization
-    
     init(usesCPUOnly: Bool = false) {
         self.usesCPUOnly = usesCPUOnly
         
-        // Configure requests
         detectionReq.usesCPUOnly = usesCPUOnly
         qualityReq.usesCPUOnly = usesCPUOnly
         
-        // Use latest revisions where available
+        // Revision 3 is specifically optimized for capture quality.
         if #available(iOS 15.0, *) {
             detectionReq.revision = VNDetectFaceRectanglesRequestRevision3
             qualityReq.revision = VNDetectFaceCaptureQualityRequestRevision3
@@ -40,40 +31,41 @@ final class FaceDetector: FaceDetectorProtocol {
     
     // MARK: - Public API
     
-    /// Performs face detection and quality assessment on the given image.
-    /// - Parameter image: The `CIImage` from the camera or other source.
-    /// - Returns: A tuple with the primary face observation and quality score (0.0–1.0), or nil if no face was detected.
+    /// Analyzes a live camera frame.
     func detect(in image: CIImage) -> (VNFaceObservation, Float)? {
         let orientation = image.cgOrientation
         
         do {
+            // 1. Detect the face rectangle
             try sequenceHandler.perform([detectionReq], on: image, orientation: orientation)
             
             guard let face = detectionReq.results?.first else {
                 return nil
             }
             
-            // Step 2: Assess capture quality of the detected face
+            // 2. Map the face to the Quality Request
             qualityReq.inputFaceObservations = [face]
+            
+            // 3. Perform quality assessment
             try sequenceHandler.perform([qualityReq], on: image, orientation: orientation)
             
-            qualityReq.inputFaceObservations = nil
+            // 4. Extract quality from the result face observation
+            guard let resultFace = qualityReq.results?.first as? VNFaceObservation else {
+                return (face, 0.0)
+            }
             
-            let quality = faceCaptureQuality(from: qualityReq.results?.first)
-            return (face, quality)
+            // We return resultFace because it contains the updated metrics
+            let score = resultFace.faceCaptureQuality ?? 0.0
+            return (resultFace, score)
+            
         } catch {
             logger.error("Vision error: \(error.localizedDescription)")
             return nil
         }
     }
     
-    // Helper to safely extract and clamp quality score
-    private func faceCaptureQuality(from observation: VNObservation?) -> Float {
-        guard let face = observation as? VNFaceObservation,
-              let score = face.faceCaptureQuality else {
-            return 0.0
-        }
-        return max(0.0, min(1.0, score))
+    func reset() {
+        sequenceHandler = VNSequenceRequestHandler()
     }
 }
 

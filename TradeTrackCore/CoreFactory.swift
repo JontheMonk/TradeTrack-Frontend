@@ -60,12 +60,7 @@ public struct CoreFactory {
             return UITestCameraManager(world: world)
         }
         
-        return CameraManager(
-            deviceProvider: RealCameraDeviceProvider(),
-            session: RealCaptureSession(),
-            output: RealVideoOutput(),
-            inputCreator: RealDeviceInputCreator()
-        )
+        return CameraManager()
     }
     
     /// A computed property that determines if CoreML should be restricted to the CPU.
