@@ -25,11 +25,11 @@ import Vision
 /// into a 112×112 pixel buffer suitable for the InsightFace embedding model.
 ///
 /// This step ensures that:
-/// - the face bounding box is correctly mapped from normalized Vision coordinates,
-/// - the face region is cropped and resized using a high-quality, deterministic process,
-/// - the image is rendered in sRGB and BGRA format (model expectation),
-/// - the pixel buffer is safe to pass directly to the `PixelPreprocessorProtocol`
-///   or embedding model.
+/// - The face bounding box is correctly mapped from normalized Vision coordinates.
+/// - The face region is cropped and resized using a high-quality Lanczos filter.
+/// - Memory is managed via a `CVPixelBufferPool` to prevent per-frame allocations.
+/// - Color management is bypassed during intermediate transforms for speed,
+///   but the final buffer is rendered in sRGB/BGRA (model expectation).
 ///
 /// ### Pipeline
 /// ```text
@@ -38,7 +38,7 @@ import Vision
 ///         └── crop ROI
 ///             └── Lanczos resize (scale-to-fill)
 ///                 └── center crop to exactly 112×112
-///                     └── CIContext render → CVPixelBuffer
+///                     └── CIContext render → Pooled CVPixelBuffer (sRGB)
 /// ```
 ///
 /// ### Failure cases
@@ -50,38 +50,29 @@ import Vision
 ///
 /// These errors allow the upstream `FaceAnalyzer` or `FaceProcessor` to
 /// reject the frame cleanly.
-final class FacePreprocessor : FacePreprocessorProtocol {
-
-    /// Target output size, typically 112×112 for InsightFace.
+final class FacePreprocessor: FacePreprocessorProtocol {
+    
     private let outputSize: CGSize
+    
+    // Buffer pool for zero-allocation frames
+    private var pixelBufferPool: CVPixelBufferPool?
+    private var currentPoolSize: CGSize = .zero
 
-    // Reuse a single CIContext for performance and consistent sRGB output.
+    // Linear working space avoids gamma correction overhead
     private static let sRGB = CGColorSpace(name: CGColorSpace.sRGB)!
     private static let ctx = CIContext(options: [
-        .workingColorSpace: sRGB,
-        .outputColorSpace: sRGB
+        .workingColorSpace: NSNull(), // skip color management during intermediate steps
+        .outputColorSpace: sRGB,
+        .useSoftwareRenderer: false
     ])
 
     init(outputSize: CGSize = CGSize(width: 112, height: 112)) {
         self.outputSize = outputSize
     }
 
-    /// Crops, resizes, and renders the face region to a CVPixelBuffer.
-    ///
-    /// - Parameters:
-    ///   - image: Upright `CIImage` frame.
-    ///   - face: The detected face observation whose bounding box is used.
-    ///
-    /// - Throws:
-    ///   - `.facePreprocessingFailedResize` if bounding box or scaling fails.
-    ///   - `.facePreprocessingFailedRender` if pixel buffer allocation or
-    ///     CIContext rendering fails.
-    ///
-    /// - Returns: A BGRA `CVPixelBuffer` of size `outputSize`.
     func preprocessFace(image: CIImage, face: VNFaceObservation) throws -> CVPixelBuffer {
         let extent = image.extent.integral
 
-        // Convert Vision's normalized bounding box → pixel coordinates.
         let rect = VNImageRectForNormalizedRect(
             face.boundingBox,
             Int(extent.width),
@@ -93,88 +84,91 @@ final class FacePreprocessor : FacePreprocessorProtocol {
             throw AppError(code: .facePreprocessingFailedResize)
         }
 
-        // High-quality crop and Lanczos resize.
         let cropped = image.cropped(to: roi)
         let resized = try resize(cropped, to: outputSize)
 
-        // Re-normalize origin before rendering.
+        // Normalize origin
         let origin = resized.extent.origin
-        let normalized = origin == .zero
-            ? resized
-            : resized.transformed(by: .init(
-                translationX: -origin.x,
-                y: -origin.y
-            ))
+        let normalized = resized.transformed(by: .init(
+            translationX: -origin.x,
+            y: -origin.y
+        ))
 
-        // Render CIImage → CVPixelBuffer.
-        return try renderToPixelBuffer(normalized, size: outputSize)
+        return try renderToPoolBuffer(normalized, size: outputSize)
     }
 
-    // MARK: - Resize (Lanczos, scale-to-fill + center-crop)
-
-    /// Resizes the image using `CILanczosScaleTransform` and center-crop.
     private func resize(_ image: CIImage, to size: CGSize) throws -> CIImage {
         guard let lanczos = CIFilter(name: "CILanczosScaleTransform") else {
             throw AppError(code: .facePreprocessingFailedResize)
         }
 
-        let sx = size.width  / image.extent.width
-        let sy = size.height / image.extent.height
-        let scale = max(sx, sy) // scale-to-fill
+        let scale = max(size.width / image.extent.width, size.height / image.extent.height)
 
         lanczos.setValue(image, forKey: kCIInputImageKey)
         lanczos.setValue(scale, forKey: kCIInputScaleKey)
-        lanczos.setValue(1.0,  forKey: kCIInputAspectRatioKey)
+        lanczos.setValue(1.0, forKey: kCIInputAspectRatioKey)
 
         guard var out = lanczos.outputImage else {
             throw AppError(code: .facePreprocessingFailedResize)
         }
 
-        // Reset origin to simplify cropping.
-        let o = out.extent.origin
-        out = out.transformed(by: .init(translationX: -o.x, y: -o.y))
+        out = out.transformed(by: .init(translationX: -out.extent.origin.x, y: -out.extent.origin.y))
 
-        // Center crop to the final target resolution.
-        let w = out.extent.width
-        let h = out.extent.height
         let crop = CGRect(
-            x: (w - size.width) * 0.5,
-            y: (h - size.height) * 0.5,
+            x: (out.extent.width - size.width) * 0.5,
+            y: (out.extent.height - size.height) * 0.5,
             width: size.width,
             height: size.height
         )
         return out.cropped(to: crop)
     }
 
-    // MARK: - CI → CVPixelBuffer Render
 
-    /// Renders the normalized CIImage into a BGRA pixel buffer.
-    private func renderToPixelBuffer(_ image: CIImage, size: CGSize) throws -> CVPixelBuffer {
-        let width  = Int(size.width)
-        let height = Int(size.height)
+    private func renderToPoolBuffer(_ image: CIImage, size: CGSize) throws -> CVPixelBuffer {
+        // Prepare the pool if it doesn't exist or size changed
+        if pixelBufferPool == nil || currentPoolSize != size {
+            try preparePixelBufferPool(size: size)
+        }
 
-        var pb: CVPixelBuffer?
-        let attrs: [String: Any] = [
-            kCVPixelBufferCGImageCompatibilityKey as String: true,
-            kCVPixelBufferCGBitmapContextCompatibilityKey as String: true,
-            kCVPixelBufferIOSurfacePropertiesKey as String: [:],
-            kCVPixelBufferMetalCompatibilityKey as String: true
-        ]
+        var pixelBuffer: CVPixelBuffer?
+        let status = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pixelBufferPool!, &pixelBuffer)
 
-        let status = CVPixelBufferCreate(
-            kCFAllocatorDefault,
-            width, height,
-            kCVPixelFormatType_32BGRA,
-            attrs as CFDictionary,
-            &pb
-        )
-
-        guard status == kCVReturnSuccess, let buffer = pb else {
+        guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
             throw AppError(code: .facePreprocessingFailedRender)
         }
 
-        Self.ctx.render(image, to: buffer, bounds: CGRect(origin: .zero, size: size), colorSpace: Self.sRGB)
+        // Render directly into the recycled buffer
+        Self.ctx.render(
+            image,
+            to: buffer,
+            bounds: CGRect(origin: .zero, size: size),
+            colorSpace: Self.sRGB
+        )
 
         return buffer
+    }
+
+    private func preparePixelBufferPool(size: CGSize) throws {
+        let poolAttributes = [kCVPixelBufferPoolMinimumBufferCountKey: 3] as CFDictionary
+        
+        let bufferAttributes: [String: Any] = [
+            kCVPixelBufferWidthKey as String: Int(size.width),
+            kCVPixelBufferHeightKey as String: Int(size.height),
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+            kCVPixelBufferIOSurfacePropertiesKey as String: [:], // Critical for GPU/Neural Engine access
+            kCVPixelBufferMetalCompatibilityKey as String: true
+        ]
+
+        let status = CVPixelBufferPoolCreate(
+            kCFAllocatorDefault,
+            poolAttributes,
+            bufferAttributes as CFDictionary,
+            &pixelBufferPool
+        )
+
+        guard status == kCVReturnSuccess else {
+            throw AppError(code: .facePreprocessingFailedRender)
+        }
+        currentPoolSize = size
     }
 }
