@@ -16,7 +16,6 @@ final class FaceDetector: FaceDetectorProtocol, @unchecked Sendable {
     private let detectionReq = VNDetectFaceRectanglesRequest()
     private let qualityReq = VNDetectFaceCaptureQualityRequest()
     
-    // The handler is stateful and MUST be protected
     private let lock = NSLock()
     private var sequenceHandler = VNSequenceRequestHandler()
     
@@ -34,7 +33,6 @@ final class FaceDetector: FaceDetectorProtocol, @unchecked Sendable {
     func detect(in image: CIImage) -> (VNFaceObservation, Float)? {
         let orientation = image.cgOrientation
         
-        // Ensure only one thread executes detection at a time
         lock.lock()
         defer { lock.unlock() }
         
