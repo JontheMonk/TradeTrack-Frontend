@@ -38,8 +38,3 @@ final class VerificationOutputDelegate: NSObject, AVCaptureVideoDataOutputSample
         onFrame(ci)
     }
 }
-
-/// Declare `Sendable` manually since AVFoundation delegates
-/// can’t safely conform automatically. This is fine because the
-/// delegate doesn't mutate shared state.
-extension VerificationOutputDelegate: @unchecked Sendable {}

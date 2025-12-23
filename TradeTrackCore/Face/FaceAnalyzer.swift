@@ -26,7 +26,7 @@ import CoreImage
 ///
 /// This class is intentionally lightweight and synchronous so it can be used
 /// directly from frame-processing pipelines.
-final class FaceAnalyzer: FaceAnalyzerProtocol {
+final class FaceAnalyzer: FaceAnalyzerProtocol, @unchecked Sendable {
     private let detector: FaceDetectorProtocol
     private let validator: FaceValidatorProtocol
 
