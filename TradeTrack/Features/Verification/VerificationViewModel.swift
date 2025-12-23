@@ -276,15 +276,19 @@ final class VerificationViewModel: NSObject, ObservableObject {
 extension VerificationViewModel {
 
     /// Simulates a frame entry and blocks until the background task is fully complete.
-    //func _test_runFrame(_ image: CIImage) async {
-    //    await _test_handle(image)
-    //    await _test_waitForTask()
-    //}
+    func _test_runFrame(_ image: CIImage) async {
+        await _test_handle(image)
+        await _test_waitForTask()
+    }
 
     /// Simulates a frame entry into the pipeline.
-    //func _test_handle(_ image: CIImage) async {
-    //    await handle(image)
-    //}
+    func _test_handle(_ image: CIImage) async {
+        if let (face, quality) = self.analyzer.analyze(in: image) {
+            self.handle(face: face, image: image, quality: quality)
+        } else {
+            self.handleNoFaceDetected()
+        }
+    }
 
     /// Suspends until the current verification task completes.
     func _test_waitForTask() async {
