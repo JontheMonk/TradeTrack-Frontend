@@ -23,3 +23,6 @@ DerivedData/
 # CoreML model outputs (optional)
 *.mlmodelc
 *.mlmodel
+
+*.HEIC
+*.MOV

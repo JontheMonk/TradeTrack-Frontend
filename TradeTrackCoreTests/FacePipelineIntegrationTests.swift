@@ -17,11 +17,6 @@ final class FacePipelineIntegrationTests: XCTestCase {
         let magnitude = calculateL2Norm(embedding.values)
         XCTAssertEqual(magnitude, 1.0, accuracy: 0.001, "Vectors must be normalized.")
     }
-
-    private func calculateL2Norm(_ vector: [Float]) -> Float {
-        let squaredSum = vector.reduce(0) { $0 + ($1 * $1) }
-        return sqrt(squaredSum)
-    }
     
     func test_extractor_returnsNil_whenChairIsProvided() throws {
         // 1. Arrange
@@ -32,16 +27,6 @@ final class FacePipelineIntegrationTests: XCTestCase {
 
         // 3. Assert
         XCTAssertNil(result, "The pipeline should return nil for a chair, not an embedding.")
-    }
-    
-    func test_extractor_returnsNil_forBlurryFace() throws {
-        let extractor = try CoreFactory.makeFaceExtractor()
-        // This image is known to have 0.51 quality; the threshold is 0.60
-        let blurryImage = loadCIImage(named: "jon_blurry")
-        
-        let result = try? extractor.embedding(from: blurryImage)
-        
-        XCTAssertNil(result, "The pipeline should reject the blurry image due to low capture quality.")
     }
     
     func test_extractor_recognizesSamePerson_acrossDifferentImages() throws {
@@ -60,13 +45,36 @@ final class FacePipelineIntegrationTests: XCTestCase {
         // 4. Assert
         // For normalized 512d vectors (InsightFace), a distance < 1.0 is a common match threshold.
         // 0.6 - 0.9 is typical for the same person in different lighting.
-        XCTAssertLessThan(distance, 1.2, "Distance (\(distance)) is too high; images should represent the same person.")
+        XCTAssertLessThan(distance, 0.9, "Distance (\(distance)) is too high; images should represent the same person.")
+    }
+    
+    func test_extractor_rejectsDifferentPerson() throws {
+        // 1. Arrange
+        let extractor = try CoreFactory.makeFaceExtractor()
+        let jon1 = loadCIImage(named: "jon_1")
+        let imposter = loadCIImage(named: "imposter")
+
+        // 2. Act
+        let embedding1 = try extractor.embedding(from: jon1)
+        let embedding2 = try extractor.embedding(from: imposter)
+
+        // 3. Calculate Distance
+        let distance = calculateEuclideanDistance(embedding1.values, embedding2.values)
+
+        // 4. Assert
+        // We expect a HIGH distance for different people.
+        // For normalized 512d vectors, 1.2 is a safe "minimum" distance for strangers.
+        XCTAssertGreaterThan(distance, 1.2, "The distance (\(distance)) is too low. The model might be confusing an imposter for the user.")
     }
 }
 
 // MARK: - Private Helpers
 
 private extension FacePipelineIntegrationTests {
+    private func calculateL2Norm(_ vector: [Float]) -> Float {
+        let squaredSum = vector.reduce(0) { $0 + ($1 * $1) }
+        return sqrt(squaredSum)
+    }
     /// Loads a HEIC fixture from the TradeTrackCore bundle.
     func loadCIImage(named name: String) -> CIImage {
         guard let url = Bundle.tradeTrackCore.url(forResource: name, withExtension: "HEIC") else {

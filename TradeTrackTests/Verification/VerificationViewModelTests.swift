@@ -200,4 +200,17 @@ final class VerificationViewModelTests: XCTestCase {
         // 3. Assert: This is where the magic happens
         XCTAssertEqual(mockProcessor.capturedImage, bestImg, "The processor should have used the 0.7 quality image, not the latest 0.3 one.")
     }
+    
+    func test_start_surfacesError_whenCameraFailsToStart() async {
+        // 1. Arrange: Configure the mock to throw an error
+        let expectedError = AppError(code: .cameraNotAuthorized)
+        mockCamera.startShouldThrow = expectedError
+        
+        // 2. Act: Call the public start method
+        await vm.start()
+        
+        // 3. Assert: Verify the error was passed to the ErrorManager
+        XCTAssertEqual(mockError.lastError?.code, .cameraNotAuthorized, "The VM should surface the camera error to the user.")
+        XCTAssertEqual(mockCamera.startCallCount, 1)
+    }
 }
