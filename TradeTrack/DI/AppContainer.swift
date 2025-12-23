@@ -2,6 +2,7 @@ import Foundation
 import TradeTrackCore
 
 /// A lightweight dependency-injection container for the app.
+@MainActor
 struct AppContainer {
 
     // MARK: - Core Infrastructure

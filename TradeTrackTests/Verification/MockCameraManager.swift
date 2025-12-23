@@ -10,16 +10,14 @@ import AVFoundation
 ///  - tracks whether `start` / `stop` were called
 ///  - exposes a mock capture session for inspection
 ///
-/// It does **not** deliver real frames; for most unit tests of
-/// `VerificationViewModel` you’ll either:
-///   • call the internal `handle(_:)` via a helper/extension, or
-///   • later build a tiny fake `VerificationOutputDelegate` that you drive manually.
+/// This mock is best for testing UI states (e.g., "What happens if camera access is denied?").
+/// If you need to test the actual image processing pipeline with real pixels,
+/// use `VideoFileCameraManager` instead.
+@MainActor
 final class MockCameraManager: CameraManagerProtocol {
 
-    // MARK: - CameraManagerProtocol
+    // MARK: - CameraManagerProtocol Requirements
 
-    /// Backing session exposed to callers as `CaptureSessionProtocol`.
-    /// Uses `MockCaptureSession` by default but can be overridden in tests.
     let session: CaptureSessionProtocol
     
     public var uiCaptureSession: AVCaptureSession {
@@ -28,21 +26,13 @@ final class MockCameraManager: CameraManagerProtocol {
 
     // MARK: - Configurable Behavior
 
-    /// Controls whether `requestAuthorization()` succeeds.
     var authorizationGranted: Bool = true
-
-    /// If set, `start(delegate:)` will throw this error instead of “starting”.
     var startShouldThrow: Error?
 
     // MARK: - Call Tracking
 
-    /// Number of times `start(delegate:)` was called.
     private(set) var startCallCount = 0
-
-    /// Number of times `stop()` was called.
     private(set) var stopCallCount = 0
-
-    /// The last delegate passed into `start(delegate:)`.
     private(set) var lastDelegate: (any AVCaptureVideoDataOutputSampleBufferDelegate)?
 
     // MARK: - Init
@@ -71,7 +61,8 @@ final class MockCameraManager: CameraManagerProtocol {
         }
 
         lastDelegate = delegate
-        // Simulate the session having started.
+        
+        // Safely update the mock session state
         if let mockSession = session as? MockCaptureSession {
             mockSession.isRunning = true
         }

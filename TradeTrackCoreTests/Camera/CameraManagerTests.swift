@@ -20,6 +20,7 @@ final class DummyDelegate: NSObject,
 ///
 /// Mocks are used to simulate AVFoundation without hitting hardware.
 ///
+@MainActor
 final class CameraManagerTests: XCTestCase {
 
     // MARK: - Authorization ----------------------------------------------------
