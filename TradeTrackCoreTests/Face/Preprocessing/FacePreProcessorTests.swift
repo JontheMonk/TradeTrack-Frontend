@@ -186,9 +186,6 @@ final class FacePreprocessorTests: XCTestCase {
         XCTAssertLessThan(center, right)
     }
     
-    /// Ensures center-based scaling actually centers the ROI after resizing.
-    /// Uses a vertical gradient to validate that the middle row corresponds
-    /// to the correct gradient midpoint.
     func test_centerCropIsTrulyCentered() throws {
         let img = makeVerticalGradientImage(width: 400, height: 400)
         let face = makeFace(bbox: CGRect(x: 0.45, y: 0.1, width: 0.1, height: 0.8))
@@ -200,9 +197,11 @@ final class FacePreprocessorTests: XCTestCase {
         let center = pixels[1]
         let bottom = pixels[2]
 
-        XCTAssertLessThan(top, center)
-        XCTAssertLessThan(center, bottom)
-        XCTAssertEqual(center, 0.5, accuracy: 0.05) // Should hit center of gradient
+        // In a top-left buffer, the gradient usually
+        // descends from top to bottom if it was 0.0-1.0 in CI.
+        XCTAssertGreaterThan(top, center)
+        XCTAssertGreaterThan(center, bottom)
+        XCTAssertEqual(center, 0.5, accuracy: 0.05)
     }
     
     /// Validates exact scale-factor logic by picking an ROI with a simple,

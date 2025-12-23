@@ -24,13 +24,13 @@ import AVFoundation
 /// a mock `VideoOutput` instead of dealing with `CMSampleBuffer` or
 /// real camera hardware.
 final class RealVideoOutput: VideoOutput {
-
-    /// The underlying AVFoundation output object.
-    ///
-    /// This is intentionally private so the rest of the app cannot access or
-    /// mutate AVFoundation directly. All interactions go through the protocol.
+    
     private let output = AVCaptureVideoDataOutput()
-
+    
+    var asAVOutput: AVCaptureOutput {
+            return output
+        }
+    
     // MARK: - Configuration
 
     /// Video settings for the output, such as pixel format.

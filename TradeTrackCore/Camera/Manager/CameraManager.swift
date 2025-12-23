@@ -58,10 +58,6 @@ final class CameraManager: CameraManagerProtocol {
     
 
     // MARK: - Init
-
-    /// Creates a complete camera pipeline with dependency injection.
-    ///
-    /// Tests supply mocked protocols; production uses concrete defaults.
     init(
         deviceProvider: CameraDeviceProvider = RealCameraDeviceProvider(),
         session: CaptureSessionProtocol = RealCaptureSession(),

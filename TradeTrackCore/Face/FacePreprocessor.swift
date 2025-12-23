@@ -150,8 +150,8 @@ final class FacePreprocessor : FacePreprocessorProtocol {
 
     /// Renders the normalized CIImage into a BGRA pixel buffer.
     private func renderToPixelBuffer(_ image: CIImage, size: CGSize) throws -> CVPixelBuffer {
-        let width  = max(1, lround(Double(size.width)))
-        let height = max(1, lround(Double(size.height)))
+        let width  = Int(size.width)
+        let height = Int(size.height)
 
         var pb: CVPixelBuffer?
         let attrs: [String: Any] = [
@@ -173,13 +173,7 @@ final class FacePreprocessor : FacePreprocessorProtocol {
             throw AppError(code: .facePreprocessingFailedRender)
         }
 
-        // CIImage coordinates are Y-flipped relative to CVPixelBuffer.
-        let h = image.extent.height
-        let flip = CGAffineTransform(scaleX: 1, y: -1)
-            .translatedBy(x: 0, y: -h)
-
-        let corrected = image.transformed(by: flip)
-        Self.ctx.render(corrected, to: buffer)
+        Self.ctx.render(image, to: buffer, bounds: CGRect(origin: .zero, size: size), colorSpace: Self.sRGB)
 
         return buffer
     }

@@ -39,4 +39,11 @@ public protocol FaceAnalyzerProtocol {
     /// - Returns: A validated `VNFaceObservation`, or `nil` if no face
     ///            meets quality requirements.
     func analyze(in image: CIImage) -> (VNFaceObservation, Float)?
+    
+    /// Clears the internal state of the underlying detection and validation engines.
+    ///
+    /// Call this when the face stream is interrupted (e.g., face lost,
+    /// session restart) to ensure temporal tracking doesn't bleed
+    /// between different subjects.
+    func reset()
 }

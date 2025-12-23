@@ -47,4 +47,8 @@ final class FaceAnalyzer: FaceAnalyzerProtocol {
 
         return isValid ? (face, quality) : nil
     }
+    
+    func reset() {
+        self.detector.reset()
+    }
 }

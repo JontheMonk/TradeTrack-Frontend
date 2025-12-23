@@ -73,20 +73,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C403ED592EF4B42400F3A427 /* Exceptions for "TradeTrackCoreTests" folder in "TradeTrackTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Integration/HttpClientIntegrationTests.swift,
-			);
-			target = C4029FA62E2D72BF00334A85 /* TradeTrackTests */;
-		};
-		C403ED5A2EF4B42400F3A427 /* Exceptions for "TradeTrackCoreTests" folder in "TradeTrackCoreTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Integration/HttpClientIntegrationTests.swift,
-			);
-			target = C403ECDB2EF4A3D000F3A427 /* TradeTrackCoreTests */;
-		};
 		C45A143E2E47B46000BFEDF0 /* Exceptions for "TradeTrack" folder in "TradeTrack" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -159,10 +145,6 @@
 		};
 		C403ECE22EF4A3D000F3A427 /* TradeTrackCoreTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				C403ED592EF4B42400F3A427 /* Exceptions for "TradeTrackCoreTests" folder in "TradeTrackTests" target */,
-				C403ED5A2EF4B42400F3A427 /* Exceptions for "TradeTrackCoreTests" folder in "TradeTrackCoreTests" target */,
-			);
 			path = TradeTrackCoreTests;
 			sourceTree = "<group>";
 		};

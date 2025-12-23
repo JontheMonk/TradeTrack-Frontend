@@ -1,77 +1,83 @@
-//
-//  FaceDetector.swift
-//
-//  Performs raw face detection using Apple’s Vision framework.
-//  This component is intentionally “dumb”: it detects faces but does not
-//  perform any validation, quality checks, or filtering. Higher-level logic
-//  (FaceAnalyzer + FaceValidator) decides whether the detected face is usable.
-//
-
 import Vision
 import CoreImage
-import ImageIO
 import os.log
 
-/// A lightweight wrapper around `VNDetectFaceLandmarksRequest` that extracts the
-/// *first detected face* from a frame.
-///
-/// This class has a single responsibility: run the Vision request and return
-/// a `VNFaceObservation` if one exists. It does **not**:
-/// - assess lighting / sharpness
-/// - verify bounding-box size
-/// - check rotation or framing
-/// - compute capture-quality scores
-///
-/// Those concerns belong to `FaceValidatorProtocol` and `FaceAnalyzerProtocol`.
-///
-/// ### Why the detector is kept simple
-/// - Keeps face-finding fast for real-time camera pipelines
-/// - Keeps the validation logic isolated (so it can be mocked/tested)
-/// - Allows easy swapping for multi-face detection or future VN APIs
-///
+/// A lightweight wrapper around Apple's Vision framework that extracts the
+/// first detected face and its capture quality from a frame.
 final class FaceDetector: FaceDetectorProtocol {
-    // 1. All stored properties must be assigned in init
+    
+    // MARK: - Properties
     private let usesCPUOnly: Bool
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "face-detection")
     
-    // MARK: - Reusable Requests
-    private let detectionReq = VNDetectFaceLandmarksRequest()
+    private let detectionReq = VNDetectFaceRectanglesRequest()
     private let qualityReq = VNDetectFaceCaptureQualityRequest()
     
+    private var sequenceHandler = VNSequenceRequestHandler()
+    
+    // MARK: - Initialization
     init(usesCPUOnly: Bool = false) {
         self.usesCPUOnly = usesCPUOnly
         
         detectionReq.usesCPUOnly = usesCPUOnly
         qualityReq.usesCPUOnly = usesCPUOnly
-
-
-        if #available(iOS 17.0, *) {
-            detectionReq.revision = VNDetectFaceLandmarksRequestRevision3
+        
+        // Revision 3 is specifically optimized for capture quality.
+        if #available(iOS 15.0, *) {
+            detectionReq.revision = VNDetectFaceRectanglesRequestRevision3
+            qualityReq.revision = VNDetectFaceCaptureQualityRequestRevision3
         }
     }
-
+    
+    // MARK: - Public API
+    
+    /// Analyzes a live camera frame.
     func detect(in image: CIImage) -> (VNFaceObservation, Float)? {
-        let orientationKey = kCGImagePropertyOrientation as String
-        let orientationRawValue = image.properties[orientationKey] as? UInt32 ?? 1
-        let orientation = CGImagePropertyOrientation(rawValue: orientationRawValue) ?? .up
-
-        let handler = VNImageRequestHandler(ciImage: image, orientation: orientation)
-
+        let orientation = image.cgOrientation
+        
         do {
-            try handler.perform([detectionReq, qualityReq])
+            // 1. Detect the face rectangle
+            try sequenceHandler.perform([detectionReq], on: image, orientation: orientation)
             
-            guard let face = detectionReq.results?.first as? VNFaceObservation,
-                  let qualityFace = qualityReq.results?.first as? VNFaceObservation,
-                  let quality = qualityFace.faceCaptureQuality else {
+            guard let face = detectionReq.results?.first else {
                 return nil
             }
             
-            return (face, quality)
+            // 2. Map the face to the Quality Request
+            qualityReq.inputFaceObservations = [face]
+            
+            // 3. Perform quality assessment
+            try sequenceHandler.perform([qualityReq], on: image, orientation: orientation)
+            
+            // 4. Extract quality from the result face observation
+            guard let resultFace = qualityReq.results?.first as? VNFaceObservation else {
+                return (face, 0.0)
+            }
+            
+            // We return resultFace because it contains the updated metrics
+            let score = resultFace.faceCaptureQuality ?? 0.0
+            return (resultFace, score)
+            
         } catch {
             logger.error("Vision error: \(error.localizedDescription)")
             return nil
         }
     }
+    
+    func reset() {
+        sequenceHandler = VNSequenceRequestHandler()
+    }
 }
 
+// MARK: - Helper Extensions
 
+private extension CIImage {
+    var cgOrientation: CGImagePropertyOrientation {
+        let orientationKey = kCGImagePropertyOrientation as String
+        guard let rawValue = properties[orientationKey] as? UInt32,
+              let orientation = CGImagePropertyOrientation(rawValue: rawValue) else {
+            return .up
+        }
+        return orientation
+    }
+}

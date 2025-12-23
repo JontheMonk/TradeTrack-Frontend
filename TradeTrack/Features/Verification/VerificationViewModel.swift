@@ -126,9 +126,12 @@ final class VerificationViewModel: NSObject, ObservableObject {
     func stop() async {
         task?.cancel()
         task = nil
-        await camera.stop()
+        analyzer.reset()
         resetCollection()
+        
+        await camera.stop()
         state = .detecting
+        
     }
 
     /// Resets the "best-frame" search metadata to initial values.
@@ -158,7 +161,10 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
         // 2. Perform detection.
         guard let (face, quality) = analyzer.analyze(in: image) else {
-            if collectionStartTime != nil { resetCollection() }
+            if collectionStartTime != nil {
+                resetCollection()
+                analyzer.reset()
+            }
             return
         }
 
@@ -288,6 +294,10 @@ extension VerificationViewModel {
     /// Exposes the internal task reference for state assertions in tests.
     var _test_task: Task<Void, Never>? {
         return self.task
+    }
+    
+    var _test_collectionStartTime: Date? {
+        return self.collectionStartTime
     }
 }
 #endif

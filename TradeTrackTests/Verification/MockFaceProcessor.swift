@@ -1,7 +1,6 @@
 #if DEBUG
 import Vision
 import CoreImage
-@testable import TradeTrack
 @testable import TradeTrackCore
 
 /// A lightweight test double for the `FaceProcessing` capability.
@@ -23,6 +22,10 @@ final class MockFaceProcessor: FaceProcessing {
     /// Useful for ensuring throttling, cancellation, and deduplication logic
     /// inside `VerificationViewModel`.
     private(set) var callCount = 0
+    
+    /// Captures the specific image passed into the processor.
+    /// This allows tests to verify that the "Best Frame" was selected.
+    private(set) var capturedImage: CIImage?
 
     /// The embedding the mock will return.
     ///
@@ -39,6 +42,9 @@ final class MockFaceProcessor: FaceProcessing {
 
     func process(image: CIImage, face: VNFaceObservation) throws -> FaceEmbedding {
         callCount += 1
+        
+        self.capturedImage = image
+        
         if let error = stubbedError { throw error }
         return stubbedEmbedding
     }
