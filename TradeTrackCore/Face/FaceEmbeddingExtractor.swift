@@ -1,7 +1,7 @@
 import CoreImage
 import Vision
 
-final class FaceEmbeddingExtractor: FaceEmbeddingExtracting {
+struct FaceEmbeddingExtractor: FaceEmbeddingExtracting {
 
     private let analyzer: FaceAnalyzerProtocol
     private let processor: FaceProcessing
@@ -14,10 +14,10 @@ final class FaceEmbeddingExtractor: FaceEmbeddingExtracting {
         self.processor = processor
     }
 
-    func embedding(from image: CIImage) throws -> FaceEmbedding {
-        guard let (face, _) = analyzer.analyze(in: image) else {
+    func embedding(from image: CIImage) async throws -> FaceEmbedding {
+        guard let (face, _) = await analyzer.analyze(in: image) else {
             throw AppError(code: .faceValidationFailed)
         }
-        return try processor.process(image: image, face: face)
+        return try await processor.process(image: image, face: face)
     }
 }

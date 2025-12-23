@@ -25,7 +25,7 @@ import CoreML
 ///   - resizing or color-space conversion fails
 ///
 /// `FaceEmbedder` will map thrown errors to `AppError(code: .facePreprocessingFailedRender)`.
-protocol PixelPreprocessorProtocol {
+protocol PixelPreprocessorProtocol : Sendable {
     /// Converts a pixel buffer into a normalized NCHW (1×3×H×W) tensor.
     ///
     /// - Parameter pixelBuffer: Raw camera image in BGRA/YUV/etc.

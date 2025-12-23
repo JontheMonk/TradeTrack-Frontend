@@ -50,7 +50,7 @@ import Vision
 ///
 /// These errors allow the upstream `FaceAnalyzer` or `FaceProcessor` to
 /// reject the frame cleanly.
-final class FacePreprocessor: FacePreprocessorProtocol {
+actor FacePreprocessor: FacePreprocessorProtocol {
     
     private let outputSize: CGSize
     
@@ -70,7 +70,7 @@ final class FacePreprocessor: FacePreprocessorProtocol {
         self.outputSize = outputSize
     }
 
-    func preprocessFace(image: CIImage, face: VNFaceObservation) throws -> CVPixelBuffer {
+    func preprocessFace(image: CIImage, face: VNFaceObservation) async throws -> CVPixelBuffer {
         let extent = image.extent.integral
 
         let rect = VNImageRectForNormalizedRect(

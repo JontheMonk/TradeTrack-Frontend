@@ -42,7 +42,7 @@ import Foundation
 /// let embedding = try embedder.embed(from: pb)
 /// let vector = embedding.values  // normalized [Float]
 /// ```
-final class FaceEmbedder : FaceEmbeddingProtocol {
+struct FaceEmbedder : FaceEmbeddingProtocol {
 
     /// CoreML model wrapper that exposes a `prediction` method.
     private let model: FaceEmbeddingModelProtocol
@@ -63,7 +63,7 @@ final class FaceEmbedder : FaceEmbeddingProtocol {
     /// - Parameter pixelBuffer: A 112×112 RGB buffer containing a face ROI.
     /// - Returns: A L2-normalized `FaceEmbedding`.
     /// - Throws: `AppError` on preprocessing or model inference failure.
-    func embed(from pixelBuffer: CVPixelBuffer) throws -> FaceEmbedding {
+    func embed(from pixelBuffer: CVPixelBuffer) async throws -> FaceEmbedding {
 
         // Convert pixel buffer → NCHW
         let inputArray: MLMultiArray
@@ -82,7 +82,7 @@ final class FaceEmbedder : FaceEmbeddingProtocol {
         // Run the model
         let output: w600k_r50Output
         do {
-            output = try model.prediction(input: input)
+            output = try await model.prediction(input: input)
         } catch {
             throw AppError(
                 code: .modelOutputMissing,

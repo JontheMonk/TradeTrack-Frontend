@@ -35,15 +35,11 @@ import CoreML
 ///     }
 /// }
 /// ```
-protocol FaceEmbeddingModelProtocol {
+protocol FaceEmbeddingModelProtocol : Sendable {
     /// Runs the model on the given NCHW tensor.
     ///
     /// - Parameter input: The CoreML-generated input wrapper.
     /// - Returns: The CoreML output wrapper containing embedding features.
     /// - Throws: Any CoreML inference error.
-    func prediction(input: w600k_r50Input) throws -> w600k_r50Output
+    func prediction(input: w600k_r50Input) async throws -> w600k_r50Output
 }
-
-/// Conforms the auto-generated CoreML model (`w600k_r50.mlmodel`) to the protocol.
-/// This allows dependency-injection while keeping the real implementation trivial.
-extension w600k_r50: FaceEmbeddingModelProtocol {}

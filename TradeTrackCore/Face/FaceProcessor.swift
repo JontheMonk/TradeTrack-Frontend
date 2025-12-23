@@ -61,8 +61,8 @@ final class FaceProcessor : FaceProcessing {
     ///
     /// - Returns: A fully normalized `FaceEmbedding`.
     /// - Throws: Forwarded `AppError` from preprocessing or embedding.
-    func process(image: CIImage, face: VNFaceObservation) throws -> FaceEmbedding {
-        let preprocessed = try preprocessor.preprocessFace(image: image, face: face)
+    func process(image: CIImage, face: VNFaceObservation) async throws -> FaceEmbedding {
+        let preprocessed = try await preprocessor.preprocessFace(image: image, face: face)
         return try embedder.embed(from: preprocessed)
     }
 }
