@@ -31,7 +31,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     let collector = FaceCollector()
     
     /// The computer vision analyzer. Marked `nonisolated` to allow background thread analysis.
-    nonisolated let analyzer: FaceAnalyzerProtocol
+    let analyzer: FaceAnalyzerProtocol
 
     // MARK: - Published UI State
 
@@ -53,26 +53,26 @@ final class VerificationViewModel: NSObject, ObservableObject {
     private lazy var outputDelegate = VerificationOutputDelegate { [weak self] frame in
         guard let self = self, !self.isProcessingFrame.value else { return }
 
-        // 1. BACKGROUND: Vision Analysis
-        guard let (face, quality) = await self.analyzer.analyze(in: frame) else {
-            Task { @MainActor in self.handleNoFaceDetected() }
-            return
-        }
-
-        // 2. BACKGROUND: Collection Logic (Async call to our Actor)
         Task {
-            // We do the logic work here on a background thread
+            // 1. Logic runs on background threads (analyzer/collector)
+            guard let (face, quality) = await self.analyzer.analyze(in: frame) else {
+                await self.handleNoFaceDetected()
+                return
+            }
+
             let possibleWinner = await self.collector.process(face: face, image: frame, quality: quality)
             let currentProgress = await self.collector.progress
 
-            // 3. MAIN ACTOR: Only hop once to update UI
-            await MainActor.run {
-                self.collectionProgress = currentProgress
-                
-                if let winner = possibleWinner {
-                    self.runVerificationTask(face: winner.0, image: winner.1)
-                }
-            }
+            await self.applyAnalysisResult(winner: possibleWinner, progress: currentProgress)
+        }
+    }
+
+    private func applyAnalysisResult(winner: (VNFaceObservation, CIImage)?, progress: Double) {
+        if let winner = winner {
+            self.collectionProgress = 0.0
+            self.runVerificationTask(face: winner.0, image: winner.1)
+        } else {
+            self.collectionProgress = progress
         }
     }
 
@@ -123,17 +123,22 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
     // MARK: - Internal Handlers
 
-    func handleNoFaceDetected() async {
-        if collector.startTime != nil {
+    nonisolated func handleNoFaceDetected() async {
+        // 1. Logic runs on the background (calling thread)
+        if await collector.startTime != nil {
             await collector.reset()
             await analyzer.reset()
-            collectionProgress = 0.0
+            
+            await self.resetCollectionUI()
         }
+    }
+
+    private func resetCollectionUI() {
+        self.collectionProgress = 0.0
     }
 
     func runVerificationTask(face: VNFaceObservation, image: CIImage) {
         self.isProcessingFrame.value = true
-        self.collectionProgress = 0.0
         
         task = Task(priority: .userInitiated) { [weak self] in
             guard let self = self else { return }
@@ -148,8 +153,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
             do {
                 await MainActor.run { self.state = .processing }
 
-                // Generate local biometric embedding
-                let embedding = try processor.process(image: image, face: face)
+                let embedding = try await processor.process(image: image, face: face)
                 try Task.checkCancellation()
 
                 // Verify with backend

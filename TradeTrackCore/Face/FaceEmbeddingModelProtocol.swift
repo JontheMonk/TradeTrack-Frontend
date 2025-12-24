@@ -41,5 +41,5 @@ protocol FaceEmbeddingModelProtocol : Sendable {
     /// - Parameter input: The CoreML-generated input wrapper.
     /// - Returns: The CoreML output wrapper containing embedding features.
     /// - Throws: Any CoreML inference error.
-    func prediction(input: w600k_r50Input) async throws -> w600k_r50Output
+    func prediction(input: w600k_r50_imageInput) async throws -> w600k_r50_imageOutput
 }

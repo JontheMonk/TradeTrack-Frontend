@@ -37,7 +37,7 @@ import CoreImage
 /// - `.modelOutputMissing`
 ///
 /// This ensures the UI can display clear failure states (“Try again,” etc.)
-final class FaceProcessor : FaceProcessing {
+struct FaceProcessor : FaceProcessing {
 
     /// Handles cropping and resizing of the face region.
     private let preprocessor: FacePreprocessor
@@ -63,6 +63,6 @@ final class FaceProcessor : FaceProcessing {
     /// - Throws: Forwarded `AppError` from preprocessing or embedding.
     func process(image: CIImage, face: VNFaceObservation) async throws -> FaceEmbedding {
         let preprocessed = try await preprocessor.preprocessFace(image: image, face: face)
-        return try embedder.embed(from: preprocessed)
+        return try await embedder.embed(from: preprocessed.buffer)
     }
 }

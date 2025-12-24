@@ -1,13 +1,15 @@
 import CoreML
 
 actor FaceEmbeddingModelActor: FaceEmbeddingModelProtocol {
-    private let model: w600k_r50
+    private let model: w600k_r50_image
 
     init() throws {
-        self.model = try w600k_r50(configuration: MLModelConfiguration())
+        let config = MLModelConfiguration()
+        self.model = try w600k_r50_image(configuration: config)
     }
 
-    func prediction(input: w600k_r50Input) throws -> w600k_r50Output {
-        return try model.prediction(input: input)
+    /// The input is now 'w600k_r50_imageInput' which accepts a CVPixelBuffer
+    func prediction(input: w600k_r50_imageInput) async throws -> w600k_r50_imageOutput {
+        return try await model.prediction(input: input)
     }
 }
