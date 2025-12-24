@@ -9,7 +9,7 @@ import CoreImage
 /// Lets tests control:
 ///   • whether a face is found
 ///   • how many times analysis was performed
-final class MockFaceAnalyzer: FaceAnalyzerProtocol {
+final class MockFaceAnalyzer: FaceAnalyzerProtocol, @unchecked Sendable {
 
     private(set) var callCount = 0
     

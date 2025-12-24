@@ -95,13 +95,19 @@ public struct CoreFactory {
         )
     }
     
+    /// Creates a FaceCollector actor for managing best-frame selection.
+    /// - Returns: A thread-safe object conforming to `FaceCollecting`.
+    public static func makeFaceCollector() -> FaceCollecting {
+        return FaceCollector()
+    }
+    
     /// Initializes the `FaceProcessor` including the CoreML model loading.
     /// - Throws: `MLModel` initialization errors if the weights file is missing or incompatible.
     /// - Returns: An object conforming to `FaceProcessing` for image-to-vector transformation.
     public static func makeFaceProcessor() throws -> FaceProcessing {
         let preprocessor = FacePreprocessor()
-        let model = try w600k_r50(configuration: MLModelConfiguration())
-        let embedder = FaceEmbedder(model: model, preprocessor: RealPixelPreprocessor())
+        let model = try FaceEmbeddingModelActor()
+        let embedder = FaceEmbedder(model: model)
         
         return FaceProcessor(
             preprocessor: preprocessor,

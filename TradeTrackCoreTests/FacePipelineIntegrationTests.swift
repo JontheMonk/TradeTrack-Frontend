@@ -4,12 +4,12 @@ import CoreImage
 @MainActor
 final class FacePipelineIntegrationTests: XCTestCase {
 
-    func test_extractor_producesNormalized512Vector() throws {
+    func test_extractor_producesNormalized512Vector() async throws {
 
         let extractor = try CoreFactory.makeFaceExtractor()
         // 4. Load and Execute
         let image = loadCIImage(named: "jon_1")
-        let embedding = try extractor.embedding(from: image)
+        let embedding = try await extractor.embedding(from: image)
 
         // 5. Verification
         XCTAssertEqual(embedding.values.count, 512, "Vector count must match InsightFace output.")
@@ -18,26 +18,26 @@ final class FacePipelineIntegrationTests: XCTestCase {
         XCTAssertEqual(magnitude, 1.0, accuracy: 0.001, "Vectors must be normalized.")
     }
     
-    func test_extractor_returnsNil_whenChairIsProvided() throws {
+    func test_extractor_returnsNil_whenChairIsProvided() async throws {
         // 1. Arrange
         let extractor = try CoreFactory.makeFaceExtractor()
         let chairImage = loadCIImage(named: "chair")
         
-        let result = try? extractor.embedding(from: chairImage)
+        let result = try? await extractor.embedding(from: chairImage)
 
         // 3. Assert
         XCTAssertNil(result, "The pipeline should return nil for a chair, not an embedding.")
     }
     
-    func test_extractor_recognizesSamePerson_acrossDifferentImages() throws {
+    func test_extractor_recognizesSamePerson_acrossDifferentImages() async throws {
         // 1. Arrange
         let extractor = try CoreFactory.makeFaceExtractor()
         let jon1 = loadCIImage(named: "jon_1")
         let jon2 = loadCIImage(named: "jon_2")
 
         // 2. Act
-        let embedding1 = try extractor.embedding(from: jon1)
-        let embedding2 = try extractor.embedding(from: jon2)
+        let embedding1 = try await extractor.embedding(from: jon1)
+        let embedding2 = try await extractor.embedding(from: jon2)
 
         // 3. Calculate Distance
         let distance = calculateEuclideanDistance(embedding1.values, embedding2.values)
@@ -48,15 +48,15 @@ final class FacePipelineIntegrationTests: XCTestCase {
         XCTAssertLessThan(distance, 0.9, "Distance (\(distance)) is too high; images should represent the same person.")
     }
     
-    func test_extractor_rejectsDifferentPerson() throws {
+    func test_extractor_rejectsDifferentPerson() async throws {
         // 1. Arrange
         let extractor = try CoreFactory.makeFaceExtractor()
         let jon1 = loadCIImage(named: "jon_1")
         let imposter = loadCIImage(named: "imposter")
 
         // 2. Act
-        let embedding1 = try extractor.embedding(from: jon1)
-        let embedding2 = try extractor.embedding(from: imposter)
+        let embedding1 = try await extractor.embedding(from: jon1)
+        let embedding2 = try await extractor.embedding(from: imposter)
 
         // 3. Calculate Distance
         let distance = calculateEuclideanDistance(embedding1.values, embedding2.values)

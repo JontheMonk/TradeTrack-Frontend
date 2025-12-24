@@ -6,8 +6,9 @@ struct PreviewApp: App {
         WindowGroup {
             VerificationView(
                 viewModel: VerificationViewModel(
-                    camera: CoreFactory.makeCameraManager(for: .normal),
-                    analyzer: CoreFactory.makeFaceAnalyzer(),
+                    camera: MockCameraManager(),
+                    analyzer: MockFaceAnalyzer(),
+                    collector: MockFaceCollector(),
                     processor: MockFaceProcessor(),
                     verifier: MockFaceVerificationService(),
                     errorManager: MockErrorManager(),

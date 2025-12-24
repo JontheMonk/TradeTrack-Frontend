@@ -26,7 +26,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     let logger = Logger(subsystem: "Jon.TradeTrack", category: "VerificationVM")
     
     /// The logic worker that handles the 0.8s "best-frame" window.
-    let collector = FaceCollector()
+    let collector: FaceCollecting
     
     /// The computer vision analyzer. Marked `nonisolated` to allow background thread analysis.
     let analyzer: FaceAnalyzerProtocol
@@ -81,6 +81,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     init(
         camera: CameraManagerProtocol,
         analyzer: FaceAnalyzerProtocol,
+        collector: FaceCollecting,
         processor: FaceProcessing,
         verifier: FaceVerificationProtocol,
         errorManager: ErrorHandling,
@@ -88,6 +89,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     ) {
         self.camera = camera
         self.analyzer = analyzer
+        self.collector = collector
         self.processor = processor
         self.verifier = verifier
         self.errorManager = errorManager

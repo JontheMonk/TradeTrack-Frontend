@@ -14,6 +14,7 @@ final class VerificationViewModelTests: XCTestCase {
 
     private var mockCamera: MockCameraManager!
     private var mockAnalyzer: MockFaceAnalyzer!
+    private var mockCollector: MockFaceCollector!
     private var mockProcessor: MockFaceProcessor!
     private var mockVerifier: MockFaceVerificationService!
     private var mockError: MockErrorManager!
@@ -25,6 +26,7 @@ final class VerificationViewModelTests: XCTestCase {
     override func setUp() async throws {
         mockCamera = MockCameraManager()
         mockAnalyzer = MockFaceAnalyzer()
+        mockCollector = MockFaceCollector()
         mockProcessor = MockFaceProcessor()
         mockVerifier = MockFaceVerificationService()
         mockError = MockErrorManager()
@@ -32,6 +34,7 @@ final class VerificationViewModelTests: XCTestCase {
         vm = VerificationViewModel(
             camera: mockCamera,
             analyzer: mockAnalyzer,
+            collector: mockCollector,
             processor: mockProcessor,
             verifier: mockVerifier,
             errorManager: mockError,

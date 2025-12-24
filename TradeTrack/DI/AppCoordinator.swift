@@ -84,6 +84,7 @@ final class AppCoordinator: ObservableObject, Navigating {
             let vm = VerificationViewModel(
                 camera: container.cameraManager,
                 analyzer: container.faceAnalyzer,
+                collector:  container.faceCollector,
                 processor: container.faceProcessor,
                 verifier: container.faceVerificationService,
                 errorManager: errorManager,

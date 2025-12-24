@@ -134,7 +134,7 @@ final class RegisterViewModel: ObservableObject {
         do {
             // Offload the embedding computation to a Task.
             let embedding = try await Task(priority: .userInitiated) {
-                try face.embedding(from: image)
+                try await face.embedding(from: image)
             }.value
 
             let input = EmployeeInput(

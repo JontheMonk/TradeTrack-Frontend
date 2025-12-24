@@ -2,7 +2,7 @@ import Vision
 import CoreImage
 
 /// An actor that manages face collection safely across multiple threads.
-actor FaceCollector {
+actor FaceCollector: FaceCollecting {
     private let window: TimeInterval = 0.8
     private let highWaterMark: Float = 0.9
     

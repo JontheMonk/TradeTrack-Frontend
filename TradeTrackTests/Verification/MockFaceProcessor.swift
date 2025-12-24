@@ -15,7 +15,7 @@ import CoreImage
 ///  • Count how many times the pipeline was invoked
 ///
 /// This avoids running Vision or CoreML during unit tests.
-final class MockFaceProcessor: FaceProcessing {
+final class MockFaceProcessor: FaceProcessing, @unchecked Sendable {
 
     /// Number of times `process(image:face:)` was invoked.
     ///
