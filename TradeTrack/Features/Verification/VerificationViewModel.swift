@@ -2,20 +2,18 @@ import AVFoundation
 import Vision
 import SwiftUI
 import TradeTrackCore
+import Synchronization
 import os.log
 
-/// Defines the high-level states of the face verification lifecycle.
-enum VerificationState: Equatable {
-    /// The system is actively searching for a valid face in the camera feed.
-    case detecting
-    /// A face has been captured; the system is generating embeddings and communicating with the server.
-    case processing
-    /// Verification was successful for the specified employee.
-    case matched(name: String)
-}
-
-/// A ViewModel that manages the biometric verification pipeline by coordinating
-/// between the camera, the face collector logic, and the backend verifier.
+/// A ViewModel that manages the biometric verification pipeline.
+///
+/// This class coordinates between high-frequency camera frames, actor-based logic,
+/// and backend verification using a thread-safe "Gatekeeper" pattern.
+///
+/// **Design Decisions:**
+/// 1. **Atomic Gating:** Uses `Atomic<Bool>` to short-circuit frame processing on the background queue.
+/// 2. **Actor Isolation:** Offloads stateful collection logic to the `FaceCollector` actor.
+/// 3. **Task Cancellation:** Implements cooperative cancellation to prevent "Ghost UI" updates.
 @MainActor
 final class VerificationViewModel: NSObject, ObservableObject {
 
@@ -44,29 +42,29 @@ final class VerificationViewModel: NSObject, ObservableObject {
     // MARK: - Task & Control Logic
 
     var task: Task<Void, Never>?
-    let isProcessingFrame = AtomicBool()
+    let isProcessingFrame = Atomic<Bool>(false)
     var uiTestObservers: [NSObjectProtocol] = []
 
     // MARK: - Capture Delegate
     
-    /// Bridges the background camera queue to the MainActor.
+    /// Bridges the background camera queue to the MainActor/Task pool.
+    /// Uses an atomic load with `.relaxed` ordering for maximum throughput.
     private lazy var outputDelegate = VerificationOutputDelegate { [weak self] frame in
-        guard let self = self, !self.isProcessingFrame.value else { return }
+        guard let self = self, !self.isProcessingFrame.load(ordering: .relaxed) else { return }
 
         Task {
-            // 1. Logic runs on background threads (analyzer/collector)
             guard let (face, quality) = await self.analyzer.analyze(in: frame) else {
                 await self.handleNoFaceDetected()
                 return
             }
 
-            let possibleWinner = await self.collector.process(face: face, image: frame, quality: quality)
-            let currentProgress = await self.collector.progress
-
-            await self.applyAnalysisResult(winner: possibleWinner, progress: currentProgress)
+            let result = await self.collector.process(face: face, image: frame, quality: quality)
+            // on main thread
+            await self.applyAnalysisResult(winner: result.winner, progress: result.progress)
         }
     }
 
+    /// Updates the UI or triggers the verification task based on the collector's result.
     private func applyAnalysisResult(winner: (VNFaceObservation, CIImage)?, progress: Double) {
         if let winner = winner {
             self.collectionProgress = 0.0
@@ -109,6 +107,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
         }
     }
 
+    /// Stops the pipeline, cancels active tasks, and resets internal state.
     func stop() async {
         task?.cancel()
         task = nil
@@ -138,36 +137,43 @@ final class VerificationViewModel: NSObject, ObservableObject {
     }
 
     func runVerificationTask(face: VNFaceObservation, image: CIImage) {
-        self.isProcessingFrame.value = true
+        self.isProcessingFrame.store(true, ordering: .relaxed)
         
-        task = Task(priority: .userInitiated) { [weak self] in
+        task = Task { [weak self] in // Inherits @MainActor from the ViewModel
             guard let self = self else { return }
 
             defer {
-                Task { @MainActor in
-                    self.task = nil
-                    self.isProcessingFrame.value = false
-                }
+                self.isProcessingFrame.store(false, ordering: .relaxed)
+                self.task = nil
             }
 
             do {
-                await MainActor.run { self.state = .processing }
+                try Task.checkCancellation()
+                self.state = .processing
 
                 let embedding = try await processor.process(image: image, face: face)
+                
                 try Task.checkCancellation()
 
-                // Verify with backend
                 guard let employeeID = self.targetEmployeeID else {
                     throw AppError(code: .employeeNotFound)
                 }
+                
                 try await verifier.verifyFace(employeeId: employeeID, embedding: embedding)
 
-                await MainActor.run { self.state = .matched(name: employeeID) }
+                if !Task.isCancelled {
+                    self.state = .matched(name: employeeID)
+                }
+                
+            } catch is CancellationError {
+                logger.debug("Verification task cancelled by user.")
             } catch {
-                self.logger.error("Verification error: \(error.localizedDescription)")
-                await MainActor.run {
+                if !Task.isCancelled {
+                    self.logger.error("Verification error: \(error.localizedDescription)")
                     self.errorManager.showError(error)
                     self.state = .detecting
+                } else {
+                    self.logger.debug("Task failed but was cancelled, ignoring error.")
                 }
             }
         }
