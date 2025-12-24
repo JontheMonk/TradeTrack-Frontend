@@ -19,15 +19,6 @@ extension VerificationViewModel {
             await self.handleNoFaceDetected()
         }
     }
-
-    /// Forces the collector to pick the current best frame immediately, bypassing the 0.8s timer.
-    func _test_forceCommit() async {
-        // Accessing actor state for testing
-        if let winner = await collector.currentBest {
-            self.runVerificationTask(face: winner.0, image: winner.1)
-            await collector.reset()
-        }
-    }
     
     /// Helper to bridge the Atomic gate state to tests
     var _test_isGateClosed: Bool {
@@ -40,9 +31,4 @@ extension VerificationViewModel {
     }
     
     var _test_task: Task<Void, Never>? { self.task }
-    
-    /// Returns the start time from the collector actor
-    func getCollectionStartTime() async -> Date? {
-        await collector.startTime
-    }
 }
