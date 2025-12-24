@@ -43,7 +43,9 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
     var task: Task<Void, Never>?
     let isProcessingFrame = Atomic<Bool>(false)
+    #if DEBUG
     var uiTestObservers: [NSObjectProtocol] = []
+    #endif
 
     // MARK: - Capture Delegate
     
@@ -92,13 +94,23 @@ final class VerificationViewModel: NSObject, ObservableObject {
         self.targetEmployeeID = employeeId
         super.init()
     }
+    
+    deinit {
+        #if DEBUG
+        uiTestObservers.forEach { observer in
+            NotificationCenter.default.removeObserver(observer)
+        }
+        #endif
+    }
 
     // MARK: - Lifecycle
 
     var session: AVCaptureSession { camera.uiCaptureSession }
 
     func start() async {
+        #if DEBUG
         installUITestSignalBridge()
+        #endif
         do {
             try await camera.requestAuthorization()
             try await camera.start(delegate: outputDelegate)
@@ -112,6 +124,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
         task?.cancel()
         task = nil
         
+        isProcessingFrame.store(false, ordering: .relaxed)
         await collector.reset()
         await analyzer.reset()
         collectionProgress = 0.0

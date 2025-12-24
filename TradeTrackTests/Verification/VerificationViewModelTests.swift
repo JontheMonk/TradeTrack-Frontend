@@ -71,7 +71,8 @@ final class VerificationViewModelTests: XCTestCase {
         await vm._test_handle(dummyImage)
         
         // Verify we are actually in a "collecting" state
-        XCTAssertNotNil(vm._test_collectionStartTime)
+        let startTime = await vm.getCollectionStartTime()
+        XCTAssertNotNil(startTime)
 
         // 2. Act: Now simulate the face being lost
         mockAnalyzer.stubbedFace = nil
@@ -95,7 +96,7 @@ final class VerificationViewModelTests: XCTestCase {
         await vm._test_handle(dummyImage)
 
         // 3. Force commit (simulating 0.8s passing)
-        vm._test_forceCommit()
+        await vm._test_forceCommit()
         await vm._test_waitForTask()
 
         // Then
@@ -194,7 +195,7 @@ final class VerificationViewModelTests: XCTestCase {
         mockAnalyzer.stubbedQuality = 0.3
         await vm._test_handle(poorImg)
         
-        vm._test_forceCommit()
+        await vm._test_forceCommit()
         await vm._test_waitForTask()
         
         // 3. Assert: This is where the magic happens
