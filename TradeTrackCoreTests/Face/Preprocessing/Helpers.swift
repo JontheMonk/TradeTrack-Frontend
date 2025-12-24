@@ -2,24 +2,6 @@ import XCTest
 import Vision
 import CoreImage
 
-// MARK: - Face Observation Mocking
-
-/// Creates a synthetic VNFaceObservation with a specific normalized bounding box.
-func makeFace(bbox: CGRect) -> VNFaceObservation {
-    let request = VNDetectFaceRectanglesRequest()
-    // Create a tiny 1x1 dummy handler just to get a valid VNFaceObservation instance
-    let handler = VNImageRequestHandler(ciImage: CIImage(color: .red).cropped(to: CGRect(x:0, y:0, width:1, height:1)), options: [:])
-    try? handler.perform([request])
-    
-    guard let face = request.results?.first as? VNFaceObservation else {
-        fatalError("Could not generate mock VNFaceObservation")
-    }
-    
-    // VNFaceObservation.boundingBox is read-only, so we use KVC to set it for testing
-    face.setValue(NSValue(cgRect: bbox), forKey: "boundingBox")
-    return face
-}
-
 // MARK: - Image Generators
 
 func makeImage(width: Int, height: Int, color: CIColor = .red) -> CIImage {

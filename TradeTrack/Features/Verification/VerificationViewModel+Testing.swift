@@ -26,8 +26,19 @@ extension VerificationViewModel {
                 self?.state = .detecting
             }
         }
-
+        
         let observer2 = center.addObserver(
+            forName: .uiTestCameraInvalidFace,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.state = .detecting
+                self?.errorManager.showError(AppError(code: .faceConfidenceTooLow))
+            }
+        }
+
+        let observer3 = center.addObserver(
             forName: .uiTestCameraValidFace,
             object: nil,
             queue: .main
@@ -37,7 +48,7 @@ extension VerificationViewModel {
             }
         }
         
-        self.uiTestObservers.append(contentsOf: [observer1, observer2])
+        self.uiTestObservers.append(contentsOf: [observer1, observer2, observer3])
     }
 }
 #endif
