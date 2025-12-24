@@ -52,12 +52,12 @@ final class VerificationViewModel: NSObject, ObservableObject {
 
     /// Holds a reference to the active verification network/processing task.
     /// This allows for explicit cancellation if the user leaves the screen or the session stops.
-    private var task: Task<Void, Never>?
+    var task: Task<Void, Never>?
     
     /// **The Gate:** A thread-safe atomic boolean.
     /// We use an atomic here because frames arrive on a background thread. Checking an
     /// atomic is significantly faster than hopping to the MainActor just to see if we are busy.
-    private let isProcessingFrame = Atomic<Bool>(false)
+    let isProcessingFrame = Atomic<Bool>(false)
     
     #if DEBUG
     /// Stores observers for UI Testing bridges to ensure they are cleaned up in deinit.
@@ -178,7 +178,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     /// **Background Reset:** Logic for handling missing faces.
     /// This remains `nonisolated` so we can reset background actors without
     /// bothering the MainActor unless a UI change (progress reset) is actually needed.
-    private nonisolated func handleNoFaceDetected() async {
+    nonisolated func handleNoFaceDetected() async {
         if await collector.startTime != nil {
             await collector.reset()
             await analyzer.reset()
