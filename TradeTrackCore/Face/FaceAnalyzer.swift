@@ -26,7 +26,7 @@ import CoreImage
 ///
 /// This class is intentionally lightweight and synchronous so it can be used
 /// directly from frame-processing pipelines.
-final class FaceAnalyzer: FaceAnalyzerProtocol, @unchecked Sendable {
+struct FaceAnalyzer: FaceAnalyzerProtocol {
     private let detector: FaceDetectorProtocol
     private let validator: FaceValidatorProtocol
 
@@ -35,8 +35,8 @@ final class FaceAnalyzer: FaceAnalyzerProtocol, @unchecked Sendable {
         self.validator = validator
     }
 
-    func analyze(in image: CIImage) -> (VNFaceObservation, Float)? {
-        guard let (face, quality) = detector.detect(in: image) else {
+    func analyze(in image: CIImage) async -> (VNFaceObservation, Float)? {
+        guard let (face, quality) = await detector.detect(in: image) else {
             return nil
         }
 
@@ -48,7 +48,7 @@ final class FaceAnalyzer: FaceAnalyzerProtocol, @unchecked Sendable {
         return isValid ? (face, quality) : nil
     }
     
-    func reset() {
-        self.detector.reset()
+    func reset() async {
+        await self.detector.reset()
     }
 }

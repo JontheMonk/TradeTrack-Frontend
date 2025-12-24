@@ -2,111 +2,86 @@ import AVFoundation
 import Vision
 import SwiftUI
 import TradeTrackCore
+import Synchronization
 import os.log
-
-/// Defines the high-level states of the face verification lifecycle.
-enum VerificationState: Equatable {
-    /// The system is actively searching for a valid face in the camera feed.
-    case detecting
-    /// A face has been captured; the system is generating embeddings and communicating with the server.
-    case processing
-    /// Verification was successful for the specified employee.
-    case matched(name: String)
-}
 
 /// A ViewModel that manages the biometric verification pipeline.
 ///
-/// This class coordinates between the camera stream, computer vision analysis,
-/// and backend verification. It implements a "best-frame" collection strategy:
-/// 1. It monitors frames for a valid face.
-/// 2. It opens a 0.8s collection window to find the highest-quality image.
-/// 3. It triggers immediate processing if a high-quality "perfect" frame is found.
+/// This class coordinates between high-frequency camera frames, actor-based logic,
+/// and backend verification using a thread-safe "Gatekeeper" pattern.
+///
+/// **Design Decisions:**
+/// 1. **Atomic Gating:** Uses `Atomic<Bool>` to short-circuit frame processing on the background queue.
+/// 2. **Actor Isolation:** Offloads stateful collection logic to the `FaceCollector` actor.
+/// 3. **Task Cancellation:** Implements cooperative cancellation to prevent "Ghost UI" updates.
 @MainActor
 final class VerificationViewModel: NSObject, ObservableObject {
 
     // MARK: - Dependencies
-
-    private let camera: CameraManagerProtocol
     
-    /// The computer vision analyzer. Marked `nonisolated` to allow background thread analysis
-    /// without hopping to the MainActor for every raw camera frame.
-    nonisolated private let analyzer: FaceAnalyzerProtocol
+    let camera: CameraManagerProtocol
+    let processor: FaceProcessing
+    let verifier: FaceVerificationProtocol
+    let errorManager: ErrorHandling
+    let logger = Logger(subsystem: "Jon.TradeTrack", category: "VerificationVM")
     
-    private let processor: FaceProcessing
-    private let verifier: FaceVerificationProtocol
-    private let errorManager: ErrorHandling
-    private let logger = Logger(subsystem: "Jon.TradeTrack", category: "VerificationVM")
+    /// The logic worker that handles the 0.8s "best-frame" window.
+    let collector: FaceCollecting
+    
+    /// The computer vision analyzer. Marked `nonisolated` to allow background thread analysis.
+    let analyzer: FaceAnalyzerProtocol
 
     // MARK: - Published UI State
 
-    /// The current state of the verification process used to drive UI overlays.
     @Published var state: VerificationState = .detecting
-    
-    /// A value between 0.0 and 1.0 representing the progress of the current face collection window.
-    /// Useful for animating scanning rings or progress bars.
     @Published var collectionProgress: Double = 0.0
 
     /// The unique identifier of the employee being verified.
     var targetEmployeeID: String?
 
-    // MARK: - Task & Collection Control
+    // MARK: - Task & Control Logic
 
-    /// Holds the reference to the active asynchronous verification task.
-    /// Used to prevent overlapping requests and manage cancellation.
-    private var task: Task<Void, Never>?
-    
-    /// Stores the highest quality face metadata and image found in the current collection burst.
-    private var bestCandidate: (observation: VNFaceObservation, image: CIImage, quality: Float)?
-    
-    /// The timestamp when the first valid face was detected for the current collection cycle.
-    private var collectionStartTime: Date?
-    
-    /// The maximum amount of time (0.8s) to spend looking for a better frame before committing.
-    private let collectionWindow: TimeInterval = 0.8
-    
-    /// The quality threshold (0.9) that triggers immediate verification, bypassing the remainder of the window.
-    private let qualityHighWaterMark: Float = 0.9
-
-    /// Storage for notification observers used during UI automation tests.
-    private var uiTestObservers: [NSObjectProtocol] = []
-    
+    var task: Task<Void, Never>?
+    let isProcessingFrame = Atomic<Bool>(false)
+    #if DEBUG
+    var uiTestObservers: [NSObjectProtocol] = []
+    #endif
 
     // MARK: - Capture Delegate
     
-    /// An atomic flag synchronized between the background camera queue and the @MainActor.
-    /// Prevents redundant Vision analysis while a verification request is in flight.
-    private let isProcessingFrame = AtomicBool()
-    
-    /// A thread-safe bridge between the background camera queue and the MainActor.
-    ///
-    /// The `isProcessingFrame` flag (AtomicBool) prevents the background queue from
-    /// flooding the MainActor with processing requests while a network task is active.
+    /// Bridges the background camera queue to the MainActor/Task pool.
+    /// Uses an atomic load with `.relaxed` ordering for maximum throughput.
     private lazy var outputDelegate = VerificationOutputDelegate { [weak self] frame in
-        guard let self = self else { return }
+        guard let self = self, !self.isProcessingFrame.load(ordering: .relaxed) else { return }
 
-        // 1. Thread-safe check: Are we already in a verification task?
-        guard !self.isProcessingFrame.value else { return }
+        Task {
+            guard let (face, quality) = await self.analyzer.analyze(in: frame) else {
+                await self.handleNoFaceDetected()
+                return
+            }
 
-        // 2. BACKGROUND ANALYSIS: Run Vision scoring here (off the Main Thread)
-        // Heavy lifting occurs nonisolated to maintain high frame rates.
-        guard let (face, quality) = self.analyzer.analyze(in: frame) else {
-            // If no face found, we must communicate to the VM to reset its window.
-            Task { @MainActor in self.handleNoFaceDetected() }
-            return
+            let result = await self.collector.process(face: face, image: frame, quality: quality)
+            // on main thread
+            await self.applyAnalysisResult(winner: result.winner, progress: result.progress)
         }
+    }
 
-        // 3. ONLY HOP TO MAIN if we have a valid face to process
-        Task { @MainActor in
-            self.handle(face: face, image: frame, quality: quality)
+    /// Updates the UI or triggers the verification task based on the collector's result.
+    private func applyAnalysisResult(winner: (VNFaceObservation, CIImage)?, progress: Double) {
+        if let winner = winner {
+            self.collectionProgress = 0.0
+            self.runVerificationTask(face: winner.0, image: winner.1)
+        } else {
+            self.collectionProgress = progress
         }
     }
 
     // MARK: - Init
 
-    /// Initializes the ViewModel with necessary biometric and networking services.
     init(
         camera: CameraManagerProtocol,
         analyzer: FaceAnalyzerProtocol,
+        collector: FaceCollecting,
         processor: FaceProcessing,
         verifier: FaceVerificationProtocol,
         errorManager: ErrorHandling,
@@ -114,25 +89,30 @@ final class VerificationViewModel: NSObject, ObservableObject {
     ) {
         self.camera = camera
         self.analyzer = analyzer
+        self.collector = collector
         self.processor = processor
         self.verifier = verifier
         self.errorManager = errorManager
         self.targetEmployeeID = employeeId
         super.init()
     }
-
-    // MARK: - Session Bridge
-
-    /// The active capture session used by the `VideoPreviewLayer`.
-    var session: AVCaptureSession {
-        return camera.uiCaptureSession
+    
+    deinit {
+        #if DEBUG
+        uiTestObservers.forEach { observer in
+            NotificationCenter.default.removeObserver(observer)
+        }
+        #endif
     }
 
-    // MARK: - Lifecycle Control
+    // MARK: - Lifecycle
 
-    /// Starts the camera session and requests necessary permissions.
+    var session: AVCaptureSession { camera.uiCaptureSession }
+
     func start() async {
-        installUITestSignalBridgeIfNeeded()
+        #if DEBUG
+        installUITestSignalBridge()
+        #endif
         do {
             try await camera.requestAuthorization()
             try await camera.start(delegate: outputDelegate)
@@ -141,204 +121,76 @@ final class VerificationViewModel: NSObject, ObservableObject {
         }
     }
 
-    /// Stops the camera session and cleans up the verification lifecycle.
-    ///
-    /// This method performs a comprehensive teardown:
-    /// 1. **Cancellation:** Aborts active async tasks (network or ML).
-    /// 2. **State Reset:** Clears "best-frame" candidates and resets analyzer metadata.
-    /// 3. **Hardware Control:** Shuts down the `AVCaptureSession` to save power.
-    /// 4. **UI Update:** Reverts the state to `.detecting`.
-    ///
-    /// - Note: Should be called when the view disappears or the user exits the flow.
+    /// Stops the pipeline, cancels active tasks, and resets internal state.
     func stop() async {
         task?.cancel()
         task = nil
         
-        analyzer.reset()
-        resetCollection()
+        isProcessingFrame.store(false, ordering: .relaxed)
+        await collector.reset()
+        await analyzer.reset()
+        collectionProgress = 0.0
         
         await camera.stop()
         state = .detecting
     }
 
-    /// Resets the "best-frame" search metadata to initial values.
-    private func resetCollection() {
-        bestCandidate = nil
-        collectionStartTime = nil
-        collectionProgress = 0.0
-    }
+    // MARK: - Internal Handlers
 
-    deinit {
-        for o in uiTestObservers {
-            NotificationCenter.default.removeObserver(o)
-        }
-        task?.cancel()
-    }
-
-    // MARK: - Frame Processing Pipeline
-
-    /// Evaluates a single camera frame for face presence and quality.
-    ///
-    /// This method manages the "Best-Frame" collection window:
-    /// - **Windowing:** On first detection, a 0.8s timer starts.
-    /// - **Candidate Selection:** Tracks the highest quality frame seen during the window.
-    /// - **Short-Circuit:** If quality exceeds `qualityHighWaterMark` (0.9), it triggers immediately.
-    /// - **Reset:** If the face is lost, the current window is discarded.
-    ///
-    /// - Parameters:
-    ///   - face: Vision metadata for the detected face.
-    ///   - image: The raw buffer from the camera.
-    ///   - quality: A pre-calculated score (0.0 - 1.0) indicating clarity and pose.
-    private func handle(face: VNFaceObservation, image: CIImage, quality: Float) {
-        guard task == nil else { return }
-
-        let now = Date()
-
-        if collectionStartTime == nil {
-            collectionStartTime = now
-        }
-
-        if quality > (bestCandidate?.quality ?? -1.0) {
-            bestCandidate = (face, image, quality)
-        }
-
-        let timeElapsed = now.timeIntervalSince(collectionStartTime!)
-        collectionProgress = min(timeElapsed / collectionWindow, 1.0)
-
-        if timeElapsed >= collectionWindow || quality >= qualityHighWaterMark {
-            guard let winner = bestCandidate else { return }
+    nonisolated func handleNoFaceDetected() async {
+        // 1. Logic runs on the background (calling thread)
+        if await collector.startTime != nil {
+            await collector.reset()
+            await analyzer.reset()
             
-            // Lock the atomic flag for the duration of the network task
-            self.isProcessingFrame.value = true
-            
-            resetCollection()
-            runVerificationTask(face: winner.observation, image: winner.image)
+            await self.resetCollectionUI()
         }
     }
 
-    /// Terminates the current collection window when face tracking is lost.
-    ///
-    /// Ensures that if a user pulls away and returns, the system begins a fresh
-    /// 0.8s window rather than committing to a stale, low-quality frame.
-    private func handleNoFaceDetected() {
-        if collectionStartTime != nil {
-            resetCollection()
-            analyzer.reset()
-        }
+    private func resetCollectionUI() {
+        self.collectionProgress = 0.0
     }
 
-    /// Executes the heavy-lift biometric verification sequence.
-    ///
-    /// 1. Switches UI to `.processing`.
-    /// 2. Generates local biometric embeddings via ML.
-    /// 3. Performs backend identity verification.
-    ///
-    /// - Note: Supports Swift Concurrency cancellation. If `stop()` is called,
-    ///   embedding generation and network calls will abort.
-    /// - Important: The `isProcessingFrame` flag is reset in `defer` to ensure
-    ///   the camera feed resumes even on failure.
-    private func runVerificationTask(face: VNFaceObservation, image: CIImage) {
-        let processor = self.processor
-        let verifier = self.verifier
-
-        task = Task(priority: .userInitiated) { [weak self] in
+    func runVerificationTask(face: VNFaceObservation, image: CIImage) {
+        self.isProcessingFrame.store(true, ordering: .relaxed)
+        
+        task = Task { [weak self] in // Inherits @MainActor from the ViewModel
             guard let self = self else { return }
 
             defer {
-                Task { @MainActor in
-                    self.task = nil
-                    self.isProcessingFrame.value = false
-                }
+                self.isProcessingFrame.store(false, ordering: .relaxed)
+                self.task = nil
             }
 
             do {
-                await MainActor.run { self.state = .processing }
+                try Task.checkCancellation()
+                self.state = .processing
 
-                // 1. Generate local embedding.
-                let embedding = try processor.process(image: image, face: face)
+                let embedding = try await processor.process(image: image, face: face)
+                
                 try Task.checkCancellation()
 
-                // 2. Verify with backend.
-                guard let employeeID = self.targetEmployeeID else { throw AppError(code: .employeeNotFound) }
+                guard let employeeID = self.targetEmployeeID else {
+                    throw AppError(code: .employeeNotFound)
+                }
+                
                 try await verifier.verifyFace(employeeId: employeeID, embedding: embedding)
 
-                await MainActor.run { self.state = .matched(name: employeeID) }
+                if !Task.isCancelled {
+                    self.state = .matched(name: employeeID)
+                }
+                
+            } catch is CancellationError {
+                logger.debug("Verification task cancelled by user.")
             } catch {
-                self.logger.error("Verification error: \(error.localizedDescription)")
-                await MainActor.run {
+                if !Task.isCancelled {
+                    self.logger.error("Verification error: \(error.localizedDescription)")
                     self.errorManager.showError(error)
                     self.state = .detecting
+                } else {
+                    self.logger.debug("Task failed but was cancelled, ignoring error.")
                 }
             }
         }
     }
-
-    // MARK: - UI Test Bridge
-
-    /// Hooks into global notifications to allow UI tests to simulate camera events.
-    private func installUITestSignalBridgeIfNeeded() {
-        guard AppRuntime.mode == .uiTest, uiTestObservers.isEmpty else { return }
-
-        let center = NotificationCenter.default
-
-        uiTestObservers.append(center.addObserver(forName: .uiTestCameraNoFace, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.state = .detecting }
-        })
-
-        uiTestObservers.append(center.addObserver(forName: .uiTestCameraInvalidFace, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
-                self?.state = .detecting
-                self?.errorManager.showError(AppError(code: .faceConfidenceTooLow))
-            }
-        })
-
-        uiTestObservers.append(center.addObserver(forName: .uiTestCameraValidFace, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.state = .matched(name: "Test User") }
-        })
-    }
 }
-
-// MARK: - Testing Extensions
-#if DEBUG
-extension VerificationViewModel {
-
-    /// Simulates a frame entry and blocks until the background task is fully complete.
-    func _test_runFrame(_ image: CIImage) async {
-        await _test_handle(image)
-        await _test_waitForTask()
-    }
-
-    /// Simulates a frame entry into the pipeline by first passing it through the analyzer.
-    func _test_handle(_ image: CIImage) async {
-        if let (face, quality) = self.analyzer.analyze(in: image) {
-            self.handle(face: face, image: image, quality: quality)
-        } else {
-            self.handleNoFaceDetected()
-        }
-    }
-
-    /// Suspends until the current verification task completes.
-    func _test_waitForTask() async {
-        let t = self.task
-        await t?.value
-    }
-    
-    /// Forces the collection window to end immediately using the current best candidate.
-    func _test_forceCommit() {
-        guard let winner = bestCandidate else { return }
-        let finalFace = winner.observation
-        let finalImage = winner.image
-        resetCollection()
-        runVerificationTask(face: finalFace, image: finalImage)
-    }
-    
-    /// Exposes the internal task reference for state assertions in tests.
-    var _test_task: Task<Void, Never>? {
-        return self.task
-    }
-    
-    var _test_collectionStartTime: Date? {
-        return self.collectionStartTime
-    }
-}
-#endif

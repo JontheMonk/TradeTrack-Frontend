@@ -9,6 +9,7 @@ struct AppContainer {
     
     let cameraManager: CameraManagerProtocol
     let faceAnalyzer: FaceAnalyzerProtocol
+    let faceCollector: FaceCollecting
     let faceProcessor: FaceProcessing
     
     // MARK: - Application Services
@@ -29,6 +30,7 @@ struct AppContainer {
         
         // 2. Build Pipeline Components
         self.faceAnalyzer = CoreFactory.makeFaceAnalyzer()
+        self.faceCollector = CoreFactory.makeFaceCollector()
         self.faceProcessor = try CoreFactory.makeFaceProcessor()
         
         // 3. Build Camera Manager

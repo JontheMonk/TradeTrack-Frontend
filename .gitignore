@@ -20,7 +20,7 @@ DerivedData/
 *.keychain
 *.mobileprovision
 
-# CoreML model outputs (optional)
+# CoreML model outputs
 *.mlmodelc
 *.mlmodel
 

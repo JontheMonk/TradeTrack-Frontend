@@ -32,18 +32,18 @@ import CoreImage
 /// - Makes the whole face pipeline mockable for tests
 /// - Allows you to swap implementations (e.g., multi-face selection later)
 ///
-public protocol FaceAnalyzerProtocol {
+public protocol FaceAnalyzerProtocol: Sendable {
     /// Attempts to detect and validate a single high-quality face in the image.
     ///
     /// - Parameter image: The CIImage frame to inspect.
     /// - Returns: A validated `VNFaceObservation`, or `nil` if no face
     ///            meets quality requirements.
-    func analyze(in image: CIImage) -> (VNFaceObservation, Float)?
+    func analyze(in image: CIImage) async -> (VNFaceObservation, Float)?
     
     /// Clears the internal state of the underlying detection and validation engines.
     ///
     /// Call this when the face stream is interrupted (e.g., face lost,
     /// session restart) to ensure temporal tracking doesn't bleed
     /// between different subjects.
-    func reset()
+    func reset() async 
 }

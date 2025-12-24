@@ -50,7 +50,7 @@ import Vision
 ///
 /// These errors allow the upstream `FaceAnalyzer` or `FaceProcessor` to
 /// reject the frame cleanly.
-final class FacePreprocessor: FacePreprocessorProtocol {
+actor FacePreprocessor: FacePreprocessorProtocol {
     
     private let outputSize: CGSize
     
@@ -70,7 +70,7 @@ final class FacePreprocessor: FacePreprocessorProtocol {
         self.outputSize = outputSize
     }
 
-    func preprocessFace(image: CIImage, face: VNFaceObservation) throws -> CVPixelBuffer {
+    func preprocessFace(image: CIImage, face: VNFaceObservation) async throws -> SendablePixelBuffer {
         let extent = image.extent.integral
 
         let rect = VNImageRectForNormalizedRect(
@@ -124,7 +124,7 @@ final class FacePreprocessor: FacePreprocessorProtocol {
     }
 
 
-    private func renderToPoolBuffer(_ image: CIImage, size: CGSize) throws -> CVPixelBuffer {
+    private func renderToPoolBuffer(_ image: CIImage, size: CGSize) throws -> SendablePixelBuffer {
         // Prepare the pool if it doesn't exist or size changed
         if pixelBufferPool == nil || currentPoolSize != size {
             try preparePixelBufferPool(size: size)
@@ -145,7 +145,7 @@ final class FacePreprocessor: FacePreprocessorProtocol {
             colorSpace: Self.sRGB
         )
 
-        return buffer
+        return SendablePixelBuffer(buffer: buffer)
     }
 
     private func preparePixelBufferPool(size: CGSize) throws {

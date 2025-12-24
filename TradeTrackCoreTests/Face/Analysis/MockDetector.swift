@@ -1,22 +1,18 @@
-import Vision
+@preconcurrency import Vision
 import CoreImage
 @testable import TradeTrackCore
 
-class MockDetector: FaceDetectorProtocol {
+struct MockDetector: FaceDetectorProtocol {
     let resultFace: VNFaceObservation?
     let resultQuality: Float
-    
-    init(face: VNFaceObservation?, quality: Float = 1.0) {
-        self.resultFace = face
-        self.resultQuality = quality
-    }
-    
-    func detect(in image: CIImage) -> (VNFaceObservation, Float)? {
+
+    // Must be async to satisfy the protocol
+    func detect(in image: CIImage) async -> (VNFaceObservation, Float)? {
         guard let face = resultFace else { return nil }
         return (face, resultQuality)
     }
-    
-    func reset() {
-        // No-op: The mock doesn't maintain a sequence handler
+
+    func reset() async {
+        // No-op
     }
 }

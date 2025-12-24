@@ -108,8 +108,10 @@
 				Register/RegisterViewModelTests.swift,
 				Verification/MockCameraManager.swift,
 				Verification/MockFaceAnalyzer.swift,
+				Verification/MockFaceCollector.swift,
 				Verification/MockFaceProcessor.swift,
 				Verification/MockFaceVerificationService.swift,
+				Verification/TestHelpers.swift,
 				Verification/VerificationViewModelTests.swift,
 				Verification/VideoFileCameraManager.swift,
 			);
@@ -124,6 +126,7 @@
 				Register/MockEmbeddingService.swift,
 				Register/MockRegistrationAPI.swift,
 				Register/RegisterViewModelTests.swift,
+				Verification/TestHelpers.swift,
 				Verification/VerificationViewModelTests.swift,
 				Verification/VideoFileCameraManager.swift,
 			);

@@ -12,10 +12,10 @@ import CoreImage
 /// Typical usage:
 ///   - `result = true`  → simulate a valid, high-quality face
 ///   - `result = false` → simulate validator rejecting the face
-final class MockValidator: FaceValidatorProtocol {
+struct MockValidator: FaceValidatorProtocol {
 
     /// The value returned by `isValid(...)` regardless of input.
-    var result: Bool
+    let result: Bool
 
     init(result: Bool) {
         self.result = result
