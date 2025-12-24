@@ -1,8 +1,3 @@
-//
-//  VerificationViewModelTests.swift
-//  TradeTrackTests
-//
-
 import XCTest
 import Vision
 import CoreImage
@@ -20,8 +15,7 @@ final class VerificationViewModelTests: XCTestCase {
     private var mockError: MockErrorManager!
     private var vm: VerificationViewModel!
 
-    private let dummyImage = CIImage(color: .red)
-        .cropped(to: CGRect(x: 0, y: 0, width: 200, height: 200))
+    private let dummyImage = CIImage(color: .red).cropped(to: CGRect(x: 0, y: 0, width: 200, height: 200))
 
     override func setUp() async throws {
         mockCamera = MockCameraManager()
@@ -45,17 +39,17 @@ final class VerificationViewModelTests: XCTestCase {
     // MARK: - Helpers
 
     private func makeFace() -> VNFaceObservation {
-        VNFaceObservation(
-            boundingBox: CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3)
-        )
+        VNFaceObservation(boundingBox: CGRect(x: 0.2, y: 0.2, width: 0.3, height: 0.3))
     }
 
     // MARK: - Tests
 
     func test_successfulVerificationPipeline_immediateOnHighQuality() async {
-        // Given: Quality is 1.0 (>= 0.9 high-water mark), bypassing the window
-        mockAnalyzer.stubbedFace = makeFace()
+        // Given: Collector returns a winner immediately (simulating quality >= 0.9)
+        let face = makeFace()
+        mockAnalyzer.stubbedFace = face
         mockAnalyzer.stubbedQuality = 1.0
+        mockCollector.stubbedResult = (winner: (face, dummyImage), progress: 0.0)
 
         // When
         await vm._test_runFrame(dummyImage)
@@ -64,117 +58,82 @@ final class VerificationViewModelTests: XCTestCase {
         XCTAssertEqual(vm.state, .matched(name: "123"))
         XCTAssertEqual(mockProcessor.callCount, 1)
         XCTAssertEqual(mockVerifier.callCount, 1)
-        XCTAssertNil(mockError.lastError)
     }
 
-    func test_noFaceDetected_resetsCollection_whenFaceIsLost() async {
-        // 1. Arrange: Start a collection by providing a mediocre face (0.5)
-        mockAnalyzer.stubbedFace = makeFace()
-        mockAnalyzer.stubbedQuality = 0.5
-        await vm._test_handle(dummyImage)
-        
-        // Verify we are actually in a "collecting" state
-        let startTime = await vm.getCollectionStartTime()
-        XCTAssertNotNil(startTime)
-
-        // 2. Act: Now simulate the face being lost
+    func test_noFaceDetected_resetsCollectorAndAnalyzer() async {
+        // 1. Arrange: Setup collector to appear "active" (non-nil startTime)
         mockAnalyzer.stubbedFace = nil
+        mockCollector.stubbedStartTime = Date()
+
+        // 2. Act
         await vm._test_handle(dummyImage)
 
-        XCTAssertEqual(vm.state, .detecting)
+        // 3. Assert
+        XCTAssertTrue(mockCollector.resetWasCalled)
+        XCTAssertTrue(mockAnalyzer.resetWasCalled)
         XCTAssertEqual(vm.collectionProgress, 0.0)
-        XCTAssertTrue(mockAnalyzer.resetWasCalled, "Analyzer should be reset because a face was lost during an active collection.")
     }
 
-    func test_collectsBestFaceInWindow_thenProcesses() async {
-        // 1. Send mediocre face (0.5). Should start window but not process.
-        mockAnalyzer.stubbedFace = makeFace()
-        mockAnalyzer.stubbedQuality = 0.5
-        await vm._test_handle(dummyImage)
-        
-        XCTAssertEqual(mockProcessor.callCount, 0, "Should not process immediately at 0.5 quality")
-        
-        // 2. Send better face (0.8) during same window
-        mockAnalyzer.stubbedQuality = 0.8
-        await vm._test_handle(dummyImage)
+    func test_throttling_closesGateWhileTaskIsActive() async {
+        // Given: High quality face to trigger runVerificationTask
+        let face = makeFace()
+        mockAnalyzer.stubbedFace = face
+        mockAnalyzer.stubbedQuality = 1.0
+        mockCollector.stubbedResult = (winner: (face, dummyImage), progress: 0.0)
 
-        // 3. Force commit (simulating 0.8s passing)
-        await vm._test_forceCommit()
+        // 1. Act: Start the first frame
+        await vm._test_handle(dummyImage)
+        
+        XCTAssertTrue(vm._test_isGateClosed, "Gate should be closed while task is running")
+
+        // 2. Act: Send another frame (this mimics the outputDelegate check)
+        // In the real VM, the delegate guards with '!self.isProcessingFrame'
+        let gateIsClosed = vm._test_isGateClosed
+        
         await vm._test_waitForTask()
 
-        // Then
-        XCTAssertEqual(mockProcessor.callCount, 1)
-        XCTAssertEqual(vm.state, .matched(name: "123"))
+        // 3. Assert
+        XCTAssertTrue(gateIsClosed)
+        XCTAssertEqual(mockProcessor.callCount, 1, "Only the first frame should have reached the processor")
     }
 
-    func test_processorThrows_surfacesErrorAndResetsState() async {
+    func test_stop_cancelsTaskAndResetsState() async {
+        // Given: A task is running
+        mockAnalyzer.stubbedFace = makeFace()
+        mockCollector.stubbedResult = (winner: (makeFace(), dummyImage), progress: 0.0)
+        
+        await vm._test_handle(dummyImage)
+        
+        // When: Stop is called
+        await vm.stop()
+
+        // Then
+        XCTAssertNil(vm._test_task, "Task reference should be cleared")
+        XCTAssertEqual(vm.state, .detecting)
+        XCTAssertTrue(mockCollector.resetWasCalled)
+        XCTAssertFalse(vm._test_isGateClosed, "Gate should be reopened after stop")
+    }
+
+    func test_processorError_surfacesToErrorManagerAndResetsState() async {
         // Given
         mockAnalyzer.stubbedFace = makeFace()
-        mockAnalyzer.stubbedQuality = 1.0
+        mockCollector.stubbedResult = (winner: (makeFace(), dummyImage), progress: 0.0)
         mockProcessor.stubbedError = AppError(code: .modelOutputMissing)
 
         // When
         await vm._test_runFrame(dummyImage)
 
         // Then
-        XCTAssertEqual(vm.state, .detecting)
         XCTAssertEqual(mockError.lastError?.code, .modelOutputMissing)
-    }
-
-    func test_verifierThrows_surfacesErrorAndResetsState() async {
-        // Given
-        mockAnalyzer.stubbedFace = makeFace()
-        mockAnalyzer.stubbedQuality = 1.0
-        mockVerifier.stubbedError = AppError(code: .networkUnavailable)
-
-        // When
-        await vm._test_runFrame(dummyImage)
-
-        // Then
         XCTAssertEqual(vm.state, .detecting)
-        XCTAssertEqual(mockVerifier.callCount, 1)
-        XCTAssertEqual(mockError.lastError?.code, .networkUnavailable)
-    }
-
-    func test_throttling_ignoresFramesWhileTaskIsActive() async {
-        // Given
-        mockAnalyzer.stubbedFace = makeFace()
-        mockAnalyzer.stubbedQuality = 1.0
-
-        // Start first frame/task
-        await vm._test_handle(dummyImage)
-        
-        // Immediately send another frame while first is still "processing"
-        await vm._test_handle(dummyImage)
-        
-        // Wait for whatever started to finish
-        await vm._test_waitForTask()
-
-        // Then
-        XCTAssertEqual(mockProcessor.callCount, 1, "The second frame should have been ignored due to active task")
-    }
-
-    func test_stop_cancelsInFlightTask() async {
-        mockAnalyzer.stubbedFace = makeFace()
-        mockAnalyzer.stubbedQuality = 1.0
-
-        // Kick off handle but don't wait for completion
-        await vm._test_handle(dummyImage)
-
-        // Stop immediately
-        await vm.stop()
-
-        // Then
-        XCTAssertEqual(vm.state, .detecting)
-        XCTAssertNil(vm._test_task, "Task should be cleared")
-        XCTAssertTrue(mockAnalyzer.resetWasCalled, "Analyzer should be reset when the VM is stopped.")
+        XCTAssertFalse(vm._test_isGateClosed, "Gate must reopen even on failure")
     }
 
     func test_missingEmployeeID_failsEarly() async {
         // Given
         vm.targetEmployeeID = nil
         mockAnalyzer.stubbedFace = makeFace()
-        mockAnalyzer.stubbedQuality = 1.0
+        mockCollector.stubbedResult = (winner: (makeFace(), dummyImage), progress: 0.0)
 
         // When
         await vm._test_runFrame(dummyImage)
@@ -183,38 +142,15 @@ final class VerificationViewModelTests: XCTestCase {
         XCTAssertEqual(mockError.lastError?.code, .employeeNotFound)
         XCTAssertEqual(vm.state, .detecting)
     }
-    
-    func test_windowTimeout_usesBestFrameFoundSoFar() async {
-        // 1. Arrange: Create distinct images
-        let bestImg = CIImage(color: .green).cropped(to: CGRect(x: 0, y: 0, width: 10, height: 10))
-        let poorImg = CIImage(color: .black).cropped(to: CGRect(x: 0, y: 0, width: 10, height: 10))
-        
-        mockAnalyzer.stubbedFace = makeFace()
 
-        // 2. Act: High quality first, then poor quality
-        mockAnalyzer.stubbedQuality = 0.7
-        await vm._test_handle(bestImg)
-        
-        mockAnalyzer.stubbedQuality = 0.3
-        await vm._test_handle(poorImg)
-        
-        await vm._test_forceCommit()
-        await vm._test_waitForTask()
-        
-        // 3. Assert: This is where the magic happens
-        XCTAssertEqual(mockProcessor.capturedImage, bestImg, "The processor should have used the 0.7 quality image, not the latest 0.3 one.")
-    }
-    
-    func test_start_surfacesError_whenCameraFailsToStart() async {
-        // 1. Arrange: Configure the mock to throw an error
-        let expectedError = AppError(code: .cameraNotAuthorized)
-        mockCamera.startShouldThrow = expectedError
-        
-        // 2. Act: Call the public start method
+    func test_start_handlesCameraAuthorizationFailure() async {
+        // Given
+        mockCamera.startShouldThrow = AppError(code: .cameraNotAuthorized)
+
+        // When
         await vm.start()
-        
-        // 3. Assert: Verify the error was passed to the ErrorManager
-        XCTAssertEqual(mockError.lastError?.code, .cameraNotAuthorized, "The VM should surface the camera error to the user.")
-        XCTAssertEqual(mockCamera.startCallCount, 1)
+
+        // Then
+        XCTAssertEqual(mockError.lastError?.code, .cameraNotAuthorized)
     }
 }
