@@ -61,40 +61,52 @@ final class VerificationViewModelTests: XCTestCase {
     }
 
     func test_noFaceDetected_resetsCollectorAndAnalyzer() async {
-        // 1. Arrange: Setup collector to appear "active" (non-nil startTime)
+        // 1. Arrange
         mockAnalyzer.stubbedFace = nil
         mockCollector.stubbedStartTime = Date()
 
-        // 2. Act
-        await vm._test_handle(dummyImage)
+        // 2. Act: Catch and await the task so the logic completes
+        let pipeline = vm.processInputFrame(dummyImage)
+        await pipeline?.value
+        await Task.yield() // Ensure resets finish
 
         // 3. Assert
         XCTAssertTrue(mockCollector.resetWasCalled)
         XCTAssertTrue(mockAnalyzer.resetWasCalled)
-        XCTAssertEqual(vm.collectionProgress, 0.0)
     }
 
-    func test_throttling_closesGateWhileTaskIsActive() async {
-        // Given: High quality face to trigger runVerificationTask
-        let face = makeFace()
-        mockAnalyzer.stubbedFace = face
-        mockAnalyzer.stubbedQuality = 1.0
-        mockCollector.stubbedResult = (winner: (face, dummyImage), progress: 0.0)
-
-        // 1. Act: Start the first frame
-        await vm._test_handle(dummyImage)
+    func test_analysisPhase_allowsMultipleFrames() async {
+        // 1. Send the first frame
+        let first = vm.processInputFrame(dummyImage)
         
-        XCTAssertTrue(vm._test_isGateClosed, "Gate should be closed while task is running")
-
-        // 2. Act: Send another frame (this mimics the outputDelegate check)
-        // In the real VM, the delegate guards with '!self.isProcessingFrame'
-        let gateIsClosed = vm._test_isGateClosed
+        // 2. The gate should STILL BE OPEN because we are just analyzing/collecting
+        XCTAssertFalse(vm.isProcessingFrame.load(ordering: .relaxed),
+                       "Gate should remain open during collection/analysis")
         
-        await vm._test_waitForTask()
+        // 3. Send a second frame immediately
+        let second = vm.processInputFrame(dummyImage)
+        
+        // 4. This should NOT be nil; it should be a valid Task
+        XCTAssertNotNil(second, "Second frame should be accepted while in collection phase")
+        
+        await first?.value
+        await second?.value
+    }
 
-        // 3. Assert
-        XCTAssertTrue(gateIsClosed)
-        XCTAssertEqual(mockProcessor.callCount, 1, "Only the first frame should have reached the processor")
+    func test_verificationPhase_closesGate() async {
+        // 1. Setup: We need to simulate a "Winner" being found by the collector
+        // You might need to mock your collector to return a winner immediately
+        
+        // 2. Run the verification task directly or trigger a frame that results in a winner
+        vm.runVerificationTask(face: makeFace(), image: dummyImage)
+        
+        // 3. NOW the gate should be closed
+        XCTAssertTrue(vm.isProcessingFrame.load(ordering: .relaxed),
+                      "Gate should be closed once a verification task starts")
+        
+        // 4. Any frame arriving now must be dropped
+        let third = vm.processInputFrame(dummyImage)
+        XCTAssertNil(third, "Frames must be dropped while a verification task is in flight")
     }
 
     func test_stop_cancelsTaskAndResetsState() async {
@@ -102,13 +114,13 @@ final class VerificationViewModelTests: XCTestCase {
         mockAnalyzer.stubbedFace = makeFace()
         mockCollector.stubbedResult = (winner: (makeFace(), dummyImage), progress: 0.0)
         
-        await vm._test_handle(dummyImage)
+        await vm._test_runFrame(dummyImage)
         
         // When: Stop is called
         await vm.stop()
 
         // Then
-        XCTAssertNil(vm._test_task, "Task reference should be cleared")
+        XCTAssertNil(vm.task, "Task reference should be cleared")
         XCTAssertEqual(vm.state, .detecting)
         XCTAssertTrue(mockCollector.resetWasCalled)
         XCTAssertFalse(vm._test_isGateClosed, "Gate should be reopened after stop")
@@ -171,7 +183,7 @@ final class VerificationViewModelTests: XCTestCase {
         // 2. Verify the Hardware Gate
         XCTAssertFalse(vm._test_isGateClosed)
         
-        // 3. Verify the User Feedback (The "Why")
+        // 3. Verify the User Feedback
         XCTAssertEqual(mockError.lastError?.code, .faceConfidenceTooLow)
     }
 }

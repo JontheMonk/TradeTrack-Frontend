@@ -138,11 +138,13 @@ final class VerificationViewModel: NSObject, ObservableObject {
     /// **Entry Point:** Called 30-60 times per second.
     /// Being `nonisolated` is key; it allows us to drop frames instantly on the
     /// background thread if the `isProcessingFrame` gate is closed.
-    nonisolated func processInputFrame(_ frame: CIImage) {
-        guard !self.isProcessingFrame.load(ordering: .relaxed) else { return }
+    @discardableResult
+    nonisolated func processInputFrame(_ frame: CIImage) -> Task<Void, Never>? {
+        guard !self.isProcessingFrame.load(ordering: .relaxed) else {
+            return nil
+        }
 
-        // Start the MainActor coordination task.
-        Task {
+        return Task { @MainActor in
             await runAnalysisPipeline(for: frame)
         }
     }

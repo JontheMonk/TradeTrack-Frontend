@@ -9,15 +9,17 @@ actor FaceCollector: FaceCollecting {
     private(set) var startTime: Date?
     private(set) var bestCandidate: (observation: VNFaceObservation, image: CIImage, quality: Float)?
     
-    /// Processes a frame. This can now be safely called from any thread.
+    /// Processes a frame
     func process(face: VNFaceObservation, image: CIImage, quality: Float) -> (winner: (VNFaceObservation, CIImage)?, progress: Double) {
-        if startTime == nil { startTime = Date() }
+        let now = Date()
+        let start = startTime ?? now
+        if startTime == nil { startTime = start }
         
         if quality > (bestCandidate?.quality ?? -1.0) {
             bestCandidate = (face, image, quality)
         }
         
-        let elapsed = Date().timeIntervalSince(startTime!)
+        let elapsed = Date().timeIntervalSince(start)
         let currentProgress = min(elapsed / window, 1.0)
         
         if elapsed >= window || quality >= highWaterMark {
@@ -34,13 +36,4 @@ actor FaceCollector: FaceCollecting {
         startTime = nil
         bestCandidate = nil
     }
-    
-    
-    #if DEBUG
-    /// Helper for testing forced commits.
-    var currentBest: (VNFaceObservation, CIImage)? {
-        guard let candidate = bestCandidate else { return nil }
-        return (candidate.observation, candidate.image)
-    }
-    #endif
 }
