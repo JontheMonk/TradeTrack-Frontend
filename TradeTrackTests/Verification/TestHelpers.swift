@@ -7,19 +7,18 @@ extension VerificationViewModel {
     /// Forces the processing of a frame and waits for the ENTIRE
     /// chain (Analysis + Verification) to finish.
     func _test_runFrame(_ image: CIImage) async {
-        // 1. Capture the Pipeline Task (The "Guard & Analysis" phase)
         let pipelineTask = processInputFrame(image)
         
-        // 2. Wait for the analysis/collection to finish.
-        // This ensures runVerificationTask() has been called.
-        await pipelineTask?.value
+        // If the gate was already closed, there is no new work to wait for.
+        guard let pipelineTask else { return }
         
-        // 3. Now that Task A is done, Task B (verification) is
-        // guaranteed to be assigned to the 'task' variable.
-        _ = await self.task?.result
+        await pipelineTask.value
         
-        // 4. Final yield to let @Published updates settle on the Main Thread
-        await Task.yield()
+        // Safety check: ensure the verification task actually started
+        // before we try to await it.
+        if let verificationTask = self.task {
+            _ = await verificationTask.result
+        }
     }
 
     /// Helper for specific assertions in your test file
