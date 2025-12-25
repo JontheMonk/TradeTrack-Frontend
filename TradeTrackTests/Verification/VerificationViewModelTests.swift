@@ -153,4 +153,25 @@ final class VerificationViewModelTests: XCTestCase {
         // Then
         XCTAssertEqual(mockError.lastError?.code, .cameraNotAuthorized)
     }
+    
+    func test_onVerificationError_surfacesSpecificErrorAndResets() async {
+        // Given
+        let expectedError = AppError(code: .faceConfidenceTooLow)
+        mockAnalyzer.stubbedFace = makeFace()
+        mockCollector.stubbedResult = (winner: (makeFace(), dummyImage), progress: 0.0)
+        mockVerifier.stubbedError = expectedError
+
+        // When
+        await vm._test_runFrame(dummyImage)
+
+        // Then
+        // 1. Verify the UI State
+        XCTAssertEqual(vm.state, .detecting)
+        
+        // 2. Verify the Hardware Gate
+        XCTAssertFalse(vm._test_isGateClosed)
+        
+        // 3. Verify the User Feedback (The "Why")
+        XCTAssertEqual(mockError.lastError?.code, .faceConfidenceTooLow)
+    }
 }

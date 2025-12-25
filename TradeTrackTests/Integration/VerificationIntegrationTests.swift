@@ -17,19 +17,22 @@ final class VerificationIntegrationTests: XCTestCase {
     
     // MARK: - Setup Helper
     
-    private func makeSystemUnderTest(videoName: String, employeeId: String = "EMP-123") -> (VerificationViewModel, VideoFileCameraManager) {
+    private func makeSystemUnderTest(videoName: String, employeeId: String = "EMP-123", mockError: Error? = nil) -> (VerificationViewModel, VideoFileCameraManager) {
         guard let url = Bundle.tradeTrackCore.url(forResource: videoName, withExtension: "MOV") else {
             fatalError("❌ Test video fixture '\(videoName).MOV' not found in TradeTrackCore.")
         }
         
         let videoCamera = VideoFileCameraManager(videoURL: url)
         
+        let verifier = MockFaceVerificationService()
+        verifier.stubbedError = mockError
+        
         let vm = VerificationViewModel(
             camera: videoCamera,
             analyzer: CoreFactory.makeFaceAnalyzer(),
             collector: FaceCollector(),
             processor: try! CoreFactory.makeFaceProcessor(),
-            verifier: MockFaceVerificationService(),
+            verifier: verifier,
             errorManager: MockErrorManager(),
             employeeId: employeeId
         )
@@ -44,7 +47,7 @@ final class VerificationIntegrationTests: XCTestCase {
     // MARK: - Tests
 
     func testSuccessfulMatchFlow() async throws {
-        let (vm, _) = makeSystemUnderTest(videoName: "happy_path_face")
+        let (vm, _) = makeSystemUnderTest(videoName: "jon")
         
         await vm.start()
         
@@ -92,12 +95,10 @@ extension XCTestCase {
     func waitUntil(
         timeout: TimeInterval,
         interval: UInt64 = 100_000_000,
-        // Add @escaping here
         condition: @escaping @MainActor @Sendable () -> Bool
     ) async throws {
         let start = Date()
         while true {
-            // Now MainActor.run can safely "capture" the condition closure
             let isSatisfied = await MainActor.run { condition() }
             
             if isSatisfied { return }

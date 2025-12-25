@@ -235,7 +235,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
             throw AppError(code: .employeeNotFound)
         }
         
-        // Network Call (Asynchronous verification)
+        // Network Call
         try await verifier.verifyFace(employeeId: employeeID, embedding: embedding)
         return employeeID
     }
