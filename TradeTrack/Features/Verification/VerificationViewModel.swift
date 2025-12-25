@@ -143,7 +143,8 @@ final class VerificationViewModel: NSObject, ObservableObject {
         guard !self.isProcessingFrame.load(ordering: .relaxed) else {
             return nil
         }
-
+        self.isProcessingFrame.store(true, ordering: .relaxed)
+        
         return Task { @MainActor in
             await runAnalysisPipeline(for: frame)
         }
@@ -156,8 +157,11 @@ final class VerificationViewModel: NSObject, ObservableObject {
         // Step 1: Geometry Check (Does the frame contain a high-quality face?)
         guard let (face, quality) = await self.analyzer.analyze(in: frame) else {
             await self.handleNoFaceDetected()
+            self.isProcessingFrame.store(false, ordering: .relaxed)
             return
         }
+        
+        self.isProcessingFrame.store(false, ordering: .relaxed)
         // Step 2: Collection (Aggregate data until we have enough for verification)
         let result = await self.collector.process(face: face, image: frame, quality: quality)
         
@@ -168,7 +172,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     private func applyAnalysisResult(winner: (VNFaceObservation, CIImage)?, progress: Double) {
         if let winner = winner {
             // Re-check the gate before committing to a heavy network task.
-            guard !isProcessingFrame.load(ordering: .relaxed) else { return }
+            guard self.task == nil else { return }
             
             self.collectionProgress = 0.0
             self.runVerificationTask(face: winner.0, image: winner.1)
@@ -191,6 +195,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     }
     
     private func resetCollectionUI() {
+        
         self.collectionProgress = 0.0
     }
 
