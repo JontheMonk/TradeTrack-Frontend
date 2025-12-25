@@ -19,7 +19,7 @@ import UIKit
 ///
 /// The ViewModel under test depends only on the protocol, so injecting this mock
 /// keeps the tests isolated, fast, and deterministic.
-final class MockEmbeddingService: RegistrationEmbeddingServing {
+final class MockEmbeddingService: RegistrationEmbeddingServing, @unchecked Sendable {
 
     /// Number of times the ViewModel attempted to request an embedding.
     ///

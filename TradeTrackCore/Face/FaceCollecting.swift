@@ -6,8 +6,4 @@ public protocol FaceCollecting: Sendable {
     func reset() async
     
     var startTime: Date? { get async }
-    
-    #if DEBUG
-    var currentBest: (VNFaceObservation, CIImage)? { get async }
-    #endif
 }

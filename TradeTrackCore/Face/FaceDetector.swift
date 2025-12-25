@@ -28,20 +28,14 @@ actor FaceDetector: FaceDetectorProtocol {
         let orientation = image.cgOrientation
         
         do {
-            // No more lock.lock()! The actor handles isolation.
-            try sequenceHandler.perform([detectionReq], on: image, orientation: orientation)
+            try sequenceHandler.perform([detectionReq, qualityReq], on: image, orientation: orientation)
             
-            guard let face = detectionReq.results?.first else { return nil }
+            guard let detectedFace = detectionReq.results?.first else { return nil }
             
-            qualityReq.inputFaceObservations = [face]
-            try sequenceHandler.perform([qualityReq], on: image, orientation: orientation)
+            let qualityResult = qualityReq.results?.first { $0.uuid == detectedFace.uuid }
+            let score = qualityResult?.faceCaptureQuality ?? 0.0
             
-            guard let resultFace = qualityReq.results?.first as? VNFaceObservation else {
-                return (face, 0.0)
-            }
-            
-            let score = resultFace.faceCaptureQuality ?? 0.0
-            return (resultFace, score)
+            return (detectedFace, score)
         } catch {
             logger.error("Vision error: \(error.localizedDescription)")
             return nil

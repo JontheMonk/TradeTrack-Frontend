@@ -61,19 +61,19 @@ final class FaceCollectorTests: XCTestCase {
 
     func test_betterFace_updatesBestCandidate() async {
         let face1 = VNFaceObservation()
-        let face2 = VNFaceObservation() // Technically different instances
+        let face2 = VNFaceObservation()
         let image = CIImage()
         
-        // First frame: mediocre
+        // 1. Act: First frame (0.4)
         _ = await sut.process(face: face1, image: image, quality: 0.4)
         
-        // Second frame: better
+        // 2. Act: Second frame (0.7)
         _ = await sut.process(face: face2, image: image, quality: 0.7)
         
-        let best = await sut.currentBest
-        XCTAssertNotNil(best)
-        // Since we can't easily compare VNFaceObservation equality here,
-        // we trust the logic or could check quality if currentBest returned it.
+        // 3. Assert: The 0.7 quality should have won
+        let best = await sut.bestCandidate
+        XCTAssertEqual(best?.quality, 0.7, "The collector should have updated to the higher quality face.")
+        XCTAssertEqual(best?.observation, face2, "The best observation should be the one associated with the higher quality.")
     }
 
     func test_reset_clearsEverything() async {
@@ -83,7 +83,7 @@ final class FaceCollectorTests: XCTestCase {
         await sut.reset()
         
         let startTime = await sut.startTime
-        let best = await sut.currentBest
+        let best = await sut.bestCandidate
         XCTAssertNil(startTime)
         XCTAssertNil(best)
     }

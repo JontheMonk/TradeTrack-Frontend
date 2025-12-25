@@ -54,7 +54,6 @@ final class VideoFileCameraManager: CameraManagerProtocol {
             generator.requestedTimeToleranceAfter = .zero
             generator.appliesPreferredTrackTransform = true
 
-            // Use modern async loading for asset properties
             guard let duration = try? await asset.load(.duration).seconds else { return }
             
             var currentTime: Double = 0
@@ -63,7 +62,6 @@ final class VideoFileCameraManager: CameraManagerProtocol {
             while isPlaying {
                 let time = CMTime(seconds: currentTime, preferredTimescale: 600)
                 
-                // Use the modern async image generation API
                 if let (cgImage, _) = try? await generator.image(at: time) {
                     let ciImage = CIImage(cgImage: cgImage)
                     self.deliver(ciImage)
@@ -81,8 +79,6 @@ final class VideoFileCameraManager: CameraManagerProtocol {
     }
     
     private func deliver(_ image: CIImage) {
-        // Directly invoke the capture bridge.
-        // No @MainActor hop needed here because the class is @MainActor.
         self.onFrameCaptured?(image)
     }
 }

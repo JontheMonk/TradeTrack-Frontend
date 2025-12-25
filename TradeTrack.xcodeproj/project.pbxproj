@@ -101,6 +101,7 @@
 			membershipExceptions = (
 				ErrorHandling/ErrorHelper.swift,
 				ErrorHandling/MockErrorManager.swift,
+				Integration/VerificationIntegrationTests.swift,
 				Lookup/LookupViewModelTests.swift,
 				Navigating/MockNavigator.swift,
 				Register/MockEmbeddingService.swift,
@@ -121,6 +122,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ErrorHandling/ErrorHelper.swift,
+				Integration/VerificationIntegrationTests.swift,
 				Lookup/LookupViewModelTests.swift,
 				Navigating/MockNavigator.swift,
 				Register/MockEmbeddingService.swift,

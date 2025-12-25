@@ -5,7 +5,7 @@ import CoreImage
 /// and forwards them as `CIImage`s to a caller-provided closure.
 ///
 /// This keeps `AVCaptureVideoDataOutputSampleBufferDelegate` out of your view models
-/// and avoids passing AVFoundation details through your app.
+/// and avoids passing AVFoundation details through the app.
 ///
 /// Typical usage:
 /// ```swift
