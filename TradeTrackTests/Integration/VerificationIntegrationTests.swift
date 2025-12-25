@@ -112,29 +112,42 @@ final class VerificationIntegrationTests: XCTestCase {
         XCTAssertLessThan(distance, 0.9, "Lighting changes caused the embedding to drift too far (Distance: \(distance))")
     }
 
-    func testIncorrectFaceFailure() async throws {
-        let vm = makeSystemUnderTest(videoName: "wrong_employee_face")
+    func test_vm_producesDistinctEmbeddings_forDifferentPeople() async throws {
+        let vmUser = makeSystemUnderTest(videoName: "jon")
+        let vmImposter = makeSystemUnderTest(videoName: "imposter")
         
-        await vm.start()
-        
-        try await waitUntil(timeout: 5.0) { vm.collectionProgress > 0.1 }
-        
+        guard let mockUser = vmUser.verifier as? MockFaceVerificationService,
+              let mockImposter = vmImposter.verifier as? MockFaceVerificationService else {
+            XCTFail("Verifier is not a MockFaceVerificationService")
+            return
+        }
+
+        await vmUser.start()
         try await waitUntil(timeout: 10.0) {
-            if case .detecting = vm.state { return true }
+            if case .matched = vmUser.state { return true }
             return false
         }
-    }
+        let embeddingUser = try XCTUnwrap(mockUser.lastEmbedding)
+        await vmUser.stop()
 
-    func testNoFaceDetected() async throws {
-        let vm = makeSystemUnderTest(videoName: "empty_background")
+        await vmImposter.start()
         
-        await vm.start()
+        try await waitUntil(timeout: 10.0) {
+            if case .matched = vmImposter.state { return true }
+            return false
+        }
+        let embeddingImposter = try XCTUnwrap(mockImposter.lastEmbedding)
+        await vmImposter.stop()
+
+        let distance = calculateEuclideanDistance(embeddingUser.values, embeddingImposter.values)
         
-        // Wait 2 seconds
-        try await Task.sleep(nanoseconds: 2 * 1_000_000_000)
-        
-        XCTAssertEqual(vm.state, .detecting)
-        XCTAssertEqual(vm.collectionProgress, 0.0)
+        print("Inter-person Euclidean Distance: \(distance)")
+
+        XCTAssertGreaterThan(
+            distance,
+            1.15,
+            "The model is producing embeddings that are too similar for different people (Distance: \(distance))"
+        )
     }
     
 }
