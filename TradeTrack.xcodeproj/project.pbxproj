@@ -180,27 +180,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C403F28F2EFEE9F200F3A427 /* Exceptions for "TradeTrackMocks" folder in "TradeTrack" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Network/MockFaceVerificationService.swift,
-			);
-			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
-		};
-		C403F2902EFEE9F200F3A427 /* Exceptions for "TradeTrackMocks" folder in "TradeTrackTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Network/MockFaceVerificationService.swift,
-			);
-			target = C4029FA62E2D72BF00334A85 /* TradeTrackTests */;
-		};
-		C403F2912EFEE9F200F3A427 /* Exceptions for "TradeTrackMocks" folder in "TradeTrackMocks" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Network/MockFaceVerificationService.swift,
-			);
-			target = C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */;
-		};
 		C45A143E2E47B46000BFEDF0 /* Exceptions for "TradeTrack" folder in "TradeTrack" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -271,11 +250,6 @@
 		};
 		C403F1F12EFEDD5200F3A427 /* TradeTrackMocks */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				C403F28F2EFEE9F200F3A427 /* Exceptions for "TradeTrackMocks" folder in "TradeTrack" target */,
-				C403F2902EFEE9F200F3A427 /* Exceptions for "TradeTrackMocks" folder in "TradeTrackTests" target */,
-				C403F2912EFEE9F200F3A427 /* Exceptions for "TradeTrackMocks" folder in "TradeTrackMocks" target */,
-			);
 			path = TradeTrackMocks;
 			sourceTree = "<group>";
 		};

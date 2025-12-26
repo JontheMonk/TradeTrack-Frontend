@@ -132,6 +132,13 @@ final class VerificationViewModel: NSObject, ObservableObject {
         await camera.stop()
         state = .detecting
     }
+    
+    func retry() {
+        self.state = .detecting
+        self.collectionProgress = 0.0
+        // RE-OPEN the gate to allow processInputFrame to start working again
+        self.isProcessingFrame.store(false, ordering: .relaxed)
+    }
 
     // MARK: - High-Frequency Frame Pipeline
 
@@ -220,7 +227,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
                 self.task = nil
                 logger.debug("Verification task cancelled.")
             } catch {
-                self.isProcessingFrame.store(false, ordering: .relaxed)
+                //self.isProcessingFrame.store(false, ordering: .relaxed)
                 self.task = nil
                 handleVerificationError(error)
             }

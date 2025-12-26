@@ -101,21 +101,37 @@ private extension VerificationView {
     }
     
     var statusIndicator: some View {
-        // FIXED: Combined text and progress for a single, stable test target
-        HStack(spacing: 12) {
-            if vm.state == .processing {
-                ProgressView().tint(.white)
+        VStack(spacing: 20) {
+            HStack(spacing: 12) {
+                if vm.state == .processing {
+                    ProgressView().tint(.white)
+                }
+                Text(statusText)
+                    .font(.system(.headline, design: .rounded))
+                    .foregroundColor(.white)
             }
-            Text(statusText)
-                .font(.system(.headline, design: .rounded))
-                .foregroundColor(.white)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 32)
+            .background(statusBackgroundColor)
+            .clipShape(Capsule())
+            
+            if vm.isProcessingFrame.load(ordering: .relaxed) && !isMatched && vm.state != .processing {
+                Button(action: { vm.retry() }) {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                        Text("Try Again")
+                    }
+                    .font(.system(.subheadline, design: .rounded).bold())
+                    .foregroundColor(.cyan)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 24)
+                    .background(Color.cyan.opacity(0.1))
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(Color.cyan.opacity(0.3), lineWidth: 1))
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("verification.status_indicator")
-        .padding(.vertical, 16)
-        .padding(.horizontal, 32)
-        .background(statusBackgroundColor)
-        .clipShape(Capsule())
         .animation(.spring(), value: vm.state)
     }
 
