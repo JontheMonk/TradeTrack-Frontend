@@ -63,19 +63,13 @@ final class HTTPClientIntegrationTests: XCTestCase {
     /// The endpoint performs verification as a side effect and does
     /// NOT return match details or scores.
     func test_verifyEndpoint_happyPath_returnsSuccessWithNoData() async throws {
-        let req = VerifyFaceRequest(
+        let service = FaceVerificationService(http: client)
+        let validEmbedding = [Float](repeating: 0.1, count: 512)
+
+        try await service.verifyFace(
             employeeId: "test_user",
-            embedding: [Double](repeating: 0.1, count: 512)
+            embedding: FaceEmbedding(validEmbedding)
         )
-
-        let res: Empty? = try await client.send(
-            "POST",
-            path: "/employees/verify",
-            body: req
-        )
-
-        // success == true, data == null → res == nil
-        XCTAssertNil(res)
     }
 
     // MARK: - Verify Face (Failure Path) -------------------------------------
@@ -85,20 +79,38 @@ final class HTTPClientIntegrationTests: XCTestCase {
     ///  - is decoded correctly
     ///  - surfaces the backend error as AppError.employeeNotFound
     func test_verifyEndpoint_unknownEmployee_throwsEmployeeNotFound() async {
-        let req = VerifyFaceRequest(
-            employeeId: "does_not_exist",
-            embedding: [Double](repeating: 0.1, count: 512)
-        )
+        let service = FaceVerificationService(http: client)
+        let validEmbedding = [Float](repeating: 0.1, count: 512)
 
         do {
-            let _: Empty? = try await client.send(
-                "POST",
-                path: "/employees/verify",
-                body: req
+            try await service.verifyFace(
+                employeeId: "does_not_exsit",
+                embedding: FaceEmbedding(validEmbedding)
             )
             XCTFail("Expected backend error to be thrown")
         } catch {
             XCTAssertEqual(error.appErrorCode, .employeeNotFound)
         }
+    }
+    
+    // MARK: - Employee Search -------------------------------------------------
+
+    /// Verifies that GET /employees/search?prefix=test:
+    ///  - sends the prefix as a query parameter
+    ///  - decodes a successful list of EmployeeResult
+    ///  - specifically finds the "test_user" fixture
+    func test_searchEmployees_withValidPrefix_returnsTestUser() async throws {
+        // 1. Arrange: Use the production service
+        let service = EmployeeLookupService(http: client)
+        let searchPrefix = "test"
+
+        // 2. Act: Perform the search
+        let results = try await service.search(prefix: searchPrefix)
+
+        // 3. Assert: Verify the contract and data
+        XCTAssertFalse(results.isEmpty, "Search should return results for prefix 'test'")
+        
+        let hasTestUser = results.contains { $0.employeeId == "test_user" }
+        XCTAssertTrue(hasTestUser, "Results should contain the fixture 'test_user'")
     }
 }

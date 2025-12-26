@@ -18,7 +18,7 @@ struct LookupView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(.systemGroupedBackground), Color(.systemBackground)],
+            LinearGradient(colors: [Color(red: 0.1, green: 0.1, blue: 0.12), .black],
                            startPoint: .topLeading,
                            endPoint: .bottomTrailing)
                 .ignoresSafeArea()
@@ -32,24 +32,26 @@ struct LookupView: View {
         }
         .navigationTitle("Directory")
         .navigationBarTitleDisplayMode(.large)
+        .preferredColorScheme(.dark)
     }
 
     private var searchBar: some View {
         HStack {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(isSearchFocused ? .blue : .secondary)
+                .foregroundStyle(isSearchFocused ? .blue : .gray)
             
             TextField("Search name or role...", text: searchBinding)
                 .focused($isSearchFocused)
                 .submitLabel(.search)
+                .foregroundColor(.white)
                 .accessibilityIdentifier("lookup.search")
             
             if !vm.query.isEmpty {
                 Button { vm.setQuery("") } label: {
                     Image(systemName: "xmark.circle.fill")
                         .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.gray)
                 }
                 .transition(.scale.combined(with: .opacity))
             }
@@ -58,11 +60,11 @@ struct LookupView: View {
         .padding(.vertical, 12)
         .background {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
+                .fill(Color.white.opacity(0.08))
+                .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(isSearchFocused ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 2)
+                        .stroke(isSearchFocused ? Color.blue.opacity(0.5) : Color.white.opacity(0.1), lineWidth: 1.5)
                 )
         }
         .padding(.horizontal)
@@ -76,14 +78,16 @@ struct LookupView: View {
         } else if vm.isLoading {
             VStack(spacing: 16) {
                 ProgressView()
+                    .tint(.blue)
                     .scaleEffect(1.2)
-                Text("Sifting records...").font(.caption).foregroundStyle(.secondary)
+                Text("Sifting records...")
+                    .font(.caption)
+                    .foregroundStyle(.gray)
             }
         } else if vm.results.isEmpty {
             placeholderState(icon: "person.crop.circle.badge.questionmark", text: "No employees found")
         } else {
             List(vm.results) { emp in
-                // FIXED: Flattening the card so XCUI sees one "Button"
                 EmployeeCard(employee: emp)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
@@ -104,10 +108,10 @@ struct LookupView: View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 40))
-                .foregroundStyle(.quaternary)
+                .foregroundStyle(.white.opacity(0.2))
             Text(text)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.gray)
         }
         .padding(.top, 40)
         .transition(.opacity)

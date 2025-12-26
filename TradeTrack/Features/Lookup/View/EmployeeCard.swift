@@ -29,16 +29,18 @@ struct EmployeeCard: View {
     var body: some View {
         HStack(alignment: .center, spacing: 14) {
             ZStack {
-                Circle().fill(.ultraThinMaterial)
+                Circle().fill(Color.white.opacity(0.08))
                 Image(systemName: "person.crop.circle.fill")
                     .font(.system(size: 28))
-                    .opacity(0.9)
+                    .foregroundStyle(.white.opacity(0.7))
             }
             .frame(width: 44, height: 44)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(employee.name)
                     .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                
                 HStack(spacing: 8) {
                     roleChip(employee.role)
                     idChip(employee.employeeId)
@@ -47,34 +49,36 @@ struct EmployeeCard: View {
             Spacer()
             Image(systemName: "chevron.right")
                 .font(.headline)
-                .opacity(0.25)
+                .foregroundStyle(.white.opacity(0.3))
         }
         .padding(14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        // Solid dark background or very dark glass
+        .background(Color.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
         )
-        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 8)
     }
 
     private func roleChip(_ role: String) -> some View {
         Text(role)
             .font(.caption).bold()
+            .foregroundStyle(.cyan)
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.blue.opacity(0.15))
+                    .fill(Color.cyan.opacity(0.15))
             )
     }
 
     private func idChip(_ id: String) -> some View {
         Text("#\(id)")
             .font(.caption).bold()
+            .foregroundStyle(.gray)
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.secondary.opacity(0.15))
+                    .fill(Color.white.opacity(0.1))
             )
     }
 }

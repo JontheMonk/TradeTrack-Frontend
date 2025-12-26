@@ -33,7 +33,7 @@ struct EmployeeLookupService: EmployeeLookupServing {
     func search(prefix: String) async throws -> [EmployeeResult] {
         try await http.send(
             "GET",
-            path: "employees",
+            path: "/employees/search",
             query: ["prefix": prefix]
         ) ?? []
     }
