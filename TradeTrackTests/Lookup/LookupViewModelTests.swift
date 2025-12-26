@@ -1,6 +1,7 @@
 import XCTest
 @testable import TradeTrack
 @testable import TradeTrackCore
+@testable import TradeTrackMocks
 
 @MainActor
 final class LookupViewModelTests: XCTestCase {

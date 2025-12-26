@@ -18,6 +18,7 @@
 //
 
 import SwiftUI
+import TradeTrackCore
 
 /// High-level navigation coordinator responsible for pushing views,
 /// constructing view models, and wiring dependencies from `AppContainer`.

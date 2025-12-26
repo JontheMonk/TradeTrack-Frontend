@@ -14,6 +14,8 @@
 ///
 /// This keeps LookupViewModel completely decoupled from the global navigation
 /// architecture while still allowing full UI testability.
+import TradeTrackCore
+
 @MainActor
 struct LookupNavigator {
     private weak var nav: (any Navigating)?

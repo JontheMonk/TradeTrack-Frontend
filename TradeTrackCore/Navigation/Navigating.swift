@@ -12,7 +12,7 @@
 //
 
 @MainActor
-protocol Navigating: AnyObject {
+public protocol Navigating: AnyObject {
 
     /// Pushes a new destination onto the navigation stack.
     ///

@@ -2,9 +2,9 @@
 
 final class MockEmployeeLookupService: EmployeeLookupServing {
 
-    private(set) var callCount = 0   // observed by tests, not set by tests
-    var stubbedResults: [EmployeeResult] = []  // tests control
-    var stubbedError: Error?         // tests control
+    private(set) var callCount = 0
+    var stubbedResults: [EmployeeResult] = []
+    var stubbedError: Error?
 
     func search(prefix: String) async throws -> [EmployeeResult] {
         callCount += 1

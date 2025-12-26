@@ -1,31 +1,8 @@
-/// A searchable employee directory.
-///
-/// This view renders:
-///   – A search bar bound to `LookupViewModel.query`
-///   – State-dependent UI:
-///       • Prompt for short queries
-///       • Spinner during network requests
-///       • Empty results feedback
-///       • A list of matching employees
-///   – Tappable result rows (`EmployeeCard`) that call
-///     `vm.selectEmployee(_:)`, allowing the VM to drive navigation.
-///
-/// Architectural notes:
-///   • The view owns its `LookupViewModel` via `@StateObject`.
-///   • All networking and navigation decisions live in the VM.
-///   • The view is a pure renderer with no business logic.
-///   • Clear transitions between states ensure predictable updates.
-///
-/// This pattern aligns with modern SwiftUI:
-///   – View: presentation
-///   – ViewModel: async work + state + navigation
-///   – Coordinator: handles actual route pushing
-
-
 import SwiftUI
 
 struct LookupView: View {
     @StateObject private var vm: LookupViewModel
+    @FocusState private var isSearchFocused: Bool
 
     init(viewModel: LookupViewModel) {
         _vm = StateObject(wrappedValue: viewModel)
@@ -40,62 +17,99 @@ struct LookupView: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Search bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                TextField("Search employees (min 3 chars)…", text: searchBinding)
-                    .accessibilityIdentifier("lookup.search")
-                    .textInputAutocapitalization(.never)
-                    .disableAutocorrection(true)
-                    .submitLabel(.search)
-                if !vm.query.isEmpty {
-                    Button { vm.setQuery("") } label: {
-                        Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Clear search")
-                }
-            }
-            .padding(10)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
-            )
-            .padding(.horizontal)
+        ZStack {
+            LinearGradient(colors: [Color(.systemGroupedBackground), Color(.systemBackground)],
+                           startPoint: .topLeading,
+                           endPoint: .bottomTrailing)
+                .ignoresSafeArea()
 
-            // States
-            if !hasMinQuery {
-                stateText("Enter at least 3 characters.")
-            } else if vm.isLoading {
-                ProgressView("Searching…").padding(.top, 8)
-            } else if vm.results.isEmpty {
-                stateText("No matches.")
-            } else {
-                // Results
-                List(vm.results) { emp in
-                    Button {
-                        vm.selectEmployee(emp.employeeId)   // ← VM decides navigation
-                    } label: {
-                        EmployeeCard(employee: emp)
-                    }
-                    .accessibilityIdentifier("lookup.result.\(emp.employeeId)")
-                    .buttonStyle(.plain)
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
+            VStack(spacing: 20) {
+                searchBar
+                
+                contentArea
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .padding(.top, 12)
-        .navigationTitle("Employee Lookup")
-        .animation(.default, value: vm.query)
-        .animation(.default, value: vm.isLoading)
+        .navigationTitle("Directory")
+        .navigationBarTitleDisplayMode(.large)
+    }
+
+    private var searchBar: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(isSearchFocused ? .blue : .secondary)
+            
+            TextField("Search name or role...", text: searchBinding)
+                .focused($isSearchFocused)
+                .submitLabel(.search)
+                .accessibilityIdentifier("lookup.search")
+            
+            if !vm.query.isEmpty {
+                Button { vm.setQuery("") } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.secondary)
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(isSearchFocused ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 2)
+                )
+        }
+        .padding(.horizontal)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSearchFocused)
     }
 
     @ViewBuilder
-    private func stateText(_ text: String) -> some View {
-        Text(text).foregroundStyle(.secondary).padding(.top, 8)
+    private var contentArea: some View {
+        if !hasMinQuery {
+            placeholderState(icon: "person.text.rectangle", text: "Search at least 3 characters")
+        } else if vm.isLoading {
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.2)
+                Text("Sifting records...").font(.caption).foregroundStyle(.secondary)
+            }
+        } else if vm.results.isEmpty {
+            placeholderState(icon: "person.crop.circle.badge.questionmark", text: "No employees found")
+        } else {
+            List(vm.results) { emp in
+                // FIXED: Flattening the card so XCUI sees one "Button"
+                EmployeeCard(employee: emp)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("lookup.result.\(emp.employeeId)")
+                    .accessibilityAddTraits(.isButton)
+                    .onTapGesture {
+                        vm.selectEmployee(emp.employeeId)
+                    }
+            }
+            .listStyle(.plain)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+
+    private func placeholderState(icon: String, text: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 40))
+                .foregroundStyle(.quaternary)
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.top, 40)
+        .transition(.opacity)
     }
 }

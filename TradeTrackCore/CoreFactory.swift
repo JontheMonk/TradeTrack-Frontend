@@ -34,33 +34,10 @@ public struct CoreFactory {
         return client
     }
     
-    // MARK: - UI Test Support
-    
-    /// Configures the mock backend routing if the app is running in a UI testing environment.
-    ///
-    /// This method intercepts network requests using `MockURLProtocol` to provide deterministic
-    /// responses based on the current `BackendWorldReader` state.
-    /// - Parameter environment: The current execution mode of the application.
-    public static func setupMockNetworking(for environment: AppMode) {
-        guard environment == .uiTest else { return }
-        
-        let world = BackendWorldReader.current()
-        MockURLProtocol.requestHandler = MockBackendRouter.handler(for: world)
-    }
+
     
     // MARK: - Infrastructure
-    
-    /// Instantiates the appropriate camera management system based on the environment.
-    ///
-    /// - Parameter environment: The current execution mode. If `.uiTest`, a simulated
-    ///   camera manager is returned to allow for programmatic frame injection.
-    /// - Returns: An object conforming to `CameraManagerProtocol`.
-    public static func makeCameraManager(for environment: AppMode) -> CameraManagerProtocol {
-        if environment == .uiTest {
-            let world = CameraWorldReader.current()
-            return UITestCameraManager(world: world)
-        }
-        
+    public static func makeCameraManager() -> CameraManagerProtocol {
         return CameraManager()
     }
     

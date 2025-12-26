@@ -1,6 +1,7 @@
 import XCTest
 import AVFoundation
 @testable import TradeTrackCore
+@testable import TradeTrackMocks
 
 /// Dummy delegate used as a stand-in for AVCaptureVideoDataOutput callbacks.
 final class DummyDelegate: NSObject,

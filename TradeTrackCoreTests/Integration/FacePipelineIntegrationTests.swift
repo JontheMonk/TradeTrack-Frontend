@@ -1,6 +1,8 @@
 import XCTest
 import CoreImage
 @testable import TradeTrackCore
+@testable import TradeTrackMocks
+
 @MainActor
 final class FacePipelineIntegrationTests: XCTestCase {
 
@@ -77,7 +79,7 @@ private extension FacePipelineIntegrationTests {
     }
     /// Loads a HEIC fixture from the TradeTrackCore bundle.
     func loadCIImage(named name: String) -> CIImage {
-        guard let url = Bundle.tradeTrackCore.url(forResource: name, withExtension: "HEIC") else {
+        guard let url = Bundle.tradeTrackMocks.url(forResource: name, withExtension: "HEIC") else {
             fatalError("❌ Image fixture '\(name).HEIC' not found in TradeTrackCore.")
         }
         

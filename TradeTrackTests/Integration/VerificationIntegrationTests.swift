@@ -4,6 +4,7 @@ import CoreImage
 import Vision
 @testable import TradeTrack
 @testable import TradeTrackCore
+@testable import TradeTrackMocks
 
 // MARK: - Test Probe Extension
 extension VerificationViewModel {
@@ -25,7 +26,7 @@ final class VerificationIntegrationTests: XCTestCase {
         mockError: Error? = nil
     ) -> VerificationViewModel {
         
-        guard let url = Bundle.tradeTrackCore.url(forResource: videoName, withExtension: "MOV") else {
+        guard let url = Bundle.tradeTrackMocks.url(forResource: videoName, withExtension: "MOV") else {
             fatalError("❌ Test video fixture '\(videoName).MOV' not found.")
         }
         

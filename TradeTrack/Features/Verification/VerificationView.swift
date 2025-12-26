@@ -2,11 +2,7 @@ import SwiftUI
 import Vision
 
 struct VerificationView: View {
-    
-    // MARK: - Dependencies
     @StateObject private var vm: VerificationViewModel
-    
-    // Pulse animation for the inactive state
     @State private var pulseScale: CGFloat = 1.0
 
     init(viewModel: VerificationViewModel) {
@@ -15,26 +11,20 @@ struct VerificationView: View {
 
     var body: some View {
         ZStack {
-            // Dark obsidian background
             Color(red: 0.05, green: 0.05, blue: 0.08)
                 .ignoresSafeArea()
 
             VStack(spacing: 48) {
                 headerSection
                 
-                // MARK: - Biometric Interface
                 ZStack {
                     cameraPreviewLayer
                     
-                    // The Ring: Logic depends ONLY on collectionProgress
-                    // It stays visible as long as we aren't successfully matched.
                     if !isMatched {
                         ZStack {
-                            // Static background track
                             Circle()
                                 .stroke(Color.white.opacity(0.05), lineWidth: 8)
                             
-                            // Dynamic progress fill
                             Circle()
                                 .trim(from: 0, to: vm.collectionProgress)
                                 .stroke(
@@ -45,7 +35,6 @@ struct VerificationView: View {
                                     style: StrokeStyle(lineWidth: 8, lineCap: .round)
                                 )
                                 .rotationEffect(.degrees(-90))
-                                // Smooths out the jumps in progress updates
                                 .animation(.easeOut(duration: 0.2), value: vm.collectionProgress)
                         }
                         .frame(width: 296, height: 296)
@@ -74,10 +63,7 @@ struct VerificationView: View {
     }
 }
 
-// MARK: - View Components
-
 private extension VerificationView {
-    
     var isMatched: Bool {
         if case .matched = vm.state { return true }
         return false
@@ -115,25 +101,40 @@ private extension VerificationView {
     }
     
     var statusIndicator: some View {
-        HStack(spacing: 12) {
-            if vm.state == .processing {
-                ProgressView().tint(.white)
+        VStack(spacing: 20) {
+            HStack(spacing: 12) {
+                if vm.state == .processing {
+                    ProgressView().tint(.white)
+                }
+                Text(statusText)
+                    .font(.system(.headline, design: .rounded))
+                    .foregroundColor(.white)
             }
-            Text(statusText)
-                .font(.system(.headline, design: .rounded))
-                .foregroundColor(.white)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 32)
+            .background(statusBackgroundColor)
+            .clipShape(Capsule())
+            
+            if vm.isProcessingFrame.load(ordering: .relaxed) && !isMatched && vm.state != .processing {
+                Button(action: { vm.retry() }) {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                        Text("Try Again")
+                    }
+                    .font(.system(.subheadline, design: .rounded).bold())
+                    .foregroundColor(.cyan)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 24)
+                    .background(Color.cyan.opacity(0.1))
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(Color.cyan.opacity(0.3), lineWidth: 1))
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 32)
-        .background(statusBackgroundColor)
-        .clipShape(Capsule())
         .animation(.spring(), value: vm.state)
     }
-}
 
-// MARK: - Computed Helpers
-
-private extension VerificationView {
     var statusText: String {
         switch vm.state {
         case .detecting:

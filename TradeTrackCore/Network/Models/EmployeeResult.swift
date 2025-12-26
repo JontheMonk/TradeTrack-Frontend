@@ -35,4 +35,10 @@ public struct EmployeeResult: Identifiable, Codable {
 
     /// The unique key used by SwiftUI to identify the item.
     public var id: String { employeeId }
+    
+    public init(employeeId: String, name: String, role: String) {
+        self.employeeId = employeeId
+        self.name = name
+        self.role = role
+    }
 }

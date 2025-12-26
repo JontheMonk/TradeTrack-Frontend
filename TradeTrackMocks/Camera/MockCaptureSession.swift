@@ -1,5 +1,6 @@
 // MockCaptureSession.swift
 import AVFoundation
+@testable import TradeTrackCore
 
 /// Mock implementation of `CaptureSessionProtocol`.
 ///

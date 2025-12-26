@@ -3,6 +3,7 @@ import Vision
 import CoreImage
 @testable import TradeTrackCore
 @testable import TradeTrack
+@testable import TradeTrackMocks
 
 @MainActor
 final class VerificationViewModelTests: XCTestCase {
@@ -108,7 +109,7 @@ final class VerificationViewModelTests: XCTestCase {
         XCTAssertFalse(vm._test_isGateClosed, "Gate should be reopened after stop")
     }
 
-    func test_processorError_surfacesToErrorManagerAndResetsState() async {
+    func test_processorError_locksGateUntilRetry() async {
         // Given
         mockAnalyzer.stubbedFace = makeFace()
         mockCollector.stubbedResult = (winner: (makeFace(), dummyImage), progress: 0.0)
@@ -120,7 +121,13 @@ final class VerificationViewModelTests: XCTestCase {
         // Then
         XCTAssertEqual(mockError.lastError?.code, .modelOutputMissing)
         XCTAssertEqual(vm.state, .detecting)
-        XCTAssertFalse(vm._test_isGateClosed, "Gate must reopen even on failure")
+        
+        // UPDATED: The gate should now be CLOSED (True)
+        XCTAssertTrue(vm.isProcessingFrame.load(ordering: .relaxed), "Gate must stay locked after processor failure")
+        
+        // Verify we can't process more frames
+        let nextTask = vm.processInputFrame(dummyImage)
+        XCTAssertNil(nextTask, "Should drop frames while locked")
     }
 
     func test_missingEmployeeID_failsEarly() async {
@@ -148,24 +155,32 @@ final class VerificationViewModelTests: XCTestCase {
         XCTAssertEqual(mockError.lastError?.code, .cameraNotAuthorized)
     }
     
-    func test_onVerificationError_surfacesSpecificErrorAndResets() async {
-        // Given
-        let expectedError = AppError(code: .faceConfidenceTooLow)
+    func test_onVerificationError_gateRemainsLocked_untilRetryIsCalled() async {
+        // 1. Given: A failure scenario (e.g., employee not found)
+        let expectedError = AppError(code: .employeeNotFound)
         mockAnalyzer.stubbedFace = makeFace()
         mockCollector.stubbedResult = (winner: (makeFace(), dummyImage), progress: 0.0)
         mockVerifier.stubbedError = expectedError
 
-        // When
+        // 2. When: The verification pipeline runs and fails
         await vm._test_runFrame(dummyImage)
 
-        // Then
-        // 1. Verify the UI State
-        XCTAssertEqual(vm.state, .detecting)
+        // 3. Then: Verify the gate is still CLOSED (Locked)
+        // This is your new logic: we don't allow new frames yet.
+        XCTAssertTrue(vm.isProcessingFrame.load(ordering: .relaxed),
+                      "Gate should remain locked after a verification error")
         
-        // 2. Verify the Hardware Gate
-        XCTAssertFalse(vm._test_isGateClosed)
-        
-        // 3. Verify the User Feedback
-        XCTAssertEqual(mockError.lastError?.code, .faceConfidenceTooLow)
+        // 4. Verify that new frames are dropped while locked
+        let droppedTask = vm.processInputFrame(dummyImage)
+        XCTAssertNil(droppedTask, "New frames must be ignored while the gate is locked post-error")
+
+        // 5. When: The user taps "Try Again"
+        vm.retry()
+
+        // 6. Then: The gate should be OPEN (Unlocked) and state reset
+        XCTAssertFalse(vm.isProcessingFrame.load(ordering: .relaxed),
+                       "Retry must explicitly re-open the hardware gate")
+        XCTAssertEqual(vm.state, .detecting, "State should reset to detecting after retry")
+        XCTAssertEqual(vm.collectionProgress, 0.0, "Progress should reset to 0 after retry")
     }
 }

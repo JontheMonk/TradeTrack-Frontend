@@ -2,6 +2,7 @@ import XCTest
 import Vision
 import CoreImage
 @testable import TradeTrackCore
+@testable import TradeTrackMocks
 
 /// Unit tests for `FaceAnalyzer`, which coordinates:
 ///   1. Face detection (via `FaceDetectorProtocol`)

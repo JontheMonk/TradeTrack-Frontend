@@ -1,5 +1,8 @@
 import Foundation
 import TradeTrackCore
+#if DEBUG
+import TradeTrackMocks
+#endif
 
 /// A lightweight dependency-injection container for the app.
 @MainActor
@@ -33,9 +36,11 @@ struct AppContainer {
         self.faceCollector = CoreFactory.makeFaceCollector()
         self.faceProcessor = try CoreFactory.makeFaceProcessor()
         
-        // 3. Build Camera Manager
-        // The factory handles switching between UITestCameraManager and the real one.
-        self.cameraManager = CoreFactory.makeCameraManager(for: environment)
+        if environment == .uiTest {
+            self.cameraManager = CoreFactory.makeUITestCameraManager()
+        } else {
+            self.cameraManager = CoreFactory.makeCameraManager()
+        }
 
         let extractor = CoreFactory.makeRegistrationService(
             analyzer: self.faceAnalyzer,

@@ -1,4 +1,3 @@
-#if DEBUG
 import Vision
 import CoreImage
 @testable import TradeTrackCore
@@ -36,5 +35,4 @@ final class MockFaceAnalyzer: FaceAnalyzerProtocol, @unchecked Sendable {
         callCount = 0
     }
 }
-#endif
 

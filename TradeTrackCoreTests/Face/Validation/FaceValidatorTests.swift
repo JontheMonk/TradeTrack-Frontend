@@ -2,6 +2,7 @@ import XCTest
 import Vision
 import CoreImage
 @testable import TradeTrackCore
+@testable import TradeTrackMocks
 
 /// Unit tests for `FaceValidator`, which performs geometric and quality-based
 /// filtering on detected faces before allowing them to pass to the embedding

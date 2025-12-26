@@ -1,4 +1,3 @@
-#if DEBUG
 import Vision
 import CoreImage
 @testable import TradeTrackCore
@@ -49,4 +48,3 @@ final class MockFaceProcessor: FaceProcessing, @unchecked Sendable {
         return stubbedEmbedding
     }
 }
-#endif
