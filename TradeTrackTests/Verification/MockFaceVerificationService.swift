@@ -15,6 +15,8 @@ final class MockFaceVerificationService: FaceVerificationProtocol {
     var stubbedError: Error?
 
     func verifyFace(employeeId: String, embedding: FaceEmbedding) async throws {
+        try? await Task.sleep(nanoseconds: 2 * 1_000_000_000)
+        
         callCount += 1
         lastEmployeeId = employeeId
         lastEmbedding = embedding

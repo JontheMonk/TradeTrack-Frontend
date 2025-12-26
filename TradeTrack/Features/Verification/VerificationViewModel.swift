@@ -162,6 +162,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
         }
         
         self.isProcessingFrame.store(false, ordering: .relaxed)
+        
         // Step 2: Collection (Aggregate data until we have enough for verification)
         let result = await self.collector.process(face: face, image: frame, quality: quality)
         
@@ -195,7 +196,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     }
     
     private func resetCollectionUI() {
-        
+        self.state = .detecting
         self.collectionProgress = 0.0
     }
 
@@ -209,18 +210,18 @@ final class VerificationViewModel: NSObject, ObservableObject {
         
         task = Task { [weak self] in
             guard let self = self else { return }
-            
-            defer {
-                self.isProcessingFrame.store(false, ordering: .relaxed)
-                self.task = nil
-            }
 
             do {
                 let resultID = try await performVerification(face: face, image: image)
                 self.state = .matched(name: resultID)
+                self.task = nil
             } catch is CancellationError {
+                self.isProcessingFrame.store(false, ordering: .relaxed)
+                self.task = nil
                 logger.debug("Verification task cancelled.")
             } catch {
+                self.isProcessingFrame.store(false, ordering: .relaxed)
+                self.task = nil
                 handleVerificationError(error)
             }
         }
@@ -231,9 +232,9 @@ final class VerificationViewModel: NSObject, ObservableObject {
     /// call if the user has already moved on.
     private func performVerification(face: VNFaceObservation, image: CIImage) async throws -> String {
         try Task.checkCancellation()
-        self.state = .processing
 
         // Extraction (Actor-based processing)
+        self.state = .processing
         let embedding = try await processor.process(image: image, face: face)
         
         try Task.checkCancellation()

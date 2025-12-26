@@ -85,38 +85,54 @@ final class CameraManager: CameraManagerProtocol {
     ///
     /// This is async so all work is executed on the `sessionQueue`.
     func start<D: AVCaptureVideoDataOutputSampleBufferDelegate & Sendable>(delegate: D) async throws {
-        try configureAndStart(delegate: delegate)
+        try await configureAndStart(delegate: delegate)
     }
     
     func stop() async {
-        if session.isRunning {
-            session.stopRunning()
-        }
         output.setSampleBufferDelegate(nil, queue: nil)
+        
+        // Stop in the background
+        let currentSession = session
+        await withCheckedContinuation { continuation in
+            Task.detached(priority: .utility) {
+                if currentSession.isRunning {
+                    currentSession.stopRunning()
+                }
+                continuation.resume()
+            }
+        }
     }
     
     
     
-    private func configureAndStart<D: AVCaptureVideoDataOutputSampleBufferDelegate & Sendable>(delegate: D) throws {
+    private func configureAndStart<D: AVCaptureVideoDataOutputSampleBufferDelegate & Sendable>(delegate: D) async throws {
         if session.isRunning {
             applyDelegate(delegate)
             return
         }
         
         session.beginConfiguration()
-        defer { session.commitConfiguration() }
+        
         
         let device = try selectFrontDevice()
         try ensureInput(for: device)
         try ensureOutput()
         applyDelegate(delegate)
         applyConnectionTuning()
+        session.commitConfiguration()
         
-        session.startRunning()
-        if !session.isRunning {
-            throw AppError(code: .cameraStartFailed)
+        // Wait for the hardware to "wake up" without blocking the UI
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            Task.detached(priority: .userInitiated) { [session] in
+                session.startRunning()
+                
+                if session.isRunning {
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: AppError(code: .cameraStartFailed))
+                }
+            }
         }
-        
     }
         
         
@@ -224,17 +240,6 @@ final class CameraManager: CameraManagerProtocol {
             }
         } else if conn.isVideoOrientationSupported {
             conn.videoOrientation = .portrait
-        }
-    }
-    
-    
-    // MARK: - Start Session
-    
-    /// Starts the underlying AVFoundation session and verifies success.
-    private func startSession() throws {
-        session.startRunning()
-        guard session.isRunning else {
-            throw AppError(code: .cameraStartFailed)
         }
     }
 }
