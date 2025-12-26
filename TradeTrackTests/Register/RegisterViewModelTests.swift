@@ -1,6 +1,7 @@
 import XCTest
 import UIKit
 @testable import TradeTrack
+@testable import TradeTrackMocks
 
 @MainActor
 final class RegisterViewModelTests: XCTestCase {

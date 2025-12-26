@@ -1,5 +1,4 @@
 import UIKit
-@testable import TradeTrack
 @testable import TradeTrackCore
 
 /// Test double for `RegistrationEmbeddingServing`.
@@ -19,7 +18,8 @@ import UIKit
 ///
 /// The ViewModel under test depends only on the protocol, so injecting this mock
 /// keeps the tests isolated, fast, and deterministic.
-final class MockEmbeddingService: RegistrationEmbeddingServing, @unchecked Sendable {
+@MainActor
+final class MockEmbeddingService: RegistrationEmbeddingServing {
 
     /// Number of times the ViewModel attempted to request an embedding.
     ///

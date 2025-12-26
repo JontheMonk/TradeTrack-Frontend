@@ -20,7 +20,7 @@
 /// navigator.push(.verification(employeeId: "123"))
 /// navigator.push(.register)
 /// ```
-enum Route: Hashable {
+public enum Route: Hashable {
 
     /// Employee lookup screen.
     case lookup

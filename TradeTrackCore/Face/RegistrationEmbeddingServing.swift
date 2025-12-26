@@ -1,5 +1,4 @@
 import UIKit
-import TradeTrackCore
 /// Service responsible for producing a **512-dimensional face embedding**
 /// from a user-selected image during employee registration.
 ///
@@ -10,7 +9,7 @@ import TradeTrackCore
 ///
 /// ViewModels use this instead of talking to Vision or CoreML directly.
 /// Errors surface as `AppError` and should be displayed via `ErrorManager`.
-protocol RegistrationEmbeddingServing: Sendable {
+public protocol RegistrationEmbeddingServing: Sendable {
     /// Extracts a normalized face embedding from the given image.
     ///
     /// - Parameter image: A user-selected photo (from camera or library).

@@ -122,6 +122,7 @@ private extension VerificationView {
             Text(statusText)
                 .font(.system(.headline, design: .rounded))
                 .foregroundColor(.white)
+                .accessibilityIdentifier("verification.status_indicator")
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 32)

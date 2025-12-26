@@ -3,6 +3,7 @@ import Vision
 import CoreImage
 @testable import TradeTrackCore
 @testable import TradeTrack
+@testable import TradeTrackMocks
 
 @MainActor
 final class VerificationViewModelTests: XCTestCase {

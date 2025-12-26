@@ -4,6 +4,7 @@ import CoreImage
 import Vision
 @testable import TradeTrack
 @testable import TradeTrackCore
+@testable import TradeTrackMocks
 
 // MARK: - Test Probe Extension
 extension VerificationViewModel {

@@ -46,6 +46,7 @@ struct LookupView: View {
             TextField("Search name or role...", text: searchBinding)
                 .focused($isSearchFocused)
                 .submitLabel(.search)
+                .accessibilityIdentifier("lookup.search")
             
             if !vm.query.isEmpty {
                 Button { vm.setQuery("") } label: {
@@ -89,6 +90,8 @@ struct LookupView: View {
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .accessibilityIdentifier("lookup.result.\(emp.employeeId)")
+                    .accessibilityAddTraits(.isButton)
                     .onTapGesture {
                         vm.selectEmployee(emp.employeeId)
                     }

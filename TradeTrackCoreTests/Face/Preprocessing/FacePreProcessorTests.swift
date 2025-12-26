@@ -2,6 +2,8 @@ import XCTest
 import CoreImage
 import Vision
 @testable import TradeTrackCore
+@testable import TradeTrackMocks
+
 
 final class FacePreprocessorTests: XCTestCase {
 
