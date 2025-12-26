@@ -6,12 +6,12 @@ struct PreviewApp: App {
         WindowGroup {
             VerificationView(
                 viewModel: VerificationViewModel(
-                    camera: MockCameraManager(),
-                    analyzer: MockFaceAnalyzer(),
-                    collector: MockFaceCollector(),
-                    processor: MockFaceProcessor(),
+                    camera: CoreFactory.makeCameraManager(for: .normal),
+                    analyzer: CoreFactory.makeFaceAnalyzer(),
+                    collector: CoreFactory.makeFaceCollector(),
+                    processor: try! CoreFactory.makeFaceProcessor(),
                     verifier: MockFaceVerificationService(),
-                    errorManager: MockErrorManager(),
+                    errorManager: ErrorManager(),
                     employeeId: "Preview_User"
                 )
             )

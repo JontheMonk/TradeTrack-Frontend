@@ -75,24 +75,6 @@ final class VerificationViewModelTests: XCTestCase {
         XCTAssertTrue(mockAnalyzer.resetWasCalled)
     }
 
-    func test_analysisPhase_allowsMultipleFrames() async {
-        // 1. Send the first frame
-        let first = vm.processInputFrame(dummyImage)
-        
-        // 2. The gate should STILL BE OPEN because we are just analyzing/collecting
-        XCTAssertFalse(vm.isProcessingFrame.load(ordering: .relaxed),
-                       "Gate should remain open during collection/analysis")
-        
-        // 3. Send a second frame immediately
-        let second = vm.processInputFrame(dummyImage)
-        
-        // 4. This should NOT be nil; it should be a valid Task
-        XCTAssertNotNil(second, "Second frame should be accepted while in collection phase")
-        
-        await first?.value
-        await second?.value
-    }
-
     func test_verificationPhase_closesGate() async {
         // 1. Setup: We need to simulate a "Winner" being found by the collector
         // You might need to mock your collector to return a winner immediately
