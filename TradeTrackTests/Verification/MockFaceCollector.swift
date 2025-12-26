@@ -5,8 +5,8 @@ import CoreImage
 #if DEBUG
 final class MockFaceCollector: FaceCollecting, @unchecked Sendable {
     // Tracking
-    var resetWasCalled = false
-    var processCallCount = 0
+    private(set) var resetWasCalled = false
+    private(set) var processCallCount = 0
     
     // Stubs
     var stubbedStartTime: Date?
@@ -19,12 +19,6 @@ final class MockFaceCollector: FaceCollecting, @unchecked Sendable {
     var startTime: Date? {
         get async { stubbedStartTime }
     }
-
-    #if DEBUG
-    var currentBest: (VNFaceObservation, CIImage)? {
-        get async { stubbedCurrentBest }
-    }
-    #endif
 
     func process(face: VNFaceObservation, image: CIImage, quality: Float) async -> (winner: (VNFaceObservation, CIImage)?, progress: Double) {
         processCallCount += 1

@@ -17,20 +17,26 @@ final class VerificationIntegrationTests: XCTestCase {
     
     // MARK: - Setup Helper
     
-    private func makeSystemUnderTest(videoName: String, employeeId: String = "test_user", mockError: Error? = nil) -> VerificationViewModel {
+    private func makeSystemUnderTest(
+        videoName: String,
+        employeeId: String = "test_user",
+        analyzer: FaceAnalyzerProtocol? = nil,
+        collector: FaceCollecting? = nil,
+        mockError: Error? = nil
+    ) -> VerificationViewModel {
+        
         guard let url = Bundle.tradeTrackCore.url(forResource: videoName, withExtension: "MOV") else {
-            fatalError("❌ Test video fixture '\(videoName).MOV' not found in TradeTrackCore.")
+            fatalError("❌ Test video fixture '\(videoName).MOV' not found.")
         }
         
         let videoCamera = VideoFileCameraManager(videoURL: url)
-        
         let verifier = MockFaceVerificationService()
         verifier.stubbedError = mockError
         
         let vm = VerificationViewModel(
             camera: videoCamera,
-            analyzer: CoreFactory.makeFaceAnalyzer(),
-            collector: FaceCollector(),
+            analyzer: analyzer ?? CoreFactory.makeFaceAnalyzer(),
+            collector: collector ?? FaceCollector(),
             processor: try! CoreFactory.makeFaceProcessor(),
             verifier: verifier,
             errorManager: MockErrorManager(),
@@ -38,7 +44,7 @@ final class VerificationIntegrationTests: XCTestCase {
         )
         
         videoCamera.onFrameCaptured = { [weak vm] frame in
-            vm?.injectTestFrame(frame)
+            vm?.processInputFrame(frame)
         }
         
         return vm
@@ -189,27 +195,48 @@ final class VerificationIntegrationTests: XCTestCase {
             "The model is producing embeddings that are too similar for different people (Distance: \(distance))"
         )
     }
-    /*
-    func test_driveByVideo_shouldBeRejected() async throws {
-        // 1. Arrange
-        let vm = makeSystemUnderTest(videoName: "driveby")
-        await vm.start()
-
-        // 2. Act: Let the video play through
-        // Use a slightly longer timeout than the video duration
-        try? await Task.sleep(nanoseconds: 10 * 1_000_000_000)
-
-        // 3. Assert: Verify the "Gatekeeper" did its job
-        XCTAssertNotEqual(vm.state, .matched(name: "jon"),
-                          "Security Failure: System matched on a high-speed, blurry face.")
+    
+    func test_driveByVideo_shouldBeRejectedForLowQuality() async throws {
+        let spyAnalyzer = MockFaceAnalyzer()
         
-        // Check that we are back to detecting (reset logic worked)
-        XCTAssertEqual(vm.state, .detecting)
-        XCTAssertEqual(vm.collectionProgress, 0.0)
+        let vm = makeSystemUnderTest(videoName: "driveby", analyzer: spyAnalyzer)
+        
+        // 2. Act
+        await vm.start()
+        
+        // Poll the state for up to 5 seconds to let the video play
+        let testTimeout = ContinuousClock().now + .seconds(5)
+        
+        while ContinuousClock().now < testTimeout {
+            // If the state ever hits .matched, the security test fails
+            if case .matched = vm.state {
+                XCTFail("Security Failure: System matched on a high-speed, blurry face.")
+                break
+            }
+            
+            // Short-circuit: if the video reaches a certain frame count, we can stop early
+            if spyAnalyzer.callCount >= 30 { break }
+            
+            try await Task.sleep(nanoseconds: 100_000_000) // 100ms polling
+        }
+
+        // 3. Assert
+        
+        // Verify Security: We stayed in the detecting state
+        XCTAssertEqual(vm.state, .detecting, "VM should remain in detecting state for blurry video.")
+        
+        // Verify Throughput: The gate actually let frames through
+        XCTAssertGreaterThan(spyAnalyzer.callCount, 0, "The analyzer should have been hit multiple times.")
+        
+        // Verify Reset Logic: Progress should be exactly 0.0
+        XCTAssertEqual(vm.collectionProgress, 0.0, "Progress should reset to zero when faces are low quality.")
+        
+        // Verify Hardware Gate: Ensure the gate is OPEN and ready for the next user
+        let isLocked = vm.isProcessingFrame.load(ordering: .relaxed)
+        XCTAssertFalse(isLocked, "The hardware gate should be open after processing fails.")
         
         await vm.stop()
     }
-     */
     
     func test_vm_concurrency_underHighFrequencyFlood() async throws {
         // 1. Arrange
