@@ -1,6 +1,6 @@
+#if DEBUG
 import Foundation
 @testable import TradeTrack
-
 /// A lightweight test double for `Navigating`.
 ///
 /// `LookupViewModel` interacts with navigation only through the `Navigating`
@@ -35,3 +35,4 @@ final class MockNavigator: Navigating {
         popCount += 1
     }
 }
+#endif

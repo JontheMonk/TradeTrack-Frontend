@@ -43,7 +43,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     @Published var collectionProgress: Double = 0.0
 
     /// The ID of the employee we are attempting to verify against.
-    var targetEmployeeID: String?
+    let targetEmployeeID: String?
     
     /// Exposes the camera's capture session directly to SwiftUI VideoPreview views.
     var session: AVCaptureSession { camera.uiCaptureSession }

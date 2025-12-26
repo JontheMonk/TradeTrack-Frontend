@@ -124,7 +124,6 @@
 				ErrorHandling/ErrorHelper.swift,
 				Integration/VerificationIntegrationTests.swift,
 				Lookup/LookupViewModelTests.swift,
-				Navigating/MockNavigator.swift,
 				Register/MockEmbeddingService.swift,
 				Register/MockRegistrationAPI.swift,
 				Register/RegisterViewModelTests.swift,

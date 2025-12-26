@@ -2,19 +2,24 @@ import SwiftUI
 import TradeTrackCore
 
 struct PreviewApp: App {
+    private var configuredViewModel: LookupViewModel {
+        let mockService = MockEmployeeLookupService()
+        
+        mockService.stubbedResults = [
+            EmployeeResult(employeeId: "101", name: "Jane Doe", role: "Manager"),
+            EmployeeResult(employeeId: "102", name: "John Smith", role: "Technician")
+        ]
+        
+        return LookupViewModel(
+            service: mockService,
+            errorManager: ErrorManager(),
+            navigator: LookupNavigator(nav: MockNavigator())
+        )
+    }
+
     var body: some Scene {
         WindowGroup {
-            VerificationView(
-                viewModel: VerificationViewModel(
-                    camera: CoreFactory.makeCameraManager(for: .normal),
-                    analyzer: CoreFactory.makeFaceAnalyzer(),
-                    collector: CoreFactory.makeFaceCollector(),
-                    processor: try! CoreFactory.makeFaceProcessor(),
-                    verifier: MockFaceVerificationService(),
-                    errorManager: ErrorManager(),
-                    employeeId: "Preview_User"
-                )
-            )
+            LookupView(viewModel: configuredViewModel)
         }
     }
 }
