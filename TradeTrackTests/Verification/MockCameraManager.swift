@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 import AVFoundation
 @testable import TradeTrackCore
@@ -80,4 +79,3 @@ final class MockCameraManager: CameraManagerProtocol {
         lastDelegate = nil
     }
 }
-#endif

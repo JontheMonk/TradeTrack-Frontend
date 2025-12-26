@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 @testable import TradeTrack
 /// A lightweight test double for `Navigating`.
@@ -35,4 +34,3 @@ final class MockNavigator: Navigating {
         popCount += 1
     }
 }
-#endif

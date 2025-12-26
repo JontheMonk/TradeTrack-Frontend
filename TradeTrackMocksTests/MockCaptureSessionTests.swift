@@ -1,5 +1,6 @@
 import XCTest
-@testable import TradeTrackCore
+@testable import TradeTrackMocks
+
 
 /// Unit tests for `MockCaptureSession`.
 ///

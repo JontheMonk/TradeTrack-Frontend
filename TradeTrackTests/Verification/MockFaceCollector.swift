@@ -2,7 +2,6 @@ import Vision
 import CoreImage
 @testable import TradeTrackCore
 
-#if DEBUG
 final class MockFaceCollector: FaceCollecting, @unchecked Sendable {
     // Tracking
     private(set) var resetWasCalled = false
@@ -30,4 +29,3 @@ final class MockFaceCollector: FaceCollecting, @unchecked Sendable {
         stubbedStartTime = nil
     }
 }
-#endif

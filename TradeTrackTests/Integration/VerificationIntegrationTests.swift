@@ -25,7 +25,7 @@ final class VerificationIntegrationTests: XCTestCase {
         mockError: Error? = nil
     ) -> VerificationViewModel {
         
-        guard let url = Bundle.tradeTrackCore.url(forResource: videoName, withExtension: "MOV") else {
+        guard let url = Bundle.tradeTrackMocks.url(forResource: videoName, withExtension: "MOV") else {
             fatalError("❌ Test video fixture '\(videoName).MOV' not found.")
         }
         

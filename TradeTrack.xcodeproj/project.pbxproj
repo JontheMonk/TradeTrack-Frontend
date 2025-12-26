@@ -10,6 +10,17 @@
 		C403ECDD2EF4A3D000F3A427 /* TradeTrackCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C403ECD22EF4A3D000F3A427 /* TradeTrackCore.framework */; };
 		C403ECE72EF4A3D000F3A427 /* TradeTrackCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C403ECD22EF4A3D000F3A427 /* TradeTrackCore.framework */; };
 		C403ECE82EF4A3D000F3A427 /* TradeTrackCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C403ECD22EF4A3D000F3A427 /* TradeTrackCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C403F1FB2EFEDD5300F3A427 /* TradeTrackMocks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */; };
+		C403F2052EFEDD5300F3A427 /* TradeTrackMocks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */; };
+		C403F2062EFEDD5300F3A427 /* TradeTrackMocks.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C403F20E2EFEDD7C00F3A427 /* TradeTrackCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C403ECD22EF4A3D000F3A427 /* TradeTrackCore.framework */; };
+		C403F20F2EFEDD7C00F3A427 /* TradeTrackCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C403ECD22EF4A3D000F3A427 /* TradeTrackCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C403F2132EFEDDEF00F3A427 /* TradeTrackMocks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */; };
+		C403F2142EFEDDEF00F3A427 /* TradeTrackMocks.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C403F2182EFEDE6800F3A427 /* TradeTrackMocks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */; };
+		C403F2192EFEDE6800F3A427 /* TradeTrackMocks.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C403F2222EFEDF7300F3A427 /* TradeTrackMocks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */; };
+		C403F2232EFEDF7300F3A427 /* TradeTrackMocks.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +59,55 @@
 			remoteGlobalIDString = C403ECD12EF4A3D000F3A427;
 			remoteInfo = TradeTrackCore;
 		};
+		C403F1FC2EFEDD5300F3A427 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C403F1EF2EFEDD5200F3A427;
+			remoteInfo = TradeTrackMocks;
+		};
+		C403F1FE2EFEDD5300F3A427 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C4029F992E2D72BD00334A85;
+			remoteInfo = TradeTrack;
+		};
+		C403F2032EFEDD5300F3A427 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C403F1EF2EFEDD5200F3A427;
+			remoteInfo = TradeTrackMocks;
+		};
+		C403F2102EFEDD7C00F3A427 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C403ECD12EF4A3D000F3A427;
+			remoteInfo = TradeTrackCore;
+		};
+		C403F2152EFEDDEF00F3A427 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C403F1EF2EFEDD5200F3A427;
+			remoteInfo = TradeTrackMocks;
+		};
+		C403F21A2EFEDE6800F3A427 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C403F1EF2EFEDD5200F3A427;
+			remoteInfo = TradeTrackMocks;
+		};
+		C403F2242EFEDF7400F3A427 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C403F1EF2EFEDD5200F3A427;
+			remoteInfo = TradeTrackMocks;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -58,6 +118,51 @@
 			dstSubfolderSpec = 10;
 			files = (
 				C403ECE82EF4A3D000F3A427 /* TradeTrackCore.framework in Embed Frameworks */,
+				C403F2062EFEDD5300F3A427 /* TradeTrackMocks.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F2122EFEDD7C00F3A427 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C403F20F2EFEDD7C00F3A427 /* TradeTrackCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F2172EFEDDEF00F3A427 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C403F2142EFEDDEF00F3A427 /* TradeTrackMocks.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F21C2EFEDE6900F3A427 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C403F2192EFEDE6800F3A427 /* TradeTrackMocks.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F2262EFEDF7400F3A427 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C403F2232EFEDF7300F3A427 /* TradeTrackMocks.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -70,6 +175,8 @@
 		C4029FB12E2D72BF00334A85 /* TradeTrackUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TradeTrackUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C403ECD22EF4A3D000F3A427 /* TradeTrackCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TradeTrackCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C403ECDC2EF4A3D000F3A427 /* TradeTrackCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TradeTrackCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TradeTrackMocks.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C403F1FA2EFEDD5300F3A427 /* TradeTrackMocksTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TradeTrackMocksTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -122,11 +229,17 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ErrorHandling/ErrorHelper.swift,
+				ErrorHandling/MockErrorManager.swift,
 				Integration/VerificationIntegrationTests.swift,
 				Lookup/LookupViewModelTests.swift,
+				Navigating/MockNavigator.swift,
 				Register/MockEmbeddingService.swift,
 				Register/MockRegistrationAPI.swift,
 				Register/RegisterViewModelTests.swift,
+				Verification/MockCameraManager.swift,
+				Verification/MockFaceAnalyzer.swift,
+				Verification/MockFaceCollector.swift,
+				Verification/MockFaceProcessor.swift,
 				Verification/TestHelpers.swift,
 				Verification/VerificationViewModelTests.swift,
 				Verification/VideoFileCameraManager.swift,
@@ -152,6 +265,16 @@
 		C403ECE22EF4A3D000F3A427 /* TradeTrackCoreTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TradeTrackCoreTests;
+			sourceTree = "<group>";
+		};
+		C403F1F12EFEDD5200F3A427 /* TradeTrackMocks */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TradeTrackMocks;
+			sourceTree = "<group>";
+		};
+		C403F2002EFEDD5300F3A427 /* TradeTrackMocksTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TradeTrackMocksTests;
 			sourceTree = "<group>";
 		};
 		C47F63C12E620F2C005F1C59 /* TradeTrackTests */ = {
@@ -180,6 +303,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C403ECE72EF4A3D000F3A427 /* TradeTrackCore.framework in Frameworks */,
+				C403F2052EFEDD5300F3A427 /* TradeTrackMocks.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -187,6 +311,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C403F2132EFEDDEF00F3A427 /* TradeTrackMocks.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -194,6 +319,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C403F2222EFEDF7300F3A427 /* TradeTrackMocks.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -209,6 +335,23 @@
 			buildActionMask = 2147483647;
 			files = (
 				C403ECDD2EF4A3D000F3A427 /* TradeTrackCore.framework in Frameworks */,
+				C403F2182EFEDE6800F3A427 /* TradeTrackMocks.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F1ED2EFEDD5200F3A427 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C403F20E2EFEDD7C00F3A427 /* TradeTrackCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F1F72EFEDD5300F3A427 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C403F1FB2EFEDD5300F3A427 /* TradeTrackMocks.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -223,6 +366,9 @@
 				C4029F9C2E2D72BD00334A85 /* TradeTrack */,
 				C403ECD32EF4A3D000F3A427 /* TradeTrackCore */,
 				C403ECE22EF4A3D000F3A427 /* TradeTrackCoreTests */,
+				C403F1F12EFEDD5200F3A427 /* TradeTrackMocks */,
+				C403F2002EFEDD5300F3A427 /* TradeTrackMocksTests */,
+				C403F20D2EFEDD7C00F3A427 /* Frameworks */,
 				C4029F9B2E2D72BD00334A85 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -235,14 +381,30 @@
 				C4029FB12E2D72BF00334A85 /* TradeTrackUITests.xctest */,
 				C403ECD22EF4A3D000F3A427 /* TradeTrackCore.framework */,
 				C403ECDC2EF4A3D000F3A427 /* TradeTrackCoreTests.xctest */,
+				C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */,
+				C403F1FA2EFEDD5300F3A427 /* TradeTrackMocksTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C403F20D2EFEDD7C00F3A427 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
 		C403ECCD2EF4A3D000F3A427 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F1EB2EFEDD5200F3A427 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -265,6 +427,7 @@
 			);
 			dependencies = (
 				C403ECE62EF4A3D000F3A427 /* PBXTargetDependency */,
+				C403F2042EFEDD5300F3A427 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C4029F9C2E2D72BD00334A85 /* TradeTrack */,
@@ -285,11 +448,13 @@
 				C4029FA32E2D72BF00334A85 /* Sources */,
 				C4029FA42E2D72BF00334A85 /* Frameworks */,
 				C4029FA52E2D72BF00334A85 /* Resources */,
+				C403F2172EFEDDEF00F3A427 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				C4029FA92E2D72BF00334A85 /* PBXTargetDependency */,
+				C403F2162EFEDDEF00F3A427 /* PBXTargetDependency */,
 			);
 			name = TradeTrackTests;
 			packageProductDependencies = (
@@ -305,11 +470,13 @@
 				C4029FAD2E2D72BF00334A85 /* Sources */,
 				C4029FAE2E2D72BF00334A85 /* Frameworks */,
 				C4029FAF2E2D72BF00334A85 /* Resources */,
+				C403F2262EFEDF7400F3A427 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				C4029FB32E2D72BF00334A85 /* PBXTargetDependency */,
+				C403F2252EFEDF7400F3A427 /* PBXTargetDependency */,
 			);
 			name = TradeTrackUITests;
 			packageProductDependencies = (
@@ -348,12 +515,14 @@
 				C403ECD82EF4A3D000F3A427 /* Sources */,
 				C403ECD92EF4A3D000F3A427 /* Frameworks */,
 				C403ECDA2EF4A3D000F3A427 /* Resources */,
+				C403F21C2EFEDE6900F3A427 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				C403ECDF2EF4A3D000F3A427 /* PBXTargetDependency */,
 				C403ECE12EF4A3D000F3A427 /* PBXTargetDependency */,
+				C403F21B2EFEDE6800F3A427 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C403ECE22EF4A3D000F3A427 /* TradeTrackCoreTests */,
@@ -363,6 +532,55 @@
 			);
 			productName = TradeTrackCoreTests;
 			productReference = C403ECDC2EF4A3D000F3A427 /* TradeTrackCoreTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C403F2072EFEDD5300F3A427 /* Build configuration list for PBXNativeTarget "TradeTrackMocks" */;
+			buildPhases = (
+				C403F1EB2EFEDD5200F3A427 /* Headers */,
+				C403F1EC2EFEDD5200F3A427 /* Sources */,
+				C403F1ED2EFEDD5200F3A427 /* Frameworks */,
+				C403F1EE2EFEDD5200F3A427 /* Resources */,
+				C403F2122EFEDD7C00F3A427 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C403F2112EFEDD7C00F3A427 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C403F1F12EFEDD5200F3A427 /* TradeTrackMocks */,
+			);
+			name = TradeTrackMocks;
+			packageProductDependencies = (
+			);
+			productName = TradeTrackMocks;
+			productReference = C403F1F02EFEDD5200F3A427 /* TradeTrackMocks.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		C403F1F92EFEDD5300F3A427 /* TradeTrackMocksTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C403F20A2EFEDD5300F3A427 /* Build configuration list for PBXNativeTarget "TradeTrackMocksTests" */;
+			buildPhases = (
+				C403F1F62EFEDD5300F3A427 /* Sources */,
+				C403F1F72EFEDD5300F3A427 /* Frameworks */,
+				C403F1F82EFEDD5300F3A427 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C403F1FD2EFEDD5300F3A427 /* PBXTargetDependency */,
+				C403F1FF2EFEDD5300F3A427 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C403F2002EFEDD5300F3A427 /* TradeTrackMocksTests */,
+			);
+			name = TradeTrackMocksTests;
+			packageProductDependencies = (
+			);
+			productName = TradeTrackMocksTests;
+			productReference = C403F1FA2EFEDD5300F3A427 /* TradeTrackMocksTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -393,6 +611,13 @@
 						CreatedOnToolsVersion = 16.3;
 						TestTargetID = C4029F992E2D72BD00334A85;
 					};
+					C403F1EF2EFEDD5200F3A427 = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					C403F1F92EFEDD5300F3A427 = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = C4029F992E2D72BD00334A85;
+					};
 				};
 			};
 			buildConfigurationList = C4029F952E2D72BD00334A85 /* Build configuration list for PBXProject "TradeTrack" */;
@@ -414,6 +639,8 @@
 				C4029FB02E2D72BF00334A85 /* TradeTrackUITests */,
 				C403ECD12EF4A3D000F3A427 /* TradeTrackCore */,
 				C403ECDB2EF4A3D000F3A427 /* TradeTrackCoreTests */,
+				C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */,
+				C403F1F92EFEDD5300F3A427 /* TradeTrackMocksTests */,
 			);
 		};
 /* End PBXProject section */
@@ -448,6 +675,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C403ECDA2EF4A3D000F3A427 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F1EE2EFEDD5200F3A427 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F1F82EFEDD5300F3A427 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -492,6 +733,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C403F1EC2EFEDD5200F3A427 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C403F1F62EFEDD5300F3A427 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -519,6 +774,41 @@
 			isa = PBXTargetDependency;
 			target = C403ECD12EF4A3D000F3A427 /* TradeTrackCore */;
 			targetProxy = C403ECE52EF4A3D000F3A427 /* PBXContainerItemProxy */;
+		};
+		C403F1FD2EFEDD5300F3A427 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */;
+			targetProxy = C403F1FC2EFEDD5300F3A427 /* PBXContainerItemProxy */;
+		};
+		C403F1FF2EFEDD5300F3A427 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
+			targetProxy = C403F1FE2EFEDD5300F3A427 /* PBXContainerItemProxy */;
+		};
+		C403F2042EFEDD5300F3A427 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */;
+			targetProxy = C403F2032EFEDD5300F3A427 /* PBXContainerItemProxy */;
+		};
+		C403F2112EFEDD7C00F3A427 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C403ECD12EF4A3D000F3A427 /* TradeTrackCore */;
+			targetProxy = C403F2102EFEDD7C00F3A427 /* PBXContainerItemProxy */;
+		};
+		C403F2162EFEDDEF00F3A427 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */;
+			targetProxy = C403F2152EFEDDEF00F3A427 /* PBXContainerItemProxy */;
+		};
+		C403F21B2EFEDE6800F3A427 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */;
+			targetProxy = C403F21A2EFEDE6800F3A427 /* PBXContainerItemProxy */;
+		};
+		C403F2252EFEDF7400F3A427 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */;
+			targetProxy = C403F2242EFEDF7400F3A427 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -874,6 +1164,110 @@
 			};
 			name = Release;
 		};
+		C403F2082EFEDD5300F3A427 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 928QQJPBJS;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = Jon.TradeTrackMocks;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		C403F2092EFEDD5300F3A427 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 928QQJPBJS;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = Jon.TradeTrackMocks;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		C403F20B2EFEDD5300F3A427 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 928QQJPBJS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Jon.TradeTrackMocksTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TradeTrack.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TradeTrack";
+			};
+			name = Debug;
+		};
+		C403F20C2EFEDD5300F3A427 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 928QQJPBJS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Jon.TradeTrackMocksTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TradeTrack.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TradeTrack";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -927,6 +1321,24 @@
 			buildConfigurations = (
 				C403ECEE2EF4A3D000F3A427 /* Debug */,
 				C403ECEF2EF4A3D000F3A427 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C403F2072EFEDD5300F3A427 /* Build configuration list for PBXNativeTarget "TradeTrackMocks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C403F2082EFEDD5300F3A427 /* Debug */,
+				C403F2092EFEDD5300F3A427 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C403F20A2EFEDD5300F3A427 /* Build configuration list for PBXNativeTarget "TradeTrackMocksTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C403F20B2EFEDD5300F3A427 /* Debug */,
+				C403F20C2EFEDD5300F3A427 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

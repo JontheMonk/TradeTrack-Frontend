@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import TradeTrackCore
 
 /// Camera manager used exclusively for UI tests.
 ///

@@ -92,7 +92,7 @@ enum MockBackendRouter {
     /// Loads a JSON fixture from the TradeTrackCore bundle.
     private static func loadJSON(named name: String) -> Data {
         // This is clean, readable, and safe from shadowing
-        guard let url = Bundle.tradeTrackCore.url(forResource: name, withExtension: "json") else {
+        guard let url = Bundle.tradeTrackMocks.url(forResource: name, withExtension: "json") else {
             fatalError("❌ Fixture '\(name).json' not found in TradeTrackCore.")
         }
         return try! Data(contentsOf: url)
