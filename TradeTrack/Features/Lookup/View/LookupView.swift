@@ -18,7 +18,6 @@ struct LookupView: View {
 
     var body: some View {
         ZStack {
-            // Background ambient glow
             LinearGradient(colors: [Color(.systemGroupedBackground), Color(.systemBackground)],
                            startPoint: .topLeading,
                            endPoint: .bottomTrailing)
@@ -35,8 +34,6 @@ struct LookupView: View {
         .navigationBarTitleDisplayMode(.large)
     }
 
-    // MARK: - Subviews
-    
     private var searchBar: some View {
         HStack {
             Image(systemName: "magnifyingglass")
@@ -86,10 +83,12 @@ struct LookupView: View {
             placeholderState(icon: "person.crop.circle.badge.questionmark", text: "No employees found")
         } else {
             List(vm.results) { emp in
+                // FIXED: Flattening the card so XCUI sees one "Button"
                 EmployeeCard(employee: emp)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("lookup.result.\(emp.employeeId)")
                     .accessibilityAddTraits(.isButton)
                     .onTapGesture {
