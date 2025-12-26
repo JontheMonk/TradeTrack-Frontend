@@ -22,7 +22,6 @@ final class LookupToVerificationSuccessUITests: BaseUITestCase {
         searchField.tap()
         searchField.typeText("test_user")
 
-        // Now works as a button because of .accessibilityAddTraits(.isButton)
         let result = app.buttons["lookup.result.test_user"]
         XCTAssertTrue(result.waitForExistence(timeout: 2))
         result.tap()

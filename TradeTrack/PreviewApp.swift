@@ -9,9 +9,9 @@ struct PreviewApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                VerificationView(viewModel: .previewFailure(errorManager: errorManager))
+                //VerificationView(viewModel: .previewFailure(errorManager: errorManager))
                 // VerificationView(viewModel: .previewSuccess(errorManager: errorManager))
-                // LookupView(viewModel: .previewWithResults(errorManager: errorManager))
+                LookupView(viewModel: .previewWithResults(errorManager: errorManager))
             }
             .overlay(alignment: .top) {
                 ErrorBannerView(errorManager: errorManager)
