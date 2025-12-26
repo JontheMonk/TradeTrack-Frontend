@@ -17,20 +17,26 @@ final class VerificationIntegrationTests: XCTestCase {
     
     // MARK: - Setup Helper
     
-    private func makeSystemUnderTest(videoName: String, employeeId: String = "test_user", mockError: Error? = nil) -> VerificationViewModel {
+    private func makeSystemUnderTest(
+        videoName: String,
+        employeeId: String = "test_user",
+        analyzer: FaceAnalyzerProtocol? = nil,
+        collector: FaceCollecting? = nil,
+        mockError: Error? = nil
+    ) -> VerificationViewModel {
+        
         guard let url = Bundle.tradeTrackCore.url(forResource: videoName, withExtension: "MOV") else {
-            fatalError("❌ Test video fixture '\(videoName).MOV' not found in TradeTrackCore.")
+            fatalError("❌ Test video fixture '\(videoName).MOV' not found.")
         }
         
         let videoCamera = VideoFileCameraManager(videoURL: url)
-        
         let verifier = MockFaceVerificationService()
         verifier.stubbedError = mockError
         
         let vm = VerificationViewModel(
             camera: videoCamera,
-            analyzer: CoreFactory.makeFaceAnalyzer(),
-            collector: FaceCollector(),
+            analyzer: analyzer ?? CoreFactory.makeFaceAnalyzer(),
+            collector: collector ?? FaceCollector(),
             processor: try! CoreFactory.makeFaceProcessor(),
             verifier: verifier,
             errorManager: MockErrorManager(),
@@ -38,7 +44,7 @@ final class VerificationIntegrationTests: XCTestCase {
         )
         
         videoCamera.onFrameCaptured = { [weak vm] frame in
-            vm?.injectTestFrame(frame)
+            vm?.processInputFrame(frame)
         }
         
         return vm
@@ -111,6 +117,46 @@ final class VerificationIntegrationTests: XCTestCase {
         // Threshold check: 0.9 is a standard limit for same-person verification
         XCTAssertLessThan(distance, 0.9, "Lighting changes caused the embedding to drift too far (Distance: \(distance))")
     }
+    
+    func test_vm_producesSimilarEmbeddings_withGlases() async throws {
+        // 1. Arrange - Setup two VMs
+        let vmBright = makeSystemUnderTest(videoName: "jon")
+        let vmGlasses = makeSystemUnderTest(videoName: "jon_glasses")
+        
+        // Cast the verifiers to the Mock type so we can access 'lastEmbedding'
+        guard let mockBright = vmBright.verifier as? MockFaceVerificationService,
+              let mockGlasses = vmGlasses.verifier as? MockFaceVerificationService else {
+            XCTFail("Verifier is not a MockFaceVerificationService")
+            return
+        }
+
+        // 2. Act - Run the first VM until it matches
+        await vmBright.start()
+        try await waitUntil(timeout: 10.0) {
+            if case .matched = vmBright.state { return true }
+            return false
+        }
+        let embeddingBright = try XCTUnwrap(mockBright.lastEmbedding)
+        await vmBright.stop()
+
+        // 3. Act - Run the second VM until it matches
+        await vmGlasses.start()
+        try await waitUntil(timeout: 10.0) {
+            if case .matched = vmGlasses.state { return true }
+            return false
+        }
+        let embeddingGlasses = try XCTUnwrap(mockGlasses.lastEmbedding)
+        await vmGlasses.stop()
+
+        // 4. Assert - Compare the embeddings
+        let distance = calculateEuclideanDistance(embeddingBright.values, embeddingGlasses.values)
+        
+        // Log the distance for easier debugging in the test report
+        print("Lighting Drift Euclidean Distance: \(distance)")
+        
+        // Threshold check: 0.9 is a standard limit for same-person verification
+        XCTAssertLessThan(distance, 0.9, "Lighting changes caused the embedding to drift too far (Distance: \(distance))")
+    }
 
     func test_vm_producesDistinctEmbeddings_forDifferentPeople() async throws {
         let vmUser = makeSystemUnderTest(videoName: "jon")
@@ -148,6 +194,75 @@ final class VerificationIntegrationTests: XCTestCase {
             1.15,
             "The model is producing embeddings that are too similar for different people (Distance: \(distance))"
         )
+    }
+    
+    func test_driveByVideo_shouldBeRejectedForLowQuality() async throws {
+        let spyAnalyzer = MockFaceAnalyzer()
+        
+        let vm = makeSystemUnderTest(videoName: "driveby", analyzer: spyAnalyzer)
+        
+        // 2. Act
+        await vm.start()
+        
+        // Poll the state for up to 5 seconds to let the video play
+        let testTimeout = ContinuousClock().now + .seconds(5)
+        
+        while ContinuousClock().now < testTimeout {
+            // If the state ever hits .matched, the security test fails
+            if case .matched = vm.state {
+                XCTFail("Security Failure: System matched on a high-speed, blurry face.")
+                break
+            }
+            
+            // Short-circuit: if the video reaches a certain frame count, we can stop early
+            if spyAnalyzer.callCount >= 30 { break }
+            
+            try await Task.sleep(nanoseconds: 100_000_000) // 100ms polling
+        }
+
+        // 3. Assert
+        
+        // Verify Security: We stayed in the detecting state
+        XCTAssertEqual(vm.state, .detecting, "VM should remain in detecting state for blurry video.")
+        
+        // Verify Throughput: The gate actually let frames through
+        XCTAssertGreaterThan(spyAnalyzer.callCount, 0, "The analyzer should have been hit multiple times.")
+        
+        // Verify Reset Logic: Progress should be exactly 0.0
+        XCTAssertEqual(vm.collectionProgress, 0.0, "Progress should reset to zero when faces are low quality.")
+        
+        // Verify Hardware Gate: Ensure the gate is OPEN and ready for the next user
+        let isLocked = vm.isProcessingFrame.load(ordering: .relaxed)
+        XCTAssertFalse(isLocked, "The hardware gate should be open after processing fails.")
+        
+        await vm.stop()
+    }
+    
+    func test_vm_concurrency_underHighFrequencyFlood() async throws {
+        // 1. Arrange
+        let vm = makeSystemUnderTest(videoName: "jon")
+        let frameCount = 2000
+        let testFrame = CIImage(color: .red).cropped(to: CGRect(x: 0, y: 0, width: 100, height: 100))
+        
+        // 2. Act: Flood the VM with frames without any delay
+        // This simulates a sensor glitching or a super-high FPS camera
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        for _ in 0..<frameCount {
+            vm.processInputFrame(testFrame)
+        }
+        
+        let duration = CFAbsoluteTimeGetCurrent() - startTime
+        
+        // 3. Assert
+        // Verify that even with 2000 frames, we didn't crash and the gate held
+        XCTAssertLessThan(duration, 0.5, "The gate logic is too slow; it took too long to drop frames.")
+        
+        // Ensure that even after the flood, the VM is still responsive
+        XCTAssertEqual(vm.state, .detecting)
+        
+        // Cleanup
+        await vm.stop()
     }
     
 }
