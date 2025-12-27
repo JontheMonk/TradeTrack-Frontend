@@ -11,13 +11,28 @@ struct PreviewApp: App {
             NavigationStack {
                 //VerificationView(viewModel: .previewFailure(errorManager: errorManager))
                 // VerificationView(viewModel: .previewSuccess(errorManager: errorManager))
-                LookupView(viewModel: .previewWithResults(errorManager: errorManager))
+                //LookupView(viewModel: .previewWithResults(errorManager: errorManager))
+                DashboardView(viewModel: .previewClockedOut(errorManager: errorManager))
             }
             .overlay(alignment: .top) {
                 ErrorBannerView(errorManager: errorManager)
                     .padding(.top, 10)
             }
         }
+    }
+}
+
+// MARK: - Dashboard Mocks
+extension DashboardViewModel {
+    static func previewClockedOut(errorManager: ErrorManager) -> DashboardViewModel {
+        let service = MockTimeTrackingService()
+        service.stubbedStatus = ClockStatus(isClockedIn: false, clockInTime: nil)
+        
+        return DashboardViewModel(
+            employeeId: "EMP001",
+            timeService: service,
+            errorManager: errorManager
+        )
     }
 }
 
