@@ -27,8 +27,15 @@ public struct CoreFactory {
         if let existing = sharedHTTPClient, existing.session === session {
             return existing
         }
+
+        guard let urlString = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String else {
+            fatalError("BASE_URL is missing from Info.plist. Check your xcconfig setup!")
+        }
         
-        let baseURL = URL(string: "http://localhost:8000")!
+        guard let baseURL = URL(string: urlString) else {
+            fatalError("Invalid BASE_URL configuration: \(urlString)")
+        }
+        
         let client = HTTPClient(baseURL: baseURL, session: session)
         sharedHTTPClient = client
         return client

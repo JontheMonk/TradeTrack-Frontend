@@ -180,6 +180,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C403F5872F00179600F3A427 /* Exceptions for "TradeTrackCoreTests" folder in "TradeTrackCoreTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C403ECDB2EF4A3D000F3A427 /* TradeTrackCoreTests */;
+		};
 		C45A143E2E47B46000BFEDF0 /* Exceptions for "TradeTrack" folder in "TradeTrack" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -245,6 +252,9 @@
 		};
 		C403ECE22EF4A3D000F3A427 /* TradeTrackCoreTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C403F5872F00179600F3A427 /* Exceptions for "TradeTrackCoreTests" folder in "TradeTrackCoreTests" target */,
+			);
 			path = TradeTrackCoreTests;
 			sourceTree = "<group>";
 		};
@@ -256,6 +266,11 @@
 		C403F2002EFEDD5300F3A427 /* TradeTrackMocksTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TradeTrackMocksTests;
+			sourceTree = "<group>";
+		};
+		C403F4172EFFFD6B00F3A427 /* Config */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Config;
 			sourceTree = "<group>";
 		};
 		C47F63C12E620F2C005F1C59 /* TradeTrackTests */ = {
@@ -342,6 +357,7 @@
 		C4029F912E2D72BD00334A85 = {
 			isa = PBXGroup;
 			children = (
+				C403F4172EFFFD6B00F3A427 /* Config */,
 				C47F63D82E625C76005F1C59 /* TradeTrackUITests */,
 				C47F63C12E620F2C005F1C59 /* TradeTrackTests */,
 				C4029F9C2E2D72BD00334A85 /* TradeTrack */,
@@ -412,6 +428,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C4029F9C2E2D72BD00334A85 /* TradeTrack */,
+				C403F4172EFFFD6B00F3A427 /* Config */,
 				C47F63C12E620F2C005F1C59 /* TradeTrackTests */,
 				C47F63D82E625C76005F1C59 /* TradeTrackUITests */,
 			);
@@ -796,6 +813,8 @@
 /* Begin XCBuildConfiguration section */
 		C4029FB92E2D72BF00334A85 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = C403F4172EFFFD6B00F3A427 /* Config */;
+			baseConfigurationReferenceRelativePath = Development.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -860,6 +879,8 @@
 		};
 		C4029FBA2E2D72BF00334A85 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = C403F4172EFFFD6B00F3A427 /* Config */;
+			baseConfigurationReferenceRelativePath = Production.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -925,6 +946,7 @@
 				DEVELOPMENT_TEAM = 928QQJPBJS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TradeTrack/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -953,6 +975,7 @@
 				DEVELOPMENT_TEAM = 928QQJPBJS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TradeTrack/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1119,6 +1142,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TradeTrackCoreTests/Info.plist;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Jon.TradeTrackCoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1135,6 +1159,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TradeTrackCoreTests/Info.plist;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Jon.TradeTrackCoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
