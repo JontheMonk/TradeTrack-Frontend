@@ -1,4 +1,5 @@
 import Foundation
+import TradeTrackCore
 
 /// Logical backend endpoints recognized by the mock backend.
 ///
@@ -30,11 +31,11 @@ enum MockEndpoint {
     static func from(_ request: URLRequest) -> MockEndpoint? {
         guard let path = request.url?.path else { return nil }
 
-        if path == "/employees" {
+        if path == APIPaths.search {
             return .employees
         }
 
-        if path == "/verify" {
+        if path == APIPaths.verify {
             return .verify
         }
 

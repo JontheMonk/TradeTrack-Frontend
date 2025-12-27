@@ -29,10 +29,19 @@ final class HTTPClientIntegrationTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        client = HTTPClient(
-            baseURL: URL(string: "http://localhost:8000")!,
-            session: .shared
-        )
+        let bundle = Bundle.tradeTrackCoreTests
+        
+        guard let urlString = bundle.object(forInfoDictionaryKey: "BASE_URL") as? String else {
+            XCTFail("BASE_URL missing from CoreTests Info.plist")
+            return
+        }
+
+        guard let url = URL(string: urlString) else {
+            XCTFail("Invalid BASE_URL: \(urlString)")
+            return
+        }
+
+        client = HTTPClient(baseURL: url, session: .shared)
     }
 
     override func tearDown() {

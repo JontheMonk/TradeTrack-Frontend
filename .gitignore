@@ -26,3 +26,5 @@ DerivedData/
 
 *.HEIC
 *.MOV
+
+Config/*.xcconfig

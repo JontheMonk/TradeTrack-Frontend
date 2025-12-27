@@ -1,0 +1,9 @@
+// ----------------------------------------------------------------------------
+// CONFIGURATION TEMPLATE
+// 
+// Directions:
+// 1. Copy this file to: Config/Development.xcconfig
+// 2. The real .xcconfig is ignored by git to keep local/private settings safe.
+// ----------------------------------------------------------------------------
+
+BASE_URL = http:/$()/localhost:8000
