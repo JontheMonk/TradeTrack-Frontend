@@ -69,6 +69,10 @@ public enum AppErrorCode: String, Equatable {
     case faceConfidenceTooLow  = "FACE_CONFIDENCE_TOO_LOW"
     case noEmployeesFound      = "NO_EMPLOYEES_FOUND"
     case dbError               = "DB_ERROR"
+    case alreadyClockedIn      = "ALREADY_CLOCKED_IN"
+    case notClockedIn          = "NOT_CLOCKED_IN"
+    
+    
 
 
     // MARK: Network / Transport
@@ -153,6 +157,10 @@ public func userMessage(for code: AppErrorCode) -> String {
         return "No employees are registered in the system."
     case .dbError:
         return "Server error. Please try again later."
+    case .alreadyClockedIn:
+        return "You're already clocked in."
+    case .notClockedIn:
+        return "You're not clocked in."
 
 
     // MARK: Network / Transport

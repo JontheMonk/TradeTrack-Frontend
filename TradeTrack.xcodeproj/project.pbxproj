@@ -213,6 +213,7 @@
 		C47F63C82E620FFB005F1C59 /* Exceptions for "TradeTrackTests" folder in "TradeTrackTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Dashboard/DashboardViewModelTests.swift,
 				ErrorHandling/ErrorHelper.swift,
 				Integration/VerificationIntegrationTests.swift,
 				Lookup/LookupViewModelTests.swift,
@@ -225,6 +226,7 @@
 		C47F63CA2E621014005F1C59 /* Exceptions for "TradeTrackTests" folder in "TradeTrack" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Dashboard/DashboardViewModelTests.swift,
 				ErrorHandling/ErrorHelper.swift,
 				Integration/VerificationIntegrationTests.swift,
 				Lookup/LookupViewModelTests.swift,
