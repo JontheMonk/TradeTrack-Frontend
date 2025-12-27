@@ -22,6 +22,9 @@
 /// ```
 public enum Route: Hashable {
 
+    /// Dashboard screen.
+    //case dashboard
+    
     /// Employee lookup screen.
     case lookup
 

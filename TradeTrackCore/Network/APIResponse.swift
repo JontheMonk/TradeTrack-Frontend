@@ -76,4 +76,4 @@ extension APIResponse: Encodable where T: Encodable {}
 /// ```swift
 /// let _: APIResponse<Empty> = try await http.post("/reset", body)
 /// ```
-struct Empty: Codable {}
+struct Empty: Decodable {}
