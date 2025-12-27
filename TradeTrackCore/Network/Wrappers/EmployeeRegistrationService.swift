@@ -30,7 +30,7 @@ struct EmployeeRegistrationService: EmployeeRegistrationServing {
     func addEmployee(_ input: EmployeeInput) async throws {
         let _: Empty? = try await http.send(
             "POST",
-            path: "add-employee",
+            path: APIPaths.register,
             body: input
         )
     }

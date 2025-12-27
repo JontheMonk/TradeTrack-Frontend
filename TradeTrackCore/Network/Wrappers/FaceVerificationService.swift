@@ -51,7 +51,7 @@ struct FaceVerificationService: FaceVerificationProtocol {
 
         let _: Empty? = try await http.send(
             "POST",
-            path: "/employees/verify",
+            path: APIPaths.verify,
             body: request
         )
     }

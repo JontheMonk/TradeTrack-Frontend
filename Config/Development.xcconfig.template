@@ -6,4 +6,4 @@
 // 2. The real .xcconfig is ignored by git to keep local/private settings safe.
 // ----------------------------------------------------------------------------
 
-BASE_URL = http:\/\/localhost:8000
+BASE_URL = http:/$()/localhost:8000

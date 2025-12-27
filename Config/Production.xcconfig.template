@@ -7,6 +7,6 @@
 // 3. The real .xcconfig is ignored by git to keep your production URL private.
 // ----------------------------------------------------------------------------
 
-// Example: https:\/\/api.tradetrack.com
-BASE_URL = https:\/\/api.yourdomain.com
+// Example: https:/$()/api.tradetrack.com
+BASE_URL = https:/$()/api.yourdomain.com
 
