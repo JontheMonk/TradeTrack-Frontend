@@ -9,7 +9,6 @@ struct DashboardView: View {
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        NavigationStack {
             ZStack {
                 // Dark gradient background
                 LinearGradient(
@@ -50,6 +49,7 @@ struct DashboardView: View {
                         // Inner content
                         VStack(spacing: 8) {
                             Text(viewModel.isClockedIn ? "ON SHIFT" : "OFF SHIFT")
+                                .accessibilityIdentifier("dashboard.status")
                                 .font(.system(size: 14, weight: .bold, design: .monospaced))
                                 .tracking(3)
                                 .foregroundColor(viewModel.isClockedIn ? .green : .gray)
@@ -102,6 +102,7 @@ struct DashboardView: View {
                     .opacity(viewModel.isLoading ? 0.6 : 1)
                     .padding(.horizontal, 32)
                     .padding(.bottom, 60)
+                    .accessibilityIdentifier("dashboard.clock_button")
                 }
             }
             .toolbar {
@@ -131,7 +132,6 @@ struct DashboardView: View {
             } message: {
                 Text("You'll need to verify your face again to clock in.")
             }
-        }
         .task { await viewModel.onAppear() }
         .onChange(of: viewModel.clockInTime) { _, newTime in
             if let time = newTime {

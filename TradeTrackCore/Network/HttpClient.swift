@@ -72,6 +72,9 @@ import Foundation
         // Backend expects snake_case keys
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         encoder.keyEncodingStrategy = .convertToSnakeCase
+        
+        decoder.dateDecodingStrategy = .custom(decodeISO8601Date)
+        encoder.dateEncodingStrategy = .iso8601
     }
 
     // MARK: - Public API (No Body)
@@ -174,5 +177,47 @@ import Foundation
             throw AppError(code: .unknown, underlyingError: error)
         }
     }
+     
+     
+     /// Custom date decoder that handles ISO 8601 with optional fractional seconds
+     private func decodeISO8601Date(decoder: Decoder) throws -> Date {
+         let container = try decoder.singleValueContainer()
+         let dateString = try container.decode(String.self)
+         
+         // Use DateFormatter for more flexibility with timezone-less dates
+         let formatter = DateFormatter()
+         formatter.locale = Locale(identifier: "en_US_POSIX")
+         formatter.timeZone = TimeZone(secondsFromGMT: 0) // Assume UTC if no timezone
+         
+         // Try format with fractional seconds: "2025-12-28T21:18:59.864233"
+         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+         if let date = formatter.date(from: dateString) {
+             return date
+         }
+         
+         // Try format without fractional seconds: "2025-12-28T21:18:59"
+         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+         if let date = formatter.date(from: dateString) {
+             return date
+         }
+         
+         // Try ISO8601DateFormatter as fallback (in case timezone is present)
+         let isoFormatter = ISO8601DateFormatter()
+         isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+         if let date = isoFormatter.date(from: dateString) {
+             return date
+         }
+         
+         isoFormatter.formatOptions = [.withInternetDateTime]
+         if let date = isoFormatter.date(from: dateString) {
+             return date
+         }
+         
+         // If all fail, throw an error
+         throw DecodingError.dataCorruptedError(
+             in: container,
+             debugDescription: "Invalid date format: \(dateString)"
+         )
+     }
 
 }

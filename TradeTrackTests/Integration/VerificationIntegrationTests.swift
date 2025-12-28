@@ -72,7 +72,7 @@ final class VerificationIntegrationTests: XCTestCase {
         
         XCTAssertEqual(vm.collectionProgress, 0.0)
         if case .matched(let name) = vm.state {
-            XCTAssertEqual(name, "Jon")  // Now checks the name, not ID
+            XCTAssertEqual(name, "Jon")
         } else {
             XCTFail("Expected state to be .matched")
         }

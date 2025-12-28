@@ -93,8 +93,9 @@ final class DashboardViewModel: ObservableObject {
     
     private func fetchStatus() async {
         isLoading = true
-        defer { isLoading = false }
-        
+        defer {
+            isLoading = false
+        }
         do {
             let status = try await timeService.getStatus(employeeId: employee.employeeId)
             applyStatus(status)
