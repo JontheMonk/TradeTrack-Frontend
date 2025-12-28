@@ -25,6 +25,7 @@ actor FaceDetector: FaceDetectorProtocol {
     }
     
     func detect(in image: CIImage) async -> (VNFaceObservation, Float)? {
+        print("🔍 detect() called - image: \(ObjectIdentifier(image)), size: \(image.extent.size)")
         let orientation = image.cgOrientation
         
         do {

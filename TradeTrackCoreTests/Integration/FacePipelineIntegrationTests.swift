@@ -6,47 +6,54 @@ import CoreImage
 @MainActor
 final class FacePipelineIntegrationTests: XCTestCase {
 
+    private var extractor: FaceEmbeddingExtracting!
+    
+    override func setUp() async throws {
+        try await super.setUp()
+        extractor = try CoreFactory.makeFaceExtractor()
+    }
+    
+    override func tearDown() async throws {
+        extractor = nil
+        try await super.tearDown()
+    }
+    
+    
     func test_extractor_producesNormalized512Vector() async throws {
-
-        let extractor = try CoreFactory.makeFaceExtractor()
-        // 4. Load and Execute
         let image = loadCIImage(named: "jon_1")
         let embedding = try await extractor.embedding(from: image)
 
-        // 5. Verification
         XCTAssertEqual(embedding.values.count, 512, "Vector count must match InsightFace output.")
         
         let magnitude = calculateL2Norm(embedding.values)
         XCTAssertEqual(magnitude, 1.0, accuracy: 0.001, "Vectors must be normalized.")
     }
     
-    func test_extractor_returnsNil_whenChairIsProvided() async throws {
-        // 1. Arrange
-        let extractor = try CoreFactory.makeFaceExtractor()
-        let chairImage = loadCIImage(named: "chair")
-        
-        let result = try? await extractor.embedding(from: chairImage)
-
-        // 3. Assert
-        XCTAssertNil(result, "The pipeline should return nil for a chair, not an embedding.")
-    }
     
     func test_extractor_recognizesSamePerson_acrossDifferentImages() async throws {
-        let extractor = try CoreFactory.makeFaceExtractor()
         let jon1 = loadCIImage(named: "jon_1")
         let jon2 = loadCIImage(named: "jon_2")
 
         let embedding1 = try await extractor.embedding(from: jon1)
         let embedding2 = try await extractor.embedding(from: jon2)
-
+        
         let similarity = cosineSimilarity(embedding1.values, embedding2.values)
 
-        // Same person should have high similarity (> 0.6)
-        XCTAssertGreaterThan(similarity, 0.6, "Similarity (\(similarity)) is too low; images should represent the same person.")
+        XCTAssertGreaterThan(similarity, 0.6, "Similarity (\(similarity)) is too low")
     }
+    
+    
+    func test_extractor_returnsNil_whenChairIsProvided() async throws {
+        let chairImage = loadCIImage(named: "chair")
+        
+        let result = try? await extractor.embedding(from: chairImage)
+
+        XCTAssertNil(result, "The pipeline should return nil for a chair, not an embedding.")
+    }
+    
+    
 
     func test_extractor_rejectsDifferentPerson() async throws {
-        let extractor = try CoreFactory.makeFaceExtractor()
         let jon1 = loadCIImage(named: "jon_1")
         let imposter = loadCIImage(named: "imposter")
 
@@ -55,8 +62,90 @@ final class FacePipelineIntegrationTests: XCTestCase {
 
         let similarity = cosineSimilarity(embedding1.values, embedding2.values)
 
-        // Different people should have low similarity (< 0.4)
         XCTAssertLessThan(similarity, 0.4, "Similarity (\(similarity)) is too high; model might confuse an imposter.")
+    }
+    
+    
+    
+    // MARK: - Athlete Rejection Tests
+
+    
+    /// Tests that all athletes are rejected when compared to the registered user (Jon)
+    func test_rejectsAllAthletes_againstRegisteredUser() async throws {
+        let jon = loadCIImage(named: "jon_1")
+        let jonEmbedding = try await extractor.embedding(from: jon)
+        
+        let athletes = ["kerr", "moi", "delap", "levi"]
+    
+        for athleteName in athletes {
+            let athleteImage = loadCIImage(named: athleteName)
+            let athleteEmbedding = try await extractor.embedding(from: athleteImage)
+            
+            let similarity = cosineSimilarity(jonEmbedding.values, athleteEmbedding.values)
+            
+            XCTAssertLessThan(
+                similarity,
+                0.4,
+                "\(athleteName) similarity to Jon is too high: \(similarity)"
+            )
+        }
+    }
+    
+
+    /// Tests that different athletes are distinguished from each other
+    func test_distinguishesBetweenDifferentAthletes() async throws {
+        
+        let athletes = ["kerr", "moi", "delap", "levi"]
+        var embeddings: [String: FaceEmbedding] = [:]
+        
+        for name in athletes {
+            let image = loadCIImage(named: name)
+            embeddings[name] = try await extractor.embedding(from: image)
+        }
+        
+        // Compare each pair
+        for i in 0..<athletes.count {
+            for j in (i + 1)..<athletes.count {
+                let name1 = athletes[i]
+                let name2 = athletes[j]
+                
+                let similarity = cosineSimilarity(
+                    embeddings[name1]!.values,
+                    embeddings[name2]!.values
+                )
+                
+                XCTAssertLessThan(
+                    similarity,
+                    0.4,
+                    "\(name1) vs \(name2) similarity too high: \(similarity)"
+                )
+            }
+        }
+    }
+    
+    
+
+    /// Tests diversity: model correctly rejects across gender and ethnicity
+    func test_rejectsAcrossGenderAndEthnicity() async throws {
+        
+        // Sam Kerr (female) vs male athletes
+        let samImage = loadCIImage(named: "kerr")
+        let samEmbedding = try await extractor.embedding(from: samImage)
+        
+        let maleAthletes = ["moi", "delap", "levi"]
+        
+        for maleName in maleAthletes {
+            let maleImage = loadCIImage(named: maleName)
+            let maleEmbedding = try await extractor.embedding(from: maleImage)
+            
+            let similarity = cosineSimilarity(samEmbedding.values, maleEmbedding.values)
+            
+            XCTAssertLessThan(
+                similarity,
+                0.4,
+                "Sam vs \(maleName) similarity too high: \(similarity)"
+            )
+        }
     }
 }
 
@@ -81,7 +170,6 @@ private extension FacePipelineIntegrationTests {
     }
     
     private func cosineSimilarity(_ v1: [Float], _ v2: [Float]) -> Float {
-        // For normalized vectors, dot product = cosine similarity
         guard v1.count == v2.count else { return 0 }
         return zip(v1, v2).map(*).reduce(0, +)
     }
