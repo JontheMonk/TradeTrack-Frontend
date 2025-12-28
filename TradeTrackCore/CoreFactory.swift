@@ -136,4 +136,12 @@ public struct CoreFactory {
         let http = getClient(session: session)
         return FaceVerificationService(http: http)
     }
+    
+    /// Creates a service for time tracking (clock in/out, status).
+    /// - Parameter session: The `URLSession` to use for network communication.
+    /// - Returns: An implementation of `TimeTrackingServing`.
+    public static func makeTimeTrackingService(session: URLSession) -> TimeTrackingServing {
+        let http = getClient(session: session)
+        return TimeTrackingService(http: http)
+    }
 }

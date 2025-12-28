@@ -33,6 +33,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     let errorManager: ErrorHandling
     let collector: FaceCollecting
     let analyzer: FaceAnalyzerProtocol
+    let navigator: VerificationNavigator
 
     // MARK: - Published UI State
 
@@ -42,8 +43,8 @@ final class VerificationViewModel: NSObject, ObservableObject {
     /// A value from 0.0 to 1.0 representing how much biometric data has been gathered.
     @Published var collectionProgress: Double = 0.0
 
-    /// The ID of the employee we are attempting to verify against.
-    var targetEmployeeID: String?
+    /// The employee we are attempting to verify against.
+    let employee: EmployeeResult
     
     /// Exposes the camera's capture session directly to SwiftUI VideoPreview views.
     var session: AVCaptureSession { camera.uiCaptureSession }
@@ -81,7 +82,8 @@ final class VerificationViewModel: NSObject, ObservableObject {
         processor: FaceProcessing,
         verifier: FaceVerificationProtocol,
         errorManager: ErrorHandling,
-        employeeId: String
+        navigator: VerificationNavigator,
+        employee: EmployeeResult
     ) {
         self.camera = camera
         self.analyzer = analyzer
@@ -89,7 +91,8 @@ final class VerificationViewModel: NSObject, ObservableObject {
         self.processor = processor
         self.verifier = verifier
         self.errorManager = errorManager
-        self.targetEmployeeID = employeeId
+        self.employee = employee
+        self.navigator = navigator
         super.init()
     }
     
@@ -219,15 +222,15 @@ final class VerificationViewModel: NSObject, ObservableObject {
             guard let self = self else { return }
 
             do {
-                let resultID = try await performVerification(face: face, image: image)
-                self.state = .matched(name: resultID)
+                let name = try await performVerification(face: face, image: image)
+                self.state = .matched(name: name)
                 self.task = nil
+                navigator.goToDashboard(employee: employee)
             } catch is CancellationError {
                 self.isProcessingFrame.store(false, ordering: .relaxed)
                 self.task = nil
                 logger.debug("Verification task cancelled.")
             } catch {
-                //self.isProcessingFrame.store(false, ordering: .relaxed)
                 self.task = nil
                 handleVerificationError(error)
             }
@@ -246,13 +249,10 @@ final class VerificationViewModel: NSObject, ObservableObject {
         
         try Task.checkCancellation()
 
-        guard let employeeID = self.targetEmployeeID else {
-            throw AppError(code: .employeeNotFound)
-        }
         
         // Network Call
-        try await verifier.verifyFace(employeeId: employeeID, embedding: embedding)
-        return employeeID
+        try await verifier.verifyFace(employeeId: employee.employeeId, embedding: embedding)
+        return employee.name
     }
 
     private func handleVerificationError(_ error: Error) {

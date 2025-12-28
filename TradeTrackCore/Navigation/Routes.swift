@@ -21,15 +21,15 @@
 /// navigator.push(.register)
 /// ```
 public enum Route: Hashable {
-
-    /// Dashboard screen.
-    //case dashboard
     
     /// Employee lookup screen.
     case lookup
 
     /// Verification screen for a specific employee.
-    case verification(employeeId: String)
+    case verification(employee: EmployeeResult)
+    
+    /// Dashboard screen.
+    case dashboard(employee: EmployeeResult)
 
     /// New-employee registration screen.
     case register

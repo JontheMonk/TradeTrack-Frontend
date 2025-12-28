@@ -11,6 +11,8 @@
 /// - `Decodable` so it can be parsed directly from JSON responses.
 /// - `Identifiable` so it integrates cleanly with SwiftUI lists (using
 ///   `employeeId` as the stable identity).
+/// - `Hashable` so it integrates cleanly with SwiftUI routes 
+///
 ///
 /// ### Fields
 /// - `employeeId`: The unique backend identifier (primary key).
@@ -28,7 +30,7 @@
 ///
 /// Because it’s intentionally small, this model is used only for *reading*
 /// employee data. For *writing* (creating/registration), use `EmployeeInput`.
-public struct EmployeeResult: Identifiable, Decodable {
+public struct EmployeeResult: Identifiable, Decodable, Hashable {
     public let employeeId: String
     public let name: String
     public let role: String

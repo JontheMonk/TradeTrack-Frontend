@@ -14,7 +14,11 @@ final class VerificationViewModelTests: XCTestCase {
     private var mockProcessor: MockFaceProcessor!
     private var mockVerifier: MockFaceVerificationService!
     private var mockError: MockErrorManager!
+    private var mockNavigator: VerificationNavigator!
     private var vm: VerificationViewModel!
+    
+    private var mockNav: MockNavigator!
+    private var employee: EmployeeResult!
 
     private let dummyImage = CIImage(color: .red).cropped(to: CGRect(x: 0, y: 0, width: 200, height: 200))
 
@@ -25,6 +29,9 @@ final class VerificationViewModelTests: XCTestCase {
         mockProcessor = MockFaceProcessor()
         mockVerifier = MockFaceVerificationService()
         mockError = MockErrorManager()
+        mockNav = MockNavigator()
+        mockNavigator = VerificationNavigator(nav: mockNav)
+        employee = EmployeeResult(employeeId: "123", name: "Test User", role: "employee")
 
         vm = VerificationViewModel(
             camera: mockCamera,
@@ -33,7 +40,8 @@ final class VerificationViewModelTests: XCTestCase {
             processor: mockProcessor,
             verifier: mockVerifier,
             errorManager: mockError,
-            employeeId: "123"
+            navigator: mockNavigator,
+            employee: employee
         )
     }
 
@@ -56,7 +64,7 @@ final class VerificationViewModelTests: XCTestCase {
         await vm._test_runFrame(dummyImage)
 
         // Then
-        XCTAssertEqual(vm.state, .matched(name: "123"))
+        XCTAssertEqual(vm.state, .matched(name: "Test User"))
         XCTAssertEqual(mockProcessor.callCount, 1)
         XCTAssertEqual(mockVerifier.callCount, 1)
     }
@@ -130,20 +138,6 @@ final class VerificationViewModelTests: XCTestCase {
         XCTAssertNil(nextTask, "Should drop frames while locked")
     }
 
-    func test_missingEmployeeID_failsEarly() async {
-        // Given
-        vm.targetEmployeeID = nil
-        mockAnalyzer.stubbedFace = makeFace()
-        mockCollector.stubbedResult = (winner: (makeFace(), dummyImage), progress: 0.0)
-
-        // When
-        await vm._test_runFrame(dummyImage)
-
-        // Then
-        XCTAssertEqual(mockError.lastError?.code, .employeeNotFound)
-        XCTAssertEqual(vm.state, .detecting)
-    }
-
     func test_start_handlesCameraAuthorizationFailure() async {
         // Given
         mockCamera.startShouldThrow = AppError(code: .cameraNotAuthorized)
@@ -182,5 +176,20 @@ final class VerificationViewModelTests: XCTestCase {
                        "Retry must explicitly re-open the hardware gate")
         XCTAssertEqual(vm.state, .detecting, "State should reset to detecting after retry")
         XCTAssertEqual(vm.collectionProgress, 0.0, "Progress should reset to 0 after retry")
+    }
+    
+    func test_successfulVerification_navigatesToDashboard() async {
+        // Given
+        let face = makeFace()
+        mockAnalyzer.stubbedFace = face
+        mockAnalyzer.stubbedQuality = 1.0
+        mockCollector.stubbedResult = (winner: (face, dummyImage), progress: 0.0)
+        
+        // When
+        await vm._test_runFrame(dummyImage)
+        
+        // Then
+        XCTAssertEqual(mockNav.pushed.count, 1)
+        XCTAssertEqual(mockNav.pushed.first, .dashboard(employee: employee))
     }
 }

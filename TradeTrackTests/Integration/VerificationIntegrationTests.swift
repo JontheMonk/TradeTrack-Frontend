@@ -20,7 +20,7 @@ final class VerificationIntegrationTests: XCTestCase {
     
     private func makeSystemUnderTest(
         videoName: String,
-        employeeId: String = "test_user",
+        employee: EmployeeResult = EmployeeResult(employeeId: "test_user", name: "Test User", role: "employee"),
         analyzer: FaceAnalyzerProtocol? = nil,
         collector: FaceCollecting? = nil,
         mockError: Error? = nil
@@ -41,7 +41,8 @@ final class VerificationIntegrationTests: XCTestCase {
             processor: try! CoreFactory.makeFaceProcessor(),
             verifier: verifier,
             errorManager: MockErrorManager(),
-            employeeId: employeeId
+            navigator: VerificationNavigator(nav: MockNavigator()),
+            employee: employee
         )
         
         videoCamera.onFrameCaptured = { [weak vm] frame in
@@ -51,16 +52,16 @@ final class VerificationIntegrationTests: XCTestCase {
         return vm
     }
     
-    private func calculateEuclideanDistance(_ v1: [Float], _ v2: [Float]) -> Float {
-        guard v1.count == v2.count else { return .infinity }
-        let sumOfSquares = zip(v1, v2).map { pow($0 - $1, 2) }.reduce(0, +)
-        return sqrt(sumOfSquares)
+    private func cosineSimilarity(_ v1: [Float], _ v2: [Float]) -> Float {
+        guard v1.count == v2.count else { return 0 }
+        return zip(v1, v2).map(*).reduce(0, +)
     }
 
     // MARK: - Tests
 
     func testSuccessfulMatchFlow() async throws {
-        let vm = makeSystemUnderTest(videoName: "jon", employeeId: "jon")
+        let employee = EmployeeResult(employeeId: "jon", name: "Jon", role: "employee")
+        let vm = makeSystemUnderTest(videoName: "jon", employee: employee)
         
         await vm.start()
         
@@ -71,7 +72,7 @@ final class VerificationIntegrationTests: XCTestCase {
         
         XCTAssertEqual(vm.collectionProgress, 0.0)
         if case .matched(let name) = vm.state {
-            XCTAssertEqual(name, "jon")
+            XCTAssertEqual(name, "Jon")  // Now checks the name, not ID
         } else {
             XCTFail("Expected state to be .matched")
         }
@@ -109,14 +110,9 @@ final class VerificationIntegrationTests: XCTestCase {
         let embeddingDim = try XCTUnwrap(mockDim.lastEmbedding)
         await vmDim.stop()
 
-        // 4. Assert - Compare the embeddings
-        let distance = calculateEuclideanDistance(embeddingBright.values, embeddingDim.values)
-        
-        // Log the distance for easier debugging in the test report
-        print("Lighting Drift Euclidean Distance: \(distance)")
-        
-        // Threshold check: 0.9 is a standard limit for same-person verification
-        XCTAssertLessThan(distance, 0.9, "Lighting changes caused the embedding to drift too far (Distance: \(distance))")
+        let similarity = cosineSimilarity(embeddingBright.values, embeddingDim.values)
+        print("Lighting Drift Cosine Similarity: \(similarity)")
+        XCTAssertGreaterThan(similarity, 0.6, "Lighting changes caused the embedding to drift too far (Similarity: \(similarity))")
     }
     
     func test_vm_producesSimilarEmbeddings_withGlases() async throws {
@@ -149,14 +145,9 @@ final class VerificationIntegrationTests: XCTestCase {
         let embeddingGlasses = try XCTUnwrap(mockGlasses.lastEmbedding)
         await vmGlasses.stop()
 
-        // 4. Assert - Compare the embeddings
-        let distance = calculateEuclideanDistance(embeddingBright.values, embeddingGlasses.values)
-        
-        // Log the distance for easier debugging in the test report
-        print("Lighting Drift Euclidean Distance: \(distance)")
-        
-        // Threshold check: 0.9 is a standard limit for same-person verification
-        XCTAssertLessThan(distance, 0.9, "Lighting changes caused the embedding to drift too far (Distance: \(distance))")
+        let similarity = cosineSimilarity(embeddingBright.values, embeddingGlasses.values)
+        print("Glasses Cosine Similarity: \(similarity)")
+        XCTAssertGreaterThan(similarity, 0.6, "Glasses caused the embedding to drift too far (Similarity: \(similarity))")
     }
 
     func test_vm_producesDistinctEmbeddings_forDifferentPeople() async throws {
@@ -186,14 +177,12 @@ final class VerificationIntegrationTests: XCTestCase {
         let embeddingImposter = try XCTUnwrap(mockImposter.lastEmbedding)
         await vmImposter.stop()
 
-        let distance = calculateEuclideanDistance(embeddingUser.values, embeddingImposter.values)
-        
-        print("Inter-person Euclidean Distance: \(distance)")
-
-        XCTAssertGreaterThan(
-            distance,
-            1.15,
-            "The model is producing embeddings that are too similar for different people (Distance: \(distance))"
+        let similarity = cosineSimilarity(embeddingUser.values, embeddingImposter.values)
+        print("Inter-person Cosine Similarity: \(similarity)")
+        XCTAssertLessThan(
+            similarity,
+            0.4,
+            "The model is producing embeddings that are too similar for different people (Similarity: \(similarity))"
         )
     }
     

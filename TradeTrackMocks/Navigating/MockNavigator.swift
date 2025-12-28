@@ -23,6 +23,11 @@ final class MockNavigator: Navigating {
     ///
     /// Useful for verifying back-navigation behavior.
     private(set) var popCount: Int = 0
+    
+    /// Number of times `popRoot()` was invoked.
+    ///
+    /// Useful for verifying sign-out behavior.
+    private(set) var popToRootCount = 0
 
     /// Records a navigation push request.
     func push(_ route: Route) {
@@ -32,5 +37,10 @@ final class MockNavigator: Navigating {
     /// Records a back-navigation request.
     func pop() {
         popCount += 1
+    }
+    
+    /// Records sign-out request
+    func popToRoot() {
+        popToRootCount += 1
     }
 }
