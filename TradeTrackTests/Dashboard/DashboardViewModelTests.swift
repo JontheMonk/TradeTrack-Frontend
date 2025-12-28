@@ -84,7 +84,7 @@ final class DashboardViewModelTests: XCTestCase {
         
         XCTAssertNotNil(mockError.lastError)
         XCTAssertEqual(mockError.lastError?.code, .alreadyClockedIn)
-        XCTAssertFalse(vm.isClockedIn)  // State unchanged on error
+        XCTAssertFalse(vm.isClockedIn)
     }
     
     // MARK: - Clock Out Tests

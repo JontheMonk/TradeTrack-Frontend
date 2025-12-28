@@ -12,7 +12,8 @@ struct PreviewApp: App {
                 //VerificationView(viewModel: .previewFailure(errorManager: errorManager))
                 // VerificationView(viewModel: .previewSuccess(errorManager: errorManager))
                 //LookupView(viewModel: .previewWithResults(errorManager: errorManager))
-                DashboardView(viewModel: .previewClockedOut(errorManager: errorManager))
+                DashboardView(viewModel: .preview(errorManager: errorManager))
+                //DashboardView(viewModel: .previewWithError(errorManager: errorManager))
             }
             .overlay(alignment: .top) {
                 ErrorBannerView(errorManager: errorManager)
@@ -24,9 +25,19 @@ struct PreviewApp: App {
 
 // MARK: - Dashboard Mocks
 extension DashboardViewModel {
-    static func previewClockedOut(errorManager: ErrorManager) -> DashboardViewModel {
+    static func preview(errorManager: ErrorManager) -> DashboardViewModel {
         let service = MockTimeTrackingService()
-        service.stubbedStatus = ClockStatus(isClockedIn: false, clockInTime: nil)
+        
+        return DashboardViewModel(
+            employeeId: "EMP001",
+            timeService: service,
+            errorManager: errorManager
+        )
+    }
+    
+    static func previewWithError(errorManager: ErrorManager) -> DashboardViewModel {
+        let service = MockTimeTrackingService()
+        service.stubbedError = AppError(code: .networkUnavailable)
         
         return DashboardViewModel(
             employeeId: "EMP001",
