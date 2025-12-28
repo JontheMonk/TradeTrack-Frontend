@@ -29,7 +29,7 @@ final class DashboardViewModel: ObservableObject {
     let employee: EmployeeResult
     
     var isAdmin: Bool {
-        employee.role == "admin"
+        employee.role == "Admin"
     }
     
     // MARK: - Dependencies

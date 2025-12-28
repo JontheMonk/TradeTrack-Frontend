@@ -20,7 +20,7 @@ final class VerificationIntegrationTests: XCTestCase {
     
     private func makeSystemUnderTest(
         videoName: String,
-        employee: EmployeeResult = EmployeeResult(employeeId: "test_user", name: "Test User", role: "employee"),
+        employee: EmployeeResult = EmployeeResult(employeeId: "test_user", name: "Test User", role: "Employee"),
         analyzer: FaceAnalyzerProtocol? = nil,
         collector: FaceCollecting? = nil,
         mockError: Error? = nil
@@ -60,7 +60,7 @@ final class VerificationIntegrationTests: XCTestCase {
     // MARK: - Tests
 
     func testSuccessfulMatchFlow() async throws {
-        let employee = EmployeeResult(employeeId: "jon", name: "Jon", role: "employee")
+        let employee = EmployeeResult(employeeId: "jon", name: "Jon", role: "Employee")
         let vm = makeSystemUnderTest(videoName: "jon", employee: employee)
         
         await vm.start()

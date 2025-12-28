@@ -5,7 +5,10 @@ import os.log
 /// An actor-based wrapper around Apple's Vision framework.
 /// Actors ensure that the stateful sequenceHandler is accessed serially.
 actor FaceDetector: FaceDetectorProtocol {
+    // For testing
     private let usesCPUOnly: Bool
+    // For faceExtractor
+    private let isImage: Bool
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "face-detection")
     
     private let detectionReq = VNDetectFaceRectanglesRequest()
@@ -13,11 +16,13 @@ actor FaceDetector: FaceDetectorProtocol {
     
     private var sequenceHandler = VNSequenceRequestHandler()
     
-    init(usesCPUOnly: Bool = false) {
+    init(usesCPUOnly: Bool = false, isImage: Bool = false) {
         self.usesCPUOnly = usesCPUOnly
+        self.isImage = isImage
+        
         detectionReq.usesCPUOnly = usesCPUOnly
         qualityReq.usesCPUOnly = usesCPUOnly
-        
+  
         if #available(iOS 15.0, *) {
             detectionReq.revision = VNDetectFaceRectanglesRequestRevision3
             qualityReq.revision = VNDetectFaceCaptureQualityRequestRevision3
@@ -25,18 +30,22 @@ actor FaceDetector: FaceDetectorProtocol {
     }
     
     func detect(in image: CIImage) async -> (VNFaceObservation, Float)? {
-        print("🔍 detect() called - image: \(ObjectIdentifier(image)), size: \(image.extent.size)")
         let orientation = image.cgOrientation
         
         do {
-            try sequenceHandler.perform([detectionReq, qualityReq], on: image, orientation: orientation)
-            
-            guard let detectedFace = detectionReq.results?.first else { return nil }
-            
-            let qualityResult = qualityReq.results?.first { $0.uuid == detectedFace.uuid }
-            let score = qualityResult?.faceCaptureQuality ?? 0.0
-            
-            return (detectedFace, score)
+            if isImage {
+                // Skip quality check for static images
+                try sequenceHandler.perform([detectionReq], on: image, orientation: orientation)
+                guard let detectedFace = detectionReq.results?.first else { return nil }
+                return (detectedFace, 1.0)
+            } else {
+                // Full quality check for video frames
+                try sequenceHandler.perform([detectionReq, qualityReq], on: image, orientation: orientation)
+                guard let detectedFace = detectionReq.results?.first else { return nil }
+                let qualityResult = qualityReq.results?.first { $0.uuid == detectedFace.uuid }
+                let score = qualityResult?.faceCaptureQuality ?? 0.0
+                return (detectedFace, score)
+            }
         } catch {
             logger.error("Vision error: \(error.localizedDescription)")
             return nil

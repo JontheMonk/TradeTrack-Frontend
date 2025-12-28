@@ -19,7 +19,7 @@ final class DashboardViewModelTests: XCTestCase {
         mockError = MockErrorManager()
         mockNav = MockNavigator()
         navigator = DashboardNavigator(nav: mockNav)
-        employee = EmployeeResult(employeeId: "EMP001", name: "Test User", role: "employee")
+        employee = EmployeeResult(employeeId: "EMP001", name: "Test User", role: "Employee")
         
         vm = DashboardViewModel(
             employee: employee,
@@ -167,7 +167,7 @@ final class DashboardViewModelTests: XCTestCase {
     // MARK: - Admin Tests
 
     func test_isAdmin_returnsTrueForAdminRole() {
-        let adminEmployee = EmployeeResult(employeeId: "EMP001", name: "Test_user", role: "admin")
+        let adminEmployee = EmployeeResult(employeeId: "EMP001", name: "Test_user", role: "Admin")
         let vm = DashboardViewModel(
             employee: adminEmployee,
             timeService: mockTimeService,
@@ -179,7 +179,7 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     func test_isAdmin_returnsFalseForEmployeeRole() {
-        let regularEmployee = EmployeeResult(employeeId: "EMP001", name: "Test_user", role: "employee")
+        let regularEmployee = EmployeeResult(employeeId: "EMP001", name: "Test_user", role: "Employee")
         let vm = DashboardViewModel(
             employee: regularEmployee,
             timeService: mockTimeService,

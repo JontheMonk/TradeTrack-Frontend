@@ -28,7 +28,7 @@ struct PreviewApp: App {
 extension DashboardViewModel {
     static func preview(errorManager: ErrorManager) -> DashboardViewModel {
         let service = MockTimeTrackingService()
-        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "employee")
+        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "Employee")
         
         return DashboardViewModel(
             employee: employee,
@@ -40,7 +40,7 @@ extension DashboardViewModel {
     
     static func previewAdmin(errorManager: ErrorManager) -> DashboardViewModel {
         let service = MockTimeTrackingService()
-        let employee = EmployeeResult(employeeId: "ADMIN001", name: "Preview User (Admin)", role: "admin")
+        let employee = EmployeeResult(employeeId: "ADMIN001", name: "Preview User (Admin)", role: "Admin")
         
         return DashboardViewModel(
             employee: employee,
@@ -53,7 +53,7 @@ extension DashboardViewModel {
     static func previewWithError(errorManager: ErrorManager) -> DashboardViewModel {
         let service = MockTimeTrackingService()
         service.stubbedError = AppError(code: .networkUnavailable)
-        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "employee")
+        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "Employee")
         
         return DashboardViewModel(
             employee: employee,
@@ -67,7 +67,7 @@ extension DashboardViewModel {
 // MARK: - Verification Mocks
 extension VerificationViewModel {
     static func previewSuccess(errorManager: ErrorManager) -> VerificationViewModel {
-        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "employee")
+        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "Employee")
         
         return VerificationViewModel(
             camera: CoreFactory.makeCameraManager(),
@@ -84,7 +84,7 @@ extension VerificationViewModel {
     static func previewFailure(errorManager: ErrorManager) -> VerificationViewModel {
         let service = MockFaceVerificationService()
         service.stubbedError = AppError(code: .employeeNotFound)
-        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "employee")
+        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "Employee")
         
         return VerificationViewModel(
             camera: CoreFactory.makeCameraManager(),
@@ -103,7 +103,7 @@ extension VerificationViewModel {
 extension LookupViewModel {
     static func previewWithResults(errorManager: ErrorManager) -> LookupViewModel {
         let service = MockEmployeeLookupService()
-        service.stubbedResults = [EmployeeResult(employeeId: "123", name: "Preview User", role: "admin")]
+        service.stubbedResults = [EmployeeResult(employeeId: "123", name: "Preview User", role: "Admin")]
         
         return LookupViewModel(
             service: service,

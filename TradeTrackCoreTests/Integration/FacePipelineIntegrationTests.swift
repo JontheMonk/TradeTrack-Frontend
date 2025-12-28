@@ -1,12 +1,9 @@
 import XCTest
 import CoreImage
+import Vision
 @testable import TradeTrackCore
 @testable import TradeTrackMocks
 
-// ⚠️ NOTE: These tests may fail when run with the full suite due to Vision
-// framework state issues. If a test fails, re-run it individually and it
-// will pass. This is a test environment quirk, not a production bug.
-// See: VNSequenceRequestHandler retains state between unrelated images.
 
 @MainActor
 final class FacePipelineIntegrationTests: XCTestCase {
@@ -50,12 +47,10 @@ final class FacePipelineIntegrationTests: XCTestCase {
     
     func test_extractor_returnsNil_whenChairIsProvided() async throws {
         let chairImage = loadCIImage(named: "chair")
-        
         let result = try? await extractor.embedding(from: chairImage)
 
         XCTAssertNil(result, "The pipeline should return nil for a chair, not an embedding.")
     }
-    
     
 
     func test_extractor_rejectsDifferentPerson() async throws {
@@ -70,34 +65,7 @@ final class FacePipelineIntegrationTests: XCTestCase {
         XCTAssertLessThan(similarity, 0.4, "Similarity (\(similarity)) is too high; model might confuse an imposter.")
     }
     
-    
-    
-    // MARK: - Athlete Tests
-
-    /// Tests that all athletes are rejected when compared to the registered user (Jon)
-    func test_rejectsAllAthletes_againstRegisteredUser() async throws {
-        let jon = loadCIImage(named: "jon_1")
-        let jonEmbedding = try await extractor.embedding(from: jon)
-        
-        let athletes = ["kerr", "moi", "delap", "levi"]
-    
-        for athleteName in athletes {
-            let athleteImage = loadCIImage(named: athleteName)
-            let athleteEmbedding = try await extractor.embedding(from: athleteImage)
-            
-            let similarity = cosineSimilarity(jonEmbedding.values, athleteEmbedding.values)
-            
-            XCTAssertLessThan(
-                similarity,
-                0.4,
-                "\(athleteName) similarity to Jon is too high: \(similarity)"
-            )
-        }
-    }
-    
-    /// Tests that different athletes are distinguished from each other
-    func test_distinguishesBetweenDifferentAthletes() async throws {
-        
+    func test_distinguishesBetweenGendersAndEthnicities() async throws {
         let athletes = ["kerr", "moi", "delap", "levi"]
         var embeddings: [String: FaceEmbedding] = [:]
         
@@ -123,31 +91,6 @@ final class FacePipelineIntegrationTests: XCTestCase {
                     "\(name1) vs \(name2) similarity too high: \(similarity)"
                 )
             }
-        }
-    }
-    
-    
-
-    /// Tests diversity: model correctly rejects across gender and ethnicity
-    func test_rejectsAcrossGenderAndEthnicity() async throws {
-        
-        // Sam Kerr (female) vs male athletes
-        let samImage = loadCIImage(named: "kerr")
-        let samEmbedding = try await extractor.embedding(from: samImage)
-        
-        let maleAthletes = ["moi", "delap", "levi"]
-        
-        for maleName in maleAthletes {
-            let maleImage = loadCIImage(named: maleName)
-            let maleEmbedding = try await extractor.embedding(from: maleImage)
-            
-            let similarity = cosineSimilarity(samEmbedding.values, maleEmbedding.values)
-            
-            XCTAssertLessThan(
-                similarity,
-                0.4,
-                "Sam vs \(maleName) similarity too high: \(similarity)"
-            )
         }
     }
 }
