@@ -21,6 +21,7 @@ struct AppContainer {
     let employeeAPI: EmployeeRegistrationServing
     let employeeLookupService: EmployeeLookupServing
     let faceVerificationService: FaceVerificationProtocol
+    let timeTrackingService: TimeTrackingServing
 
     // MARK: - Initialization
 
@@ -53,5 +54,6 @@ struct AppContainer {
         self.employeeAPI = CoreFactory.makeEmployeeAPI(session: session)
         self.employeeLookupService = CoreFactory.makeEmployeeLookupService(session: session)
         self.faceVerificationService = CoreFactory.makeFaceVerificationService(session: session)
+        self.timeTrackingService = CoreFactory.makeTimeTrackingService(session: session)
     }
 }

@@ -33,6 +33,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
     let errorManager: ErrorHandling
     let collector: FaceCollecting
     let analyzer: FaceAnalyzerProtocol
+    let navigator: VerificationNavigator
 
     // MARK: - Published UI State
 
@@ -81,6 +82,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
         processor: FaceProcessing,
         verifier: FaceVerificationProtocol,
         errorManager: ErrorHandling,
+        navigator: VerificationNavigator,
         employeeId: String
     ) {
         self.camera = camera
@@ -90,6 +92,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
         self.verifier = verifier
         self.errorManager = errorManager
         self.targetEmployeeID = employeeId
+        self.navigator = navigator
         super.init()
     }
     
@@ -222,6 +225,7 @@ final class VerificationViewModel: NSObject, ObservableObject {
                 let resultID = try await performVerification(face: face, image: image)
                 self.state = .matched(name: resultID)
                 self.task = nil
+                navigator.goToDashboard(employeeId: resultID)
             } catch is CancellationError {
                 self.isProcessingFrame.store(false, ordering: .relaxed)
                 self.task = nil

@@ -32,17 +32,20 @@ final class DashboardViewModel: ObservableObject {
     
     private let timeService: TimeTrackingServing
     private let errorManager: ErrorHandling
+    private let navigator: DashboardNavigator
     
     // MARK: - Init
     
     init(
         employeeId: String,
         timeService: TimeTrackingServing,
-        errorManager: ErrorHandling
+        errorManager: ErrorHandling,
+        navigator: DashboardNavigator
     ) {
         self.employeeId = employeeId
         self.timeService = timeService
         self.errorManager = errorManager
+        self.navigator = navigator
     }
     
     // MARK: - Lifecycle
@@ -72,6 +75,10 @@ final class DashboardViewModel: ObservableObject {
         } catch {
             errorManager.showError(error)
         }
+    }
+    
+    func signOut() {
+        navigator.signOut()
     }
     
     // MARK: - Helpers

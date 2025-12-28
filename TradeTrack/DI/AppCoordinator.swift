@@ -89,10 +89,20 @@ final class AppCoordinator: ObservableObject, Navigating {
                 processor: container.faceProcessor,
                 verifier: container.faceVerificationService,
                 errorManager: errorManager,
+                navigator: VerificationNavigator(nav: self),
                 employeeId: id
             )
             VerificationView(viewModel: vm)
-        
+            
+        case .dashboard(let id):
+            let vm = DashboardViewModel(
+                employeeId: id,
+                timeService: container.timeTrackingService,
+                errorManager: errorManager,
+                navigator: DashboardNavigator(nav: self)
+            )
+            DashboardView(viewModel: vm)
+            
         case .register:
             let vm = RegisterViewModel(
                 errorManager: errorManager,
@@ -100,7 +110,12 @@ final class AppCoordinator: ObservableObject, Navigating {
                 api: container.employeeAPI
             )
             RegisterView(viewModel: vm)
+        
+        @unknown default:
+            EmptyView()
         }
+        
+        
     }
     
     // MARK: - Navigation API
@@ -113,5 +128,10 @@ final class AppCoordinator: ObservableObject, Navigating {
     /// Pops the topmost route from the navigation stack.
     func pop() {
         _ = path.popLast()
+    }
+    
+    /// Clears stack
+    func popToRoot() {
+        path.removeAll()
     }
 }

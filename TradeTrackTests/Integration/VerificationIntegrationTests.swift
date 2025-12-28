@@ -41,6 +41,7 @@ final class VerificationIntegrationTests: XCTestCase {
             processor: try! CoreFactory.makeFaceProcessor(),
             verifier: verifier,
             errorManager: MockErrorManager(),
+            navigator: VerificationNavigator(nav: MockNavigator()),
             employeeId: employeeId
         )
         

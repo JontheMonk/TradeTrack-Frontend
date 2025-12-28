@@ -7,7 +7,6 @@ struct DashboardView: View {
     @State private var showSignOutAlert = false
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    var onSignOut: () -> Void = {}
     
     var body: some View {
         NavigationStack {
@@ -117,7 +116,7 @@ struct DashboardView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .confirmationDialog("", isPresented: $showSignOutAlert, titleVisibility: .hidden) {
                 Button("Sign Out", role: .destructive) {
-                    onSignOut()
+                    viewModel.signOut()
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {

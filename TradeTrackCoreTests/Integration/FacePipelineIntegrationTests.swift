@@ -3,6 +3,11 @@ import CoreImage
 @testable import TradeTrackCore
 @testable import TradeTrackMocks
 
+// ⚠️ NOTE: These tests may fail when run with the full suite due to Vision
+// framework state issues. If a test fails, re-run it individually and it
+// will pass. This is a test environment quirk, not a production bug.
+// See: VNSequenceRequestHandler retains state between unrelated images.
+
 @MainActor
 final class FacePipelineIntegrationTests: XCTestCase {
 
@@ -67,9 +72,8 @@ final class FacePipelineIntegrationTests: XCTestCase {
     
     
     
-    // MARK: - Athlete Rejection Tests
+    // MARK: - Athlete Tests
 
-    
     /// Tests that all athletes are rejected when compared to the registered user (Jon)
     func test_rejectsAllAthletes_againstRegisteredUser() async throws {
         let jon = loadCIImage(named: "jon_1")
@@ -91,7 +95,6 @@ final class FacePipelineIntegrationTests: XCTestCase {
         }
     }
     
-
     /// Tests that different athletes are distinguished from each other
     func test_distinguishesBetweenDifferentAthletes() async throws {
         

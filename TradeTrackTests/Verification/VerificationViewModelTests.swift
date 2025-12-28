@@ -14,7 +14,10 @@ final class VerificationViewModelTests: XCTestCase {
     private var mockProcessor: MockFaceProcessor!
     private var mockVerifier: MockFaceVerificationService!
     private var mockError: MockErrorManager!
+    private var mockNavigator: VerificationNavigator!
     private var vm: VerificationViewModel!
+    
+    private var mockNav: MockNavigator!
 
     private let dummyImage = CIImage(color: .red).cropped(to: CGRect(x: 0, y: 0, width: 200, height: 200))
 
@@ -25,6 +28,8 @@ final class VerificationViewModelTests: XCTestCase {
         mockProcessor = MockFaceProcessor()
         mockVerifier = MockFaceVerificationService()
         mockError = MockErrorManager()
+        mockNav = MockNavigator()
+        mockNavigator = VerificationNavigator(nav: mockNav)
 
         vm = VerificationViewModel(
             camera: mockCamera,
@@ -33,6 +38,7 @@ final class VerificationViewModelTests: XCTestCase {
             processor: mockProcessor,
             verifier: mockVerifier,
             errorManager: mockError,
+            navigator: mockNavigator,
             employeeId: "123"
         )
     }
@@ -182,5 +188,20 @@ final class VerificationViewModelTests: XCTestCase {
                        "Retry must explicitly re-open the hardware gate")
         XCTAssertEqual(vm.state, .detecting, "State should reset to detecting after retry")
         XCTAssertEqual(vm.collectionProgress, 0.0, "Progress should reset to 0 after retry")
+    }
+    
+    func test_successfulVerification_navigatesToDashboard() async {
+        // Given
+        let face = makeFace()
+        mockAnalyzer.stubbedFace = face
+        mockAnalyzer.stubbedQuality = 1.0
+        mockCollector.stubbedResult = (winner: (face, dummyImage), progress: 0.0)
+        
+        // When
+        await vm._test_runFrame(dummyImage)
+        
+        // Then
+        XCTAssertEqual(mockNav.pushed.count, 1)
+        XCTAssertEqual(mockNav.pushed.first, .dashboard(employeeId: "123"))
     }
 }

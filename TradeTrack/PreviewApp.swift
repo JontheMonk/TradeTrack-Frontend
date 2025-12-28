@@ -57,6 +57,7 @@ extension VerificationViewModel {
             processor: try! CoreFactory.makeFaceProcessor(),
             verifier: MockFaceVerificationService(),
             errorManager: errorManager,
+            navigator: VerificationNavigator(nav: MockNavigator()),
             employeeId: "Preview_User"
         )
     }
@@ -72,6 +73,7 @@ extension VerificationViewModel {
             processor: try! CoreFactory.makeFaceProcessor(),
             verifier: service,
             errorManager: errorManager,
+            navigator: VerificationNavigator(nav: MockNavigator()),
             employeeId: "Preview_User"
         )
     }
@@ -85,7 +87,7 @@ extension LookupViewModel {
         
         return LookupViewModel(
             service: service,
-            errorManager: errorManager, // Injected from App
+            errorManager: errorManager,
             navigator: LookupNavigator(nav: MockNavigator())
         )
     }

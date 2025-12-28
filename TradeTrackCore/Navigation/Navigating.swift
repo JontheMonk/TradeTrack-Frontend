@@ -24,4 +24,7 @@ public protocol Navigating: AnyObject {
     ///
     /// Equivalent to dismissing the current screen.
     func pop()
+    
+    /// Clears the history and takes the user back to the start
+    func popToRoot()
 }
