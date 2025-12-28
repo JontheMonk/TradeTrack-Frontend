@@ -1,12 +1,9 @@
 import XCTest
 import CoreImage
+import Vision
 @testable import TradeTrackCore
 @testable import TradeTrackMocks
 
-// ⚠️ NOTE: These tests may fail when run with the full suite due to Vision
-// framework state issues. If a test fails, re-run it individually and it
-// will pass. This is a test environment quirk, not a production bug.
-// See: VNSequenceRequestHandler retains state between unrelated images.
 
 @MainActor
 final class FacePipelineIntegrationTests: XCTestCase {
@@ -50,7 +47,6 @@ final class FacePipelineIntegrationTests: XCTestCase {
     
     func test_extractor_returnsNil_whenChairIsProvided() async throws {
         let chairImage = loadCIImage(named: "chair")
-        
         let result = try? await extractor.embedding(from: chairImage)
 
         XCTAssertNil(result, "The pipeline should return nil for a chair, not an embedding.")
@@ -70,7 +66,6 @@ final class FacePipelineIntegrationTests: XCTestCase {
     }
     
     func test_distinguishesBetweenGendersAndEthnicities() async throws {
-        
         let athletes = ["kerr", "moi", "delap", "levi"]
         var embeddings: [String: FaceEmbedding] = [:]
         

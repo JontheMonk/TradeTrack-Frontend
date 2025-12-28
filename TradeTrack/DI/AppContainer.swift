@@ -43,13 +43,8 @@ struct AppContainer {
             self.cameraManager = CoreFactory.makeCameraManager()
         }
 
-        let extractor = CoreFactory.makeRegistrationService(
-            analyzer: self.faceAnalyzer,
-            processor: self.faceProcessor
-        )
-        
         // 4. Build Application Services
-        self.registrationService = RegistrationEmbeddingService(extractor: extractor)
+        self.registrationService = try RegistrationEmbeddingService(extractor: CoreFactory.makeFaceExtractor())
         
         self.employeeAPI = CoreFactory.makeEmployeeAPI(session: session)
         self.employeeLookupService = CoreFactory.makeEmployeeLookupService(session: session)

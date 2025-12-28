@@ -7,6 +7,8 @@ import os.log
 actor FaceDetector: FaceDetectorProtocol {
     // For testing
     private let usesCPUOnly: Bool
+    // For faceExtractor
+    private let isImage: Bool
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "face-detection")
     
     private let detectionReq = VNDetectFaceRectanglesRequest()
@@ -14,8 +16,9 @@ actor FaceDetector: FaceDetectorProtocol {
     
     private var sequenceHandler = VNSequenceRequestHandler()
     
-    init(usesCPUOnly: Bool = false) {
+    init(usesCPUOnly: Bool = false, isImage: Bool = false) {
         self.usesCPUOnly = usesCPUOnly
+        self.isImage = isImage
         
         detectionReq.usesCPUOnly = usesCPUOnly
         qualityReq.usesCPUOnly = usesCPUOnly
@@ -30,14 +33,19 @@ actor FaceDetector: FaceDetectorProtocol {
         let orientation = image.cgOrientation
         
         do {
-            try sequenceHandler.perform([detectionReq, qualityReq], on: image, orientation: orientation)
-            
-            guard let detectedFace = detectionReq.results?.first else { return nil }
-            
-            let qualityResult = qualityReq.results?.first { $0.uuid == detectedFace.uuid }
-            let score = qualityResult?.faceCaptureQuality ?? 0.0
-            
-            return (detectedFace, score)
+            if isImage {
+                // Skip quality check for static images
+                try sequenceHandler.perform([detectionReq], on: image, orientation: orientation)
+                guard let detectedFace = detectionReq.results?.first else { return nil }
+                return (detectedFace, 1.0)
+            } else {
+                // Full quality check for video frames
+                try sequenceHandler.perform([detectionReq, qualityReq], on: image, orientation: orientation)
+                guard let detectedFace = detectionReq.results?.first else { return nil }
+                let qualityResult = qualityReq.results?.first { $0.uuid == detectedFace.uuid }
+                let score = qualityResult?.faceCaptureQuality ?? 0.0
+                return (detectedFace, score)
+            }
         } catch {
             logger.error("Vision error: \(error.localizedDescription)")
             return nil

@@ -62,19 +62,20 @@ public struct CoreFactory {
     // MARK: - Face Pipeline
     
     /// Orchestrates the creation of the full Face Embedding pipeline.
+    /// Sets isImage to true because this is used for images.
     /// - Throws: An error if the underlying ML Model (`w600k_r50`) fails to load.
     /// - Returns: A fully composed `FaceEmbeddingExtractor`.
     public static func makeFaceExtractor() throws -> FaceEmbeddingExtracting {
-            let analyzer = makeFaceAnalyzer()
+            let analyzer = makeFaceAnalyzer(isImage: true)
             let processor = try makeFaceProcessor()
             return FaceEmbeddingExtractor(analyzer: analyzer, processor: processor)
         }
 
     /// Creates a `FaceAnalyzer` which handles the initial detection and validation of faces in a frame.
     /// - Returns: A configured `FaceAnalyzerProtocol` implementation.
-    public static func makeFaceAnalyzer() -> FaceAnalyzerProtocol {
+    public static func makeFaceAnalyzer(isImage : Bool = false) -> FaceAnalyzerProtocol {
         return FaceAnalyzer(
-            detector: FaceDetector(usesCPUOnly: shouldForceCPU),
+            detector: FaceDetector(usesCPUOnly: shouldForceCPU, isImage: isImage),
             validator: FaceValidator()
         )
     }
@@ -100,18 +101,6 @@ public struct CoreFactory {
     }
     
     // MARK: - Application Services
-    
-    /// Creates a service dedicated to extracting embeddings during the employee registration flow.
-    /// - Parameters:
-    ///   - analyzer: The component responsible for finding faces.
-    ///   - processor: The component responsible for generating feature vectors.
-    /// - Returns: A `FaceEmbeddingExtracting` service.
-    public static func makeRegistrationService(
-        analyzer: FaceAnalyzerProtocol,
-        processor: FaceProcessing
-    ) -> FaceEmbeddingExtracting {
-        return FaceEmbeddingExtractor(analyzer: analyzer, processor: processor)
-    }
     
     /// Creates a service for registering new employees via the backend API.
     /// - Parameter session: The `URLSession` to use for network communication.
