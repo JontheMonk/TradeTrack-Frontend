@@ -13,14 +13,14 @@ final class FacePipelineIntegrationTests: XCTestCase {
 
     private var extractor: FaceEmbeddingExtracting!
     
-    override func setUp() async throws {
-        try await super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         extractor = try CoreFactory.makeFaceExtractor()
     }
     
-    override func tearDown() async throws {
+    override func tearDown() {
         extractor = nil
-        try await super.tearDown()
+        super.tearDown()
     }
     
     

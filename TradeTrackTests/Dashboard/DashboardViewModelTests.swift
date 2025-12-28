@@ -8,17 +8,22 @@ final class DashboardViewModelTests: XCTestCase {
     
     private var mockTimeService: MockTimeTrackingService!
     private var mockError: MockErrorManager!
+    private var mockNav: MockNavigator!
+    private var navigator: DashboardNavigator!
     private var vm: DashboardViewModel!
     
     override func setUp() {
         super.setUp()
         mockTimeService = MockTimeTrackingService()
         mockError = MockErrorManager()
+        mockNav = MockNavigator()
+        navigator = DashboardNavigator(nav: mockNav)
         
         vm = DashboardViewModel(
             employeeId: "EMP001",
             timeService: mockTimeService,
-            errorManager: mockError
+            errorManager: mockError,
+            navigator: navigator
         )
     }
     
@@ -26,6 +31,8 @@ final class DashboardViewModelTests: XCTestCase {
         vm = nil
         mockTimeService = nil
         mockError = nil
+        mockNav = nil
+        navigator = nil
         super.tearDown()
     }
     
@@ -147,5 +154,11 @@ final class DashboardViewModelTests: XCTestCase {
         await vm.toggleClock()
         
         XCTAssertFalse(vm.isLoading)
+    }
+    
+    func test_signOut_callsPopToRoot() {
+        vm.signOut()
+        
+        XCTAssertEqual(mockNav.popToRootCount, 1)
     }
 }
