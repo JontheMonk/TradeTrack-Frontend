@@ -5,6 +5,7 @@ import os.log
 /// An actor-based wrapper around Apple's Vision framework.
 /// Actors ensure that the stateful sequenceHandler is accessed serially.
 actor FaceDetector: FaceDetectorProtocol {
+    // For testing
     private let usesCPUOnly: Bool
     private let logger = Logger(subsystem: "Jon.TradeTrack", category: "face-detection")
     
@@ -15,9 +16,10 @@ actor FaceDetector: FaceDetectorProtocol {
     
     init(usesCPUOnly: Bool = false) {
         self.usesCPUOnly = usesCPUOnly
+        
         detectionReq.usesCPUOnly = usesCPUOnly
         qualityReq.usesCPUOnly = usesCPUOnly
-        
+  
         if #available(iOS 15.0, *) {
             detectionReq.revision = VNDetectFaceRectanglesRequestRevision3
             qualityReq.revision = VNDetectFaceCaptureQualityRequestRevision3
@@ -25,7 +27,6 @@ actor FaceDetector: FaceDetectorProtocol {
     }
     
     func detect(in image: CIImage) async -> (VNFaceObservation, Float)? {
-        print("🔍 detect() called - image: \(ObjectIdentifier(image)), size: \(image.extent.size)")
         let orientation = image.cgOrientation
         
         do {

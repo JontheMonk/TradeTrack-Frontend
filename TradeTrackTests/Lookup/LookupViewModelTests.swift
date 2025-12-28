@@ -41,7 +41,7 @@ final class LookupViewModelTests: XCTestCase {
 
     func test_selectEmployee_pushesVerificationRoute() {
         // Given
-        let employee = EmployeeResult(employeeId: "123", name: "Jon", role: "employee")
+        let employee = EmployeeResult(employeeId: "123", name: "Jon", role: "Employee")
         
         // When
         vm.selectEmployee(employee)
@@ -67,7 +67,7 @@ final class LookupViewModelTests: XCTestCase {
     func test_performsSearch_afterDebounce() async {
         // Given
         mockService.stubbedResults = [
-            EmployeeResult(employeeId: "1", name: "Alice", role: "employee")
+            EmployeeResult(employeeId: "1", name: "Alice", role: "Employee")
         ]
 
         // When
@@ -86,7 +86,7 @@ final class LookupViewModelTests: XCTestCase {
     func test_cancelsOldSearch_whenQueryChanges() async {
         // Given
         mockService.stubbedResults = [
-            EmployeeResult(employeeId: "1", name: "Alice", role: "employee")
+            EmployeeResult(employeeId: "1", name: "Alice", role: "Employee")
         ]
 
         // Start a first query
