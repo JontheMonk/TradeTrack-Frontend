@@ -31,7 +31,8 @@ extension DashboardViewModel {
         return DashboardViewModel(
             employeeId: "EMP001",
             timeService: service,
-            errorManager: errorManager
+            errorManager: errorManager,
+            navigator: DashboardNavigator(nav: MockNavigator())
         )
     }
     
@@ -42,7 +43,8 @@ extension DashboardViewModel {
         return DashboardViewModel(
             employeeId: "EMP001",
             timeService: service,
-            errorManager: errorManager
+            errorManager: errorManager,
+            navigator: DashboardNavigator(nav: MockNavigator())
         )
     }
 }
