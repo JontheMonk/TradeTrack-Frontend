@@ -18,10 +18,6 @@ import SwiftUI
 struct RolePicker: View {
     @Binding var role: String
 
-    /// Local data model for options. Each entry has:
-    ///  – A user-facing label
-    ///  – A raw backend role value
-    ///  – A system icon name
     private let options: [(label: String, value: String, icon: String)] = [
         ("Employee", "employee", "person"),
         ("Admin",    "admin",    "person.badge.key")
@@ -35,37 +31,42 @@ struct RolePicker: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: opt.icon)
+                            .font(.system(size: 14, weight: .semibold))
                         Text(opt.label)
-                            .font(.callout.weight(.semibold))
+                            .font(.system(size: 15, weight: .semibold))
                     }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
                     .frame(maxWidth: .infinity)
                     .background(
                         isSelected(opt.value)
-                            ? Color.blue
-                            : Color(.secondarySystemBackground)
+                            ? LinearGradient(
+                                colors: [Color(hex: "2a5fff"), Color(hex: "1a3dcc")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                            : Color.white.opacity(0.08)
                     )
-                    .foregroundColor(
-                        isSelected(opt.value) ? .white : .primary
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .foregroundColor(isSelected(opt.value) ? .white : .gray)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 14)
                             .stroke(
                                 isSelected(opt.value)
-                                    ? Color.blue
-                                    : Color.gray.opacity(0.3),
-                                lineWidth: 1
+                                    ? Color.white.opacity(0.3)
+                                    : Color.white.opacity(0.15),
+                                lineWidth: 1.5
                             )
                     )
-                    .shadow(radius: isSelected(opt.value) ? 4 : 0)
+                    .shadow(
+                        color: isSelected(opt.value) ? Color(hex: "2a5fff").opacity(0.3) : Color.clear,
+                        radius: isSelected(opt.value) ? 8 : 0,
+                        y: isSelected(opt.value) ? 4 : 0
+                    )
                 }
             }
         }
-        .accessibilityElement(children: .contain)
     }
 
-    /// Returns true if the given role value is the currently selected one.
     private func isSelected(_ v: String) -> Bool { role == v }
 }

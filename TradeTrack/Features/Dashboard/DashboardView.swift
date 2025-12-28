@@ -124,6 +124,7 @@ struct DashboardView: View {
                 }
             }
             .toolbarBackground(.hidden, for: .navigationBar)
+            .navigationBarBackButtonHidden(true)
             .confirmationDialog("", isPresented: $showSignOutAlert, titleVisibility: .hidden) {
                 Button("Sign Out", role: .destructive) {
                     viewModel.signOut()

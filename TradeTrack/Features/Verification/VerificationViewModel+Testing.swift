@@ -13,7 +13,7 @@ extension VerificationViewModel {
     // MARK: - UI Test Bridge
     
     func installUITestSignalBridge() {
-        guard AppRuntime.mode == .uiTest else { return }
+        guard AppRuntime.mode == .uiTest || AppRuntime.mode == .preview else { return }
         
         let center = NotificationCenter.default
         

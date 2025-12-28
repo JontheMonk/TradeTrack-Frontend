@@ -1,131 +1,169 @@
 import SwiftUI
 
-/// Screen for registering a new employee.
-///
-/// Responsibilities:
-/// ---------------------------
-/// • Renders the registration form (ID, name, role)
-/// • Lets the user pick a face image
-/// • Previews the selected image
-/// • Binds directly to `RegisterViewModel` for validation and submission
-/// • Runs `vm.registerEmployee()` inside a Task
-///
-/// Notes:
-/// • The view owns its ViewModel via `@StateObject`, keeping its lifetime stable.
-/// • Navigation & business logic are entirely inside the ViewModel.
-/// • The keyboard is dismissed when tapping the background.
 struct RegisterView: View {
     @StateObject private var vm: RegisterViewModel
     @State private var showPicker = false
 
-    /// Injects the ViewModel from outside, allowing previews/tests to pass mocks.
     init(viewModel: RegisterViewModel) {
         _vm = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
         ZStack {
-            // Background tap → hide keyboard
-            Color.clear
-                .contentShape(Rectangle())
-                .onTapGesture { hideKeyboard() }
+            // Dark gradient background
+            LinearGradient(
+                colors: [Color(hex: "0f0f14"), Color(hex: "1a1a24")],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            .onTapGesture { hideKeyboard() }
 
-            VStack(spacing: 20) {
-                Text("Register Employee")
-                    .font(.largeTitle.bold())
-                    .padding(.top)
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Title
+                    Text("Register Employee")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.top, 20)
 
-                // MARK: - Form Fields
-                Group {
-                    customTextField("Employee ID", text: $vm.employeeID)
-                    customTextField("Full Name", text: $vm.name)
+                    // MARK: - Form Fields
+                    VStack(spacing: 16) {
+                        customTextField("Employee ID", text: $vm.employeeID)
+                        customTextField("Full Name", text: $vm.name)
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Role")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        RolePicker(role: $vm.role)
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Role")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 4)
+                            RolePicker(role: $vm.role)
+                        }
+                        .padding(.horizontal)
+                    }
+
+                    // MARK: - Photo Selector
+                    Button {
+                        showPicker = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: vm.selectedImage == nil ? "photo.badge.plus" : "photo.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text(vm.selectedImage == nil ? "Select Face Image" : "Change Image")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(hex: "2a5fff"), Color(hex: "1a3dcc")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
+                        .shadow(color: Color(hex: "2a5fff").opacity(0.3), radius: 8, y: 4)
                     }
                     .padding(.horizontal)
-                }
 
-                // MARK: - Photo Selector
-                Button {
-                    showPicker = true
-                } label: {
-                    HStack {
-                        Image(systemName: "photo")
-                        Text(vm.selectedImage == nil ? "Select Face Image" : "Change Image")
+                    // MARK: - Image Preview
+                    if let image = vm.selectedImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 250)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 2)
+                            )
+                            .shadow(color: .black.opacity(0.3), radius: 12, y: 6)
+                            .padding(.horizontal)
                     }
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(12)
-                    .shadow(radius: 4)
-                }
 
-                // MARK: - Image Preview
-                if let image = vm.selectedImage {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 200)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .shadow(radius: 5)
-                        .padding(.top, 10)
-                }
+                    // MARK: - Submit Button
+                    Button {
+                        Task { await vm.registerEmployee() }
+                    } label: {
+                        Text("Add to Database")
+                            .font(.system(size: 18, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(
+                                vm.isFormValid
+                                    ? LinearGradient(
+                                        colors: [Color.green, Color(hex: "0d8b3d")],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                    : LinearGradient(
+                                        colors: [Color(hex: "2a2a35"), Color(hex: "1a1a24")],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                            )
+                            .cornerRadius(16)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(
+                                        vm.isFormValid ? Color.white.opacity(0.2) : Color.gray.opacity(0.2),
+                                        lineWidth: 1
+                                    )
+                            )
+                            .shadow(
+                                color: vm.isFormValid ? Color.green.opacity(0.4) : Color.clear,
+                                radius: vm.isFormValid ? 12 : 0,
+                                y: vm.isFormValid ? 6 : 0
+                            )
+                    }
+                    .disabled(!vm.isFormValid)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: vm.isFormValid)
+                    .padding(.horizontal)
 
-                // MARK: - Submit Button
-                Button {
-                    Task { await vm.registerEmployee() }
-                } label: {
-                    Text("Add to Database")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(vm.isFormValid ? Color.green : Color.gray)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .shadow(radius: vm.isFormValid ? 6 : 0)
-                        .animation(.easeInOut, value: vm.isFormValid)
-                }
-                .disabled(!vm.isFormValid)
+                    // MARK: - Status Text
+                    if !vm.status.isEmpty {
+                        Text(vm.status)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(vm.status.contains("✅") ? .green : vm.status.contains("❌") ? .red : .gray)
+                            .padding(.top, 8)
+                    }
 
-                // MARK: - Status Text
-                if !vm.status.isEmpty {
-                    Text(vm.status)
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                        .padding(.top, 8)
+                    Spacer(minLength: 40)
                 }
-
-                Spacer()
+                .padding(.vertical)
             }
-            .padding()
             .sheet(isPresented: $showPicker) {
                 ImagePicker(image: $vm.selectedImage)
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Custom Text Field Builder
 
-    /// Shared styling for the ID + Name fields.
     @ViewBuilder
     private func customTextField(
         _ placeholder: String,
         text: Binding<String>
     ) -> some View {
         TextField(placeholder, text: text)
-            .padding()
+            .font(.system(size: 16))
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white.opacity(0.08))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 1.5)
             )
             .padding(.horizontal)
             .textInputAutocapitalization(.never)
