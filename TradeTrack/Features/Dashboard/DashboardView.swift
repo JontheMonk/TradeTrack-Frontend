@@ -4,103 +4,124 @@ import TradeTrackCore
 struct DashboardView: View {
     @StateObject var viewModel: DashboardViewModel
     @State private var elapsedTime: TimeInterval = 0
+    @State private var showSignOutAlert = false
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    var onSignOut: () -> Void = {}
     
     var body: some View {
-        ZStack {
-            // Dark gradient background
-            LinearGradient(
-                colors: [Color(hex: "0f0f14"), Color(hex: "1a1a24")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                Spacer()
+        NavigationStack {
+            ZStack {
+                // Dark gradient background
+                LinearGradient(
+                    colors: [Color(hex: "0f0f14"), Color(hex: "1a1a24")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
-                // Status ring
-                ZStack {
-                    // Outer glow
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    (viewModel.isClockedIn ? Color.green : Color.gray).opacity(0.3),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 80,
-                                endRadius: 150
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    // Status ring
+                    ZStack {
+                        // Outer glow
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        (viewModel.isClockedIn ? Color.green : Color.gray).opacity(0.3),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 80,
+                                    endRadius: 150
+                                )
                             )
-                        )
-                        .frame(width: 300, height: 300)
-                    
-                    // Ring
-                    Circle()
-                        .stroke(
-                            viewModel.isClockedIn ? Color.green : Color(hex: "2a2a35"),
-                            lineWidth: 4
-                        )
-                        .frame(width: 250, height: 250)
-                    
-                    // Inner content
-                    VStack(spacing: 8) {
-                        Text(viewModel.isClockedIn ? "ON SHIFT" : "OFF SHIFT")
-                            .font(.system(size: 14, weight: .bold, design: .monospaced))
-                            .tracking(3)
-                            .foregroundColor(viewModel.isClockedIn ? .green : .gray)
+                            .frame(width: 300, height: 300)
                         
-                        if viewModel.isClockedIn, let startTime = viewModel.clockInTime {
-                            Text(formatElapsed(elapsedTime))
-                                .font(.system(size: 42, weight: .thin, design: .monospaced))
-                                .foregroundColor(.white)
-                                .onReceive(timer) { _ in
-                                    elapsedTime = Date().timeIntervalSince(startTime)
-                                }
-                        } else {
-                            Text("--:--:--")
-                                .font(.system(size: 42, weight: .thin, design: .monospaced))
-                                .foregroundColor(Color(hex: "3a3a45"))
-                        }
+                        // Ring
+                        Circle()
+                            .stroke(
+                                viewModel.isClockedIn ? Color.green : Color(hex: "2a2a35"),
+                                lineWidth: 4
+                            )
+                            .frame(width: 250, height: 250)
                         
-                        if let time = viewModel.clockInTime {
-                            Text("since \(time.formatted(date: .omitted, time: .shortened))")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.gray)
+                        // Inner content
+                        VStack(spacing: 8) {
+                            Text(viewModel.isClockedIn ? "ON SHIFT" : "OFF SHIFT")
+                                .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                .tracking(3)
+                                .foregroundColor(viewModel.isClockedIn ? .green : .gray)
+                            
+                            if viewModel.isClockedIn, let startTime = viewModel.clockInTime {
+                                Text(formatElapsed(elapsedTime))
+                                    .font(.system(size: 42, weight: .thin, design: .monospaced))
+                                    .foregroundColor(.white)
+                                    .onReceive(timer) { _ in
+                                        elapsedTime = Date().timeIntervalSince(startTime)
+                                    }
+                            } else {
+                                Text("--:--:--")
+                                    .font(.system(size: 42, weight: .thin, design: .monospaced))
+                                    .foregroundColor(Color(hex: "3a3a45"))
+                            }
+                            
+                            if let time = viewModel.clockInTime {
+                                Text("since \(time.formatted(date: .omitted, time: .shortened))")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.gray)
+                            }
                         }
                     }
-                }
-                
-                Spacer()
-                
-                // Clock button
-                Button {
-                    Task { await viewModel.toggleClock() }
-                } label: {
-                    HStack(spacing: 12) {
-                        
-                        Text(viewModel.isClockedIn ? "CLOCK OUT" : "CLOCK IN")
-                            .font(.system(size: 16, weight: .bold, design: .monospaced))
-                            .tracking(2)
+                    
+                    Spacer()
+                    
+                    // Clock button
+                    Button {
+                        Task { await viewModel.toggleClock() }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text(viewModel.isClockedIn ? "CLOCK OUT" : "CLOCK IN")
+                                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                .tracking(2)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(viewModel.isClockedIn ? Color(hex: "e63946") : Color.green)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
                     }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(viewModel.isClockedIn ? Color(hex: "e63946") : Color.green)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                    )
+                    .disabled(viewModel.isLoading)
+                    .opacity(viewModel.isLoading ? 0.6 : 1)
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 60)
                 }
-                .disabled(viewModel.isLoading)
-                .opacity(viewModel.isLoading ? 0.6 : 1)
-                .padding(.horizontal, 32)
-                .padding(.bottom, 60)
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showSignOutAlert = true } label: {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 22))
+                    }
+                }
+            }
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .confirmationDialog("", isPresented: $showSignOutAlert, titleVisibility: .hidden) {
+                Button("Sign Out", role: .destructive) {
+                    onSignOut()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("You'll need to verify your face again to clock in.")
             }
         }
         .task { await viewModel.onAppear() }
