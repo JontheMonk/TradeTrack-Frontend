@@ -32,41 +32,31 @@ final class FacePipelineIntegrationTests: XCTestCase {
     }
     
     func test_extractor_recognizesSamePerson_acrossDifferentImages() async throws {
-        // 1. Arrange
         let extractor = try CoreFactory.makeFaceExtractor()
         let jon1 = loadCIImage(named: "jon_1")
         let jon2 = loadCIImage(named: "jon_2")
 
-        // 2. Act
         let embedding1 = try await extractor.embedding(from: jon1)
         let embedding2 = try await extractor.embedding(from: jon2)
 
-        // 3. Calculate Distance
-        let distance = calculateEuclideanDistance(embedding1.values, embedding2.values)
+        let similarity = cosineSimilarity(embedding1.values, embedding2.values)
 
-        // 4. Assert
-        // For normalized 512d vectors (InsightFace), a distance < 1.0 is a common match threshold.
-        // 0.6 - 0.9 is typical for the same person in different lighting.
-        XCTAssertLessThan(distance, 0.9, "Distance (\(distance)) is too high; images should represent the same person.")
+        // Same person should have high similarity (> 0.6)
+        XCTAssertGreaterThan(similarity, 0.6, "Similarity (\(similarity)) is too low; images should represent the same person.")
     }
-    
+
     func test_extractor_rejectsDifferentPerson() async throws {
-        // 1. Arrange
         let extractor = try CoreFactory.makeFaceExtractor()
         let jon1 = loadCIImage(named: "jon_1")
         let imposter = loadCIImage(named: "imposter")
 
-        // 2. Act
         let embedding1 = try await extractor.embedding(from: jon1)
         let embedding2 = try await extractor.embedding(from: imposter)
 
-        // 3. Calculate Distance
-        let distance = calculateEuclideanDistance(embedding1.values, embedding2.values)
+        let similarity = cosineSimilarity(embedding1.values, embedding2.values)
 
-        // 4. Assert
-        // We expect a HIGH distance for different people.
-        // For normalized 512d vectors, 1.2 is a safe "minimum" distance for strangers.
-        XCTAssertGreaterThan(distance, 1.2, "The distance (\(distance)) is too low. The model might be confusing an imposter for the user.")
+        // Different people should have low similarity (< 0.4)
+        XCTAssertLessThan(similarity, 0.4, "Similarity (\(similarity)) is too high; model might confuse an imposter.")
     }
 }
 
@@ -90,9 +80,9 @@ private extension FacePipelineIntegrationTests {
         return image
     }
     
-    private func calculateEuclideanDistance(_ v1: [Float], _ v2: [Float]) -> Float {
-        guard v1.count == v2.count else { return .infinity }
-        let sumOfSquares = zip(v1, v2).map { pow($0 - $1, 2) }.reduce(0, +)
-        return sqrt(sumOfSquares)
+    private func cosineSimilarity(_ v1: [Float], _ v2: [Float]) -> Float {
+        // For normalized vectors, dot product = cosine similarity
+        guard v1.count == v2.count else { return 0 }
+        return zip(v1, v2).map(*).reduce(0, +)
     }
 }
