@@ -83,8 +83,8 @@ final class LookupViewModel: ObservableObject {
 
     /// Called when the user taps an employee row.
     /// The view never pushes routes directly — it delegates to the VM.
-    func selectEmployee(_ id: String) {
-        navigator.goToVerification(id: id)
+    func selectEmployee(_ employee: EmployeeResult) {
+        navigator.goToVerification(employee: employee)
     }
 
 

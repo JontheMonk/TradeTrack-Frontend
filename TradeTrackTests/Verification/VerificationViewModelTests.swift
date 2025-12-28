@@ -18,6 +18,7 @@ final class VerificationViewModelTests: XCTestCase {
     private var vm: VerificationViewModel!
     
     private var mockNav: MockNavigator!
+    private var employee: EmployeeResult!
 
     private let dummyImage = CIImage(color: .red).cropped(to: CGRect(x: 0, y: 0, width: 200, height: 200))
 
@@ -30,6 +31,7 @@ final class VerificationViewModelTests: XCTestCase {
         mockError = MockErrorManager()
         mockNav = MockNavigator()
         mockNavigator = VerificationNavigator(nav: mockNav)
+        employee = EmployeeResult(employeeId: "123", name: "Test User", role: "employee")
 
         vm = VerificationViewModel(
             camera: mockCamera,
@@ -39,7 +41,7 @@ final class VerificationViewModelTests: XCTestCase {
             verifier: mockVerifier,
             errorManager: mockError,
             navigator: mockNavigator,
-            employeeId: "123"
+            employee: employee
         )
     }
 
@@ -62,7 +64,7 @@ final class VerificationViewModelTests: XCTestCase {
         await vm._test_runFrame(dummyImage)
 
         // Then
-        XCTAssertEqual(vm.state, .matched(name: "123"))
+        XCTAssertEqual(vm.state, .matched(name: "Test User"))
         XCTAssertEqual(mockProcessor.callCount, 1)
         XCTAssertEqual(mockVerifier.callCount, 1)
     }
@@ -136,20 +138,6 @@ final class VerificationViewModelTests: XCTestCase {
         XCTAssertNil(nextTask, "Should drop frames while locked")
     }
 
-    func test_missingEmployeeID_failsEarly() async {
-        // Given
-        vm.targetEmployeeID = nil
-        mockAnalyzer.stubbedFace = makeFace()
-        mockCollector.stubbedResult = (winner: (makeFace(), dummyImage), progress: 0.0)
-
-        // When
-        await vm._test_runFrame(dummyImage)
-
-        // Then
-        XCTAssertEqual(mockError.lastError?.code, .employeeNotFound)
-        XCTAssertEqual(vm.state, .detecting)
-    }
-
     func test_start_handlesCameraAuthorizationFailure() async {
         // Given
         mockCamera.startShouldThrow = AppError(code: .cameraNotAuthorized)
@@ -202,6 +190,6 @@ final class VerificationViewModelTests: XCTestCase {
         
         // Then
         XCTAssertEqual(mockNav.pushed.count, 1)
-        XCTAssertEqual(mockNav.pushed.first, .dashboard(employeeId: "123"))
+        XCTAssertEqual(mockNav.pushed.first, .dashboard(employee: employee))
     }
 }

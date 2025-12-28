@@ -6,8 +6,8 @@ struct VerificationNavigator {
 
     init(nav: any Navigating) { self.nav = nav }
 
-    func goToDashboard(employeeId: String) {
-        nav?.push(.dashboard(employeeId: employeeId))
+    func goToDashboard(employee: EmployeeResult) {
+        nav?.push(.dashboard(employee: employee))
     }
 
     func back() { nav?.pop() }

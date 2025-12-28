@@ -25,8 +25,12 @@ final class DashboardViewModel: ObservableObject {
     
     // MARK: - Employee Info
     
-    /// The verified employee's ID (passed from verification).
-    let employeeId: String
+    /// The verified employee (passed from verification).
+    let employee: EmployeeResult
+    
+    var isAdmin: Bool {
+        employee.role == "admin"
+    }
     
     // MARK: - Dependencies
     
@@ -37,12 +41,12 @@ final class DashboardViewModel: ObservableObject {
     // MARK: - Init
     
     init(
-        employeeId: String,
+        employee: EmployeeResult,
         timeService: TimeTrackingServing,
         errorManager: ErrorHandling,
         navigator: DashboardNavigator
     ) {
-        self.employeeId = employeeId
+        self.employee = employee
         self.timeService = timeService
         self.errorManager = errorManager
         self.navigator = navigator
@@ -67,14 +71,18 @@ final class DashboardViewModel: ObservableObject {
         do {
             let status: ClockStatus
             if isClockedIn {
-                status = try await timeService.clockOut(employeeId: employeeId)
+                status = try await timeService.clockOut(employeeId: employee.employeeId)
             } else {
-                status = try await timeService.clockIn(employeeId: employeeId)
+                status = try await timeService.clockIn(employeeId: employee.employeeId)
             }
             applyStatus(status)
         } catch {
             errorManager.showError(error)
         }
+    }
+    
+    func goToRegister() {
+        navigator.goToRegister()
     }
     
     func signOut() {
@@ -88,7 +96,7 @@ final class DashboardViewModel: ObservableObject {
         defer { isLoading = false }
         
         do {
-            let status = try await timeService.getStatus(employeeId: employeeId)
+            let status = try await timeService.getStatus(employeeId: employee.employeeId)
             applyStatus(status)
         } catch {
             errorManager.showError(error)

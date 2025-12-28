@@ -22,8 +22,8 @@ struct LookupNavigator {
 
     init(nav: any Navigating) { self.nav = nav }
 
-    func goToVerification(id: String) {
-        nav?.push(.verification(employeeId: id))
+    func goToVerification(employee: EmployeeResult) {
+        nav?.push(.verification(employee: employee))
     }
 
     func back() { nav?.pop() }

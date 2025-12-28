@@ -81,7 +81,7 @@ final class AppCoordinator: ObservableObject, Navigating {
             )
             LookupView(viewModel: vm)
 
-        case .verification(let id):
+        case .verification(let employee):
             let vm = VerificationViewModel(
                 camera: container.cameraManager,
                 analyzer: container.faceAnalyzer,
@@ -90,13 +90,13 @@ final class AppCoordinator: ObservableObject, Navigating {
                 verifier: container.faceVerificationService,
                 errorManager: errorManager,
                 navigator: VerificationNavigator(nav: self),
-                employeeId: id
+                employee: employee
             )
             VerificationView(viewModel: vm)
             
-        case .dashboard(let id):
+        case .dashboard(let employee):
             let vm = DashboardViewModel(
-                employeeId: id,
+                employee: employee,
                 timeService: container.timeTrackingService,
                 errorManager: errorManager,
                 navigator: DashboardNavigator(nav: self)

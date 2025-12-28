@@ -40,14 +40,17 @@ final class LookupViewModelTests: XCTestCase {
     // MARK: - Tests
 
     func test_selectEmployee_pushesVerificationRoute() {
+        // Given
+        let employee = EmployeeResult(employeeId: "123", name: "Jon", role: "employee")
+        
         // When
-        vm.selectEmployee("123")
+        vm.selectEmployee(employee)
 
         // Then
         XCTAssertEqual(mockNavigator.pushed.count, 1)
         XCTAssertEqual(
             mockNavigator.pushed.first,
-            .verification(employeeId: "123")
+            .verification(employee: employee)
         )
     }
 

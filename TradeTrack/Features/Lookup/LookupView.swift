@@ -96,7 +96,7 @@ struct LookupView: View {
                     .accessibilityIdentifier("lookup.result.\(emp.employeeId)")
                     .accessibilityAddTraits(.isButton)
                     .onTapGesture {
-                        vm.selectEmployee(emp.employeeId)
+                        vm.selectEmployee(emp)
                     }
             }
             .listStyle(.plain)

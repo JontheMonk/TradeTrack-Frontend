@@ -10,6 +10,7 @@ final class DashboardViewModelTests: XCTestCase {
     private var mockError: MockErrorManager!
     private var mockNav: MockNavigator!
     private var navigator: DashboardNavigator!
+    private var employee: EmployeeResult!
     private var vm: DashboardViewModel!
     
     override func setUp() {
@@ -18,9 +19,10 @@ final class DashboardViewModelTests: XCTestCase {
         mockError = MockErrorManager()
         mockNav = MockNavigator()
         navigator = DashboardNavigator(nav: mockNav)
+        employee = EmployeeResult(employeeId: "EMP001", name: "Test User", role: "employee")
         
         vm = DashboardViewModel(
-            employeeId: "EMP001",
+            employee: employee,
             timeService: mockTimeService,
             errorManager: mockError,
             navigator: navigator
@@ -160,5 +162,37 @@ final class DashboardViewModelTests: XCTestCase {
         vm.signOut()
         
         XCTAssertEqual(mockNav.popToRootCount, 1)
+    }
+    
+    // MARK: - Admin Tests
+
+    func test_isAdmin_returnsTrueForAdminRole() {
+        let adminEmployee = EmployeeResult(employeeId: "EMP001", name: "Test_user", role: "admin")
+        let vm = DashboardViewModel(
+            employee: adminEmployee,
+            timeService: mockTimeService,
+            errorManager: mockError,
+            navigator: navigator
+        )
+        
+        XCTAssertTrue(vm.isAdmin)
+    }
+
+    func test_isAdmin_returnsFalseForEmployeeRole() {
+        let regularEmployee = EmployeeResult(employeeId: "EMP001", name: "Test_user", role: "employee")
+        let vm = DashboardViewModel(
+            employee: regularEmployee,
+            timeService: mockTimeService,
+            errorManager: mockError,
+            navigator: navigator
+        )
+        
+        XCTAssertFalse(vm.isAdmin)
+    }
+
+    func test_goToRegister_pushesRegisterRoute() {
+        vm.goToRegister()
+        
+        XCTAssertEqual(mockNav.pushed, [.register])
     }
 }

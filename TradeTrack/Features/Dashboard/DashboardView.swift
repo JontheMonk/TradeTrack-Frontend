@@ -112,6 +112,15 @@ struct DashboardView: View {
                             .font(.system(size: 22))
                     }
                 }
+                if viewModel.isAdmin {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button { viewModel.goToRegister() } label: {
+                            Image(systemName: "person.badge.plus")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 22))
+                        }
+                    }
+                }
             }
             .toolbarBackground(.hidden, for: .navigationBar)
             .confirmationDialog("", isPresented: $showSignOutAlert, titleVisibility: .hidden) {

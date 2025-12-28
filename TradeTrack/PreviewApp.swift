@@ -12,7 +12,8 @@ struct PreviewApp: App {
                 //VerificationView(viewModel: .previewFailure(errorManager: errorManager))
                 // VerificationView(viewModel: .previewSuccess(errorManager: errorManager))
                 //LookupView(viewModel: .previewWithResults(errorManager: errorManager))
-                DashboardView(viewModel: .preview(errorManager: errorManager))
+                //DashboardView(viewModel: .preview(errorManager: errorManager))
+                DashboardView(viewModel: .previewAdmin(errorManager: errorManager))
                 //DashboardView(viewModel: .previewWithError(errorManager: errorManager))
             }
             .overlay(alignment: .top) {
@@ -27,9 +28,22 @@ struct PreviewApp: App {
 extension DashboardViewModel {
     static func preview(errorManager: ErrorManager) -> DashboardViewModel {
         let service = MockTimeTrackingService()
+        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "employee")
         
         return DashboardViewModel(
-            employeeId: "EMP001",
+            employee: employee,
+            timeService: service,
+            errorManager: errorManager,
+            navigator: DashboardNavigator(nav: MockNavigator())
+        )
+    }
+    
+    static func previewAdmin(errorManager: ErrorManager) -> DashboardViewModel {
+        let service = MockTimeTrackingService()
+        let employee = EmployeeResult(employeeId: "ADMIN001", name: "Preview User (Admin)", role: "admin")
+        
+        return DashboardViewModel(
+            employee: employee,
             timeService: service,
             errorManager: errorManager,
             navigator: DashboardNavigator(nav: MockNavigator())
@@ -39,9 +53,10 @@ extension DashboardViewModel {
     static func previewWithError(errorManager: ErrorManager) -> DashboardViewModel {
         let service = MockTimeTrackingService()
         service.stubbedError = AppError(code: .networkUnavailable)
+        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "employee")
         
         return DashboardViewModel(
-            employeeId: "EMP001",
+            employee: employee,
             timeService: service,
             errorManager: errorManager,
             navigator: DashboardNavigator(nav: MockNavigator())
@@ -52,6 +67,8 @@ extension DashboardViewModel {
 // MARK: - Verification Mocks
 extension VerificationViewModel {
     static func previewSuccess(errorManager: ErrorManager) -> VerificationViewModel {
+        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "employee")
+        
         return VerificationViewModel(
             camera: CoreFactory.makeCameraManager(),
             analyzer: CoreFactory.makeFaceAnalyzer(),
@@ -60,13 +77,14 @@ extension VerificationViewModel {
             verifier: MockFaceVerificationService(),
             errorManager: errorManager,
             navigator: VerificationNavigator(nav: MockNavigator()),
-            employeeId: "Preview_User"
+            employee: employee
         )
     }
 
     static func previewFailure(errorManager: ErrorManager) -> VerificationViewModel {
         let service = MockFaceVerificationService()
         service.stubbedError = AppError(code: .employeeNotFound)
+        let employee = EmployeeResult(employeeId: "EMP001", name: "Preview User", role: "employee")
         
         return VerificationViewModel(
             camera: CoreFactory.makeCameraManager(),
@@ -76,7 +94,7 @@ extension VerificationViewModel {
             verifier: service,
             errorManager: errorManager,
             navigator: VerificationNavigator(nav: MockNavigator()),
-            employeeId: "Preview_User"
+            employee: employee
         )
     }
 }
@@ -85,7 +103,7 @@ extension VerificationViewModel {
 extension LookupViewModel {
     static func previewWithResults(errorManager: ErrorManager) -> LookupViewModel {
         let service = MockEmployeeLookupService()
-        service.stubbedResults = [EmployeeResult(employeeId: "123", name: "Jon", role: "Admin")]
+        service.stubbedResults = [EmployeeResult(employeeId: "123", name: "Preview User", role: "admin")]
         
         return LookupViewModel(
             service: service,
