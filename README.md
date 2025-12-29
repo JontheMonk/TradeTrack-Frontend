@@ -33,10 +33,13 @@ iOS application for employee time tracking with face recognition.
 Git LFS is required to download the ML model and test resources:
 
 # Install Git LFS (one time, per machine)
-git lfs install### 2. Clone the Repository
+git lfs install
+
+### 2. Clone the Repository
 
 git clone [repository-url]
-cd TradeTrack-FrontendGit LFS will automatically download large files during clone.
+cd TradeTrack-Frontend
+Git LFS will automatically download large files during clone.
 
 ### 3. Configure Build Settings
 
