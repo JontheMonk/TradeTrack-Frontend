@@ -20,11 +20,4 @@ DerivedData/
 *.keychain
 *.mobileprovision
 
-# CoreML model outputs
-*.mlmodelc
-*.mlmodel
-
-*.HEIC
-*.MOV
-
 Config/*.xcconfig
