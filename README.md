@@ -28,17 +28,7 @@ iOS application for employee time tracking with face recognition.
 
 ## Setup
 
-### 1. Install Git LFS
-
-Git LFS is required to download the ML model and test resources:
-
-### 2. Clone the Repository
-
-git clone [repository-url]
-cd TradeTrack-Frontend
-Git LFS will automatically download large files during clone.
-
-### 3. Configure Build Settings
+### Configure Build Settings
 
 The app uses xcconfig files for environment-specific configuration:
 
@@ -56,33 +46,6 @@ The app uses xcconfig files for environment-specific configuration:
    BASE_URL = https://tradetrack-backend.onrender.com
    ADMIN_API_KEY = your-production-admin-key-here
 
-
-### 4. Open in Xcode
-
-open TradeTrack.xcodeproj
-
-### 5. Select Configuration
-
-- **Debug**: Uses Development.xcconfig (for local development)
-- **Release**: Uses Production.xcconfig (for TestFlight/App Store)
-
-Select in Xcode: Product → Scheme → Edit Scheme → Run → Build Configuration
-
-## Running the App
-
-### Simulator
-
-1. Select a simulator
-2. Press `Cmd + R` or Product → Run
-
-**Note**: Face recognition requires a physical device with a camera. The simulator has limited camera support.
-
-### Physical Device
-
-1. Connect your iPhone via USB
-2. Select your device in Xcode
-3. Trust the developer certificate on your device
-4. Press `Cmd + R`
 
 ## Project Structure
 ```
@@ -105,49 +68,6 @@ TradeTrack-Frontend/
 ├── TradeTrackTests/         # App unit tests
 └── TradeTrackUITests/       # UI tests
 ```
-## Testing
-
-### Unit Tests
-
-# Run all unit tests
-Cmd + U
-
-# Run specific test target
-# Product → Test → Select target### UI Tests
-
-1. Select the `TradeTrackUITests` scheme
-2. Press `Cmd + U`
-
-**Note**: UI tests use mock networking and camera implementations.
-
-## Building for TestFlight
-
-### 1. Configure for Release
-
-- Ensure `Production.xcconfig` has correct values
-- Select "Release" build configuration
-- Verify signing in Xcode (Signing & Capabilities)
-
-### 2. Archive
-
-1. Product → Destination → Any iOS Device
-2. Product → Archive
-3. Wait for archive to complete
-
-### 3. Upload to App Store Connect
-
-1. Window → Organizer
-2. Select your archive
-3. Click "Distribute App"
-4. Choose "App Store Connect"
-5. Follow the upload wizard
-
-### 4. Configure TestFlight
-
-1. Go to [App Store Connect](https://appstoreconnect.apple.com)
-2. Navigate to your app → TestFlight
-3. Add internal testers (immediate access)
-4. Add external testers (requires App Review)
 
 ## Configuration
 
@@ -209,24 +129,6 @@ Code wrapped in `#if DEBUG` blocks:
 - Debug logging
 
 These are automatically excluded from Release builds.
-
-## Troubleshooting
-
-### Build Errors
-
-- **"Module 'TradeTrackCore' was not compiled for testing"**: Ensure you're building in Debug configuration, or remove `TradeTrackMocks` from Target Dependencies
-- **"BASE_URL missing"**: Check that xcconfig files are properly configured and referenced in `Info.plist`
-
-### Runtime Errors
-
-- **Network errors**: Verify `BASE_URL` matches your backend URL
-- **Face recognition fails**: Ensure you're testing on a physical device (simulator has limited camera support)
-- **Camera permission denied**: Check Info.plist for `NSCameraUsageDescription`
-
-### Git LFS Issues
-
-- **Large files not downloading**: Ensure Git LFS is installed (`git lfs install`)
-- **Files showing as pointers**: Run `git lfs pull` to download actual files
 
 ## License
 
