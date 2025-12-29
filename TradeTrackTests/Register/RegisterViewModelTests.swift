@@ -53,7 +53,7 @@ final class RegisterViewModelTests: XCTestCase {
         await vm.registerEmployee()
 
         XCTAssertEqual(mockAPI.callCount, 0)
-        XCTAssertEqual(vm.status, "❌ Fill all fields and select a valid image")
+        XCTAssertEqual(vm.status, "Fill all fields and select a valid image")
         XCTAssertFalse(vm.isSubmitting)
     }
 
@@ -108,10 +108,10 @@ final class RegisterViewModelTests: XCTestCase {
         XCTAssertEqual(mockAPI.callCount, 1)
         XCTAssertEqual(mockAPI.lastInput?.employeeId, "101")
         XCTAssertEqual(mockAPI.lastInput?.name, "Alice")
-        XCTAssertEqual(mockAPI.lastInput?.role, "employee") // Converted to string
+        XCTAssertEqual(mockAPI.lastInput?.role, "Employee") // Converted to string
 
         // UI State
-        XCTAssertEqual(vm.status, "✅ Registered Alice")
+        XCTAssertEqual(vm.status, "Registered Alice")
         XCTAssertEqual(vm.employeeID, "")
         XCTAssertEqual(vm.name, "")
         XCTAssertEqual(vm.role, .employee) // Reset to default enum value
@@ -127,7 +127,7 @@ final class RegisterViewModelTests: XCTestCase {
         await vm.registerEmployee()
 
         XCTAssertEqual(mockAPI.callCount, 1)
-        XCTAssertEqual(mockAPI.lastInput?.role, "admin") // Enum converted to string
+        XCTAssertEqual(mockAPI.lastInput?.role, "Admin") // Enum converted to string
     }
 
     func test_embeddingFailure_showsError() async {
@@ -142,7 +142,7 @@ final class RegisterViewModelTests: XCTestCase {
         await vm.registerEmployee()
 
         XCTAssertNotNil(mockError.lastError)
-        XCTAssertEqual(vm.status, "❌ Failed to register face")
+        XCTAssertEqual(vm.status, "Failed to register face")
         XCTAssertEqual(mockAPI.callCount, 0)
     }
 
@@ -159,7 +159,7 @@ final class RegisterViewModelTests: XCTestCase {
 
         XCTAssertNotNil(mockError.lastError)
         XCTAssertEqual(mockAPI.callCount, 1)
-        XCTAssertEqual(vm.status, "❌ Failed to register face")
+        XCTAssertEqual(vm.status, "Failed to register face")
     }
 
     func test_isSubmitting_preventsDuplicateSubmissions() async {
