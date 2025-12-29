@@ -85,6 +85,7 @@ Select in Xcode: Product → Scheme → Edit Scheme → Run → Build Configurat
 4. Press `Cmd + R`
 
 ## Project Structure
+```
 TradeTrack-Frontend/
 ├── TradeTrack/              # Main app target
 │   ├── Features/            # Feature modules
@@ -103,7 +104,7 @@ TradeTrack-Frontend/
 ├── TradeTrackCoreTests/     # Framework unit tests
 ├── TradeTrackTests/         # App unit tests
 └── TradeTrackUITests/       # UI tests
-
+```
 ## Testing
 
 ### Unit Tests
