@@ -27,7 +27,7 @@ import AVFoundation
 ///
 /// The factory produces objects conforming to `CaptureDeviceInputProtocol`,
 /// which wraps the minimal interface your app needs.
-protocol DeviceInputFactory {
+public protocol DeviceInputFactory {
 
     /// Creates a new capture-device input for the given device.
     ///

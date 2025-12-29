@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if DEBUG
 if NSClassFromString("XCTestCase") != nil {
     // 1. Ghost App for Unit Tests
     TestApp.main()
@@ -10,3 +11,7 @@ if NSClassFromString("XCTestCase") != nil {
     // 3. Normal App or UI Tests
     TradeTrackApp.main()
 }
+#else
+// Release builds always use the production app
+TradeTrackApp.main()
+#endif

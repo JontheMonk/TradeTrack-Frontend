@@ -1,6 +1,6 @@
 import Vision
 import CoreImage
-@testable import TradeTrackCore
+import TradeTrackCore
 
 final class MockFaceCollector: FaceCollecting, @unchecked Sendable {
     // Tracking

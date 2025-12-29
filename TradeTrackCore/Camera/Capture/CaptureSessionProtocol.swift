@@ -20,7 +20,7 @@ import AVFoundation
 /// The API intentionally reflects the subset of `AVCaptureSession` features used by
 /// the app: managing inputs/outputs, configuring session state, and starting/stopping
 /// capture.
-protocol CaptureSessionProtocol: AnyObject {
+public protocol CaptureSessionProtocol: AnyObject {
     
     var uiSession: AVCaptureSession { get }
     

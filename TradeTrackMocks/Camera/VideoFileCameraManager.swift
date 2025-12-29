@@ -1,6 +1,6 @@
 import AVFoundation
 import CoreImage
-@testable import TradeTrackCore
+import TradeTrackCore
 
 /// A CameraManager that simulates a live feed by reading frames from a video file.
 /// Isolated to @MainActor to safely coordinate with the VerificationViewModel and UI.

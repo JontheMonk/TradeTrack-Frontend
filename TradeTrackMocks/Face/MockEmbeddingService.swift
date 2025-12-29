@@ -1,5 +1,5 @@
 import UIKit
-@testable import TradeTrackCore
+import TradeTrackCore
 
 /// Test double for `RegistrationEmbeddingServing`.
 ///

@@ -1,6 +1,6 @@
 import Vision
 import CoreImage
-@testable import TradeTrackCore
+import TradeTrackCore
 
 
 /// Simple test double for `FaceAnalyzerProtocol`.

@@ -1,5 +1,5 @@
 import Foundation
-@testable import TradeTrackCore
+import TradeTrackCore
 
 /// Test double for `EmployeeRegistrationServing`.
 ///

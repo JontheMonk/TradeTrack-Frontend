@@ -1,5 +1,5 @@
 import Foundation
-@testable import TradeTrackCore
+import TradeTrackCore
 /// A lightweight test double for `Navigating`.
 ///
 /// `LookupViewModel` interacts with navigation only through the `Navigating`

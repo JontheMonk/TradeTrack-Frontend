@@ -23,7 +23,7 @@ import AVFoundation
 ///
 /// In tests:
 /// - Mock implementations can supply fake devices and avoid touching hardware.
-protocol CaptureDeviceInputProtocol: AnyObject {
+public protocol CaptureDeviceInputProtocol: AnyObject {
 
     /// The `CaptureDeviceProtocol` backing this input.
     ///
@@ -36,5 +36,5 @@ protocol CaptureDeviceInputProtocol: AnyObject {
 /// Real `AVCaptureDeviceInput` conformance.
 /// This enables it to be used anywhere a `CaptureDeviceInputProtocol` is expected.
 extension AVCaptureDeviceInput: CaptureDeviceInputProtocol {
-    var captureDevice: CaptureDeviceProtocol { self.device }
+    public var captureDevice: CaptureDeviceProtocol { self.device }
 }

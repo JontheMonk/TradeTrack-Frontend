@@ -1,6 +1,6 @@
 @preconcurrency import Vision
 import CoreImage
-@testable import TradeTrackCore
+import TradeTrackCore
 
 struct MockDetector: FaceDetectorProtocol {
     let resultFace: VNFaceObservation?
