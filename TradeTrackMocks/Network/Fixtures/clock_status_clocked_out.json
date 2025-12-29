@@ -1,0 +1,7 @@
+{
+  "success": true,
+  "data": {
+    "is_clocked_in": false,
+    "clock_in_time": null
+  }
+}

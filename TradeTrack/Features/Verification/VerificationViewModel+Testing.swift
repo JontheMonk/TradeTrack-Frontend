@@ -13,7 +13,7 @@ extension VerificationViewModel {
     // MARK: - UI Test Bridge
     
     func installUITestSignalBridge() {
-        guard AppRuntime.mode == .uiTest else { return }
+        guard AppRuntime.mode == .uiTest || AppRuntime.mode == .preview else { return }
         
         let center = NotificationCenter.default
         
@@ -44,7 +44,9 @@ extension VerificationViewModel {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.state = .matched(name: "Test User")
+                guard let self = self else { return }
+                self.state = .matched(name: self.employee.name)
+                self.navigator.goToDashboard(employee: self.employee)
             }
         }
         

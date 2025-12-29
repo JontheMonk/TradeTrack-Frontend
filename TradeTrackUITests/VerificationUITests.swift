@@ -7,34 +7,6 @@
 
 import XCTest
 
-// MARK: - Golden Path
-
-final class LookupToVerificationSuccessUITests: BaseUITestCase {
-
-    func test_lookupToVerification_success() {
-        launch(
-            backendWorld: "employeeExistsAndMatches",
-            cameraWorld: "validFace"
-        )
-
-        let searchField = app.textFields["lookup.search"]
-        XCTAssertTrue(searchField.waitForExistence(timeout: 2))
-        searchField.tap()
-        searchField.typeText("test_user")
-
-        let result = app.buttons["lookup.result.test_user"]
-        XCTAssertTrue(result.waitForExistence(timeout: 2))
-        result.tap()
-        
-        let statusLabel = app.staticTexts["verification.status_indicator"]
-        XCTAssertTrue(statusLabel.waitForExistence(timeout: 10))
-
-        // Matches: "Welcome, \(name)" from your VerificationView helper
-        // Using 'contains' to be resilient against mock data casing
-        XCTAssertTrue(statusLabel.label.contains("Welcome"))
-    }
-}
-
 // MARK: - Camera Worlds
 
 final class CameraNoFaceUITests: BaseUITestCase {
@@ -133,5 +105,36 @@ final class EmployeeNotFoundUITests: BaseUITestCase {
         let banner = app.staticTexts["error.banner"]
         XCTAssertTrue(banner.waitForExistence(timeout: 2))
         XCTAssertTrue(banner.label.lowercased().contains("not found"))
+    }
+}
+
+
+final class VerificationToDashboardUITests: BaseUITestCase {
+    
+    func test_verificationSuccess_navigatesToDashboard() {
+        launch(
+            backendWorld: "employeeExistsAndMatches",
+            cameraWorld: "validFace"
+        )
+        
+        // 1. Go through lookup
+        let searchField = app.textFields["lookup.search"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 2))
+        searchField.tap()
+        searchField.typeText("test_user")
+        
+        let result = app.buttons["lookup.result.test_user"]
+        XCTAssertTrue(result.waitForExistence(timeout: 2))
+        result.tap()
+        
+        // 2. Wait for navigation to dashboard (1.5s delay + transition)
+        // Skip checking the transient "Welcome" message - it's too fast
+        let clockButton = app.buttons["dashboard.clock_button"]
+        XCTAssertTrue(clockButton.waitForExistence(timeout: 5), "Dashboard should appear after successful verification")
+        
+        // 3. Verify dashboard content
+        let status = app.staticTexts["dashboard.status"]
+        XCTAssertTrue(status.waitForExistence(timeout: 1))
+        XCTAssertEqual(status.label, "OFF SHIFT", "Should show initial clocked-out state")
     }
 }

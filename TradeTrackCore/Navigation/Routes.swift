@@ -14,12 +14,6 @@
 /// `Route` is Hashable so it can be used inside a `NavigationStack`
 /// (via `NavigationPath`) and compared in unit tests.
 ///
-/// Examples:
-/// ```swift
-/// navigator.push(.lookup)
-/// navigator.push(.verification(employeeId: "123"))
-/// navigator.push(.register)
-/// ```
 public enum Route: Hashable {
     
     /// Employee lookup screen.

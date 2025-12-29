@@ -15,6 +15,7 @@ import Foundation
 public enum AppMode {
     case normal
     case uiTest
+    case preview
 }
 
 /// Reads launch arguments once at startup to determine test mode.
@@ -31,6 +32,9 @@ public enum AppMode {
 public enum AppRuntime {
     public static let mode: AppMode = {
         #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-preview") {
+            return .preview
+        }
         let args = ProcessInfo.processInfo.arguments
         if args.contains("-UITest") {
             return .uiTest

@@ -29,8 +29,13 @@ final class FacePipelineIntegrationTests: XCTestCase {
         
         let magnitude = calculateL2Norm(embedding.values)
         XCTAssertEqual(magnitude, 1.0, accuracy: 0.001, "Vectors must be normalized.")
+        
+        // Print embedding in PostgreSQL array format for DBeaver
+        let pgArray = "{" + embedding.values.map { String($0) }.joined(separator: ", ") + "}"
+        print("\n=== EMBEDDING FOR DATABASE ===")
+        print(pgArray)
+        print("==============================\n")
     }
-    
     
     func test_extractor_recognizesSamePerson_acrossDifferentImages() async throws {
         let jon1 = loadCIImage(named: "jon_1")

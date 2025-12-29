@@ -53,7 +53,8 @@ enum BackendWorld: String {
         case .employeeExistsAndMatches:
             return [
                 .employees: "employee_search_success",
-                .verify: "verification_success"
+                .verify: "verification_success",
+                .clockStatus: "clock_status_clocked_out",
             ]
 
         case .employeeDoesNotExist:

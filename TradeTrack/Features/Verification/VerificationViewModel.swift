@@ -225,7 +225,8 @@ final class VerificationViewModel: NSObject, ObservableObject {
                 let name = try await performVerification(face: face, image: image)
                 self.state = .matched(name: name)
                 self.task = nil
-                navigator.goToDashboard(employee: employee)
+                
+                await goToDashboard()
             } catch is CancellationError {
                 self.isProcessingFrame.store(false, ordering: .relaxed)
                 self.task = nil
@@ -261,5 +262,10 @@ final class VerificationViewModel: NSObject, ObservableObject {
         logger.error("Verification error: \(error.localizedDescription)")
         errorManager.showError(error)
         state = .detecting
+    }
+    
+    private func goToDashboard() async {
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        navigator.goToDashboard(employee: employee)
     }
 }

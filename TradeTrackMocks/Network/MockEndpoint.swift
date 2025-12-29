@@ -20,6 +20,10 @@ enum MockEndpoint {
     /// Face verification endpoint (`POST /verify`).
     case verify
 
+    case clockIn
+    case clockOut
+    case clockStatus
+
     /// Attempts to infer which backend endpoint a URL request targets.
     ///
     /// - Parameter request: The intercepted `URLRequest`
@@ -37,6 +41,10 @@ enum MockEndpoint {
 
         if path == APIPaths.verify {
             return .verify
+        }
+        
+        if path.contains("/clock/") && path.hasSuffix("/status") {
+            return .clockStatus
         }
 
         return nil
