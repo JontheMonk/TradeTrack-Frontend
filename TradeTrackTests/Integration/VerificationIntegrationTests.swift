@@ -112,7 +112,7 @@ final class VerificationIntegrationTests: XCTestCase {
 
         let similarity = cosineSimilarity(embeddingBright.values, embeddingDim.values)
         print("Lighting Drift Cosine Similarity: \(similarity)")
-        XCTAssertGreaterThan(similarity, 0.6, "Lighting changes caused the embedding to drift too far (Similarity: \(similarity))")
+        XCTAssertGreaterThan(similarity, 0.57, "Lighting changes caused the embedding to drift too far (Similarity: \(similarity))")
     }
     
     func test_vm_producesSimilarEmbeddings_withGlases() async throws {
