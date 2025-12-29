@@ -1,19 +1,8 @@
 import SwiftUI
 
-// 1. Define a protocol for type-safety
 protocol RoleOption: Hashable, CaseIterable {
     var label: String { get }
     var icon: String { get }
-}
-
-// 2. Your specific Enum
-enum UserRole: String, RoleOption {
-    case employee, admin
-
-    var label: String { self.rawValue.capitalized }
-    var icon: String {
-        self == .employee ? "person" : "person.badge.key"
-    }
 }
 
 struct RolePicker<T: RoleOption>: View {
@@ -28,7 +17,6 @@ struct RolePicker<T: RoleOption>: View {
                         Text(option.label)
                     }
                 }
-                // We apply our custom style here
                 .buttonStyle(RoleButtonStyle(isSelected: selection == option))
             }
         }
@@ -37,7 +25,6 @@ struct RolePicker<T: RoleOption>: View {
     }
 }
 
-// 3. The "Styling Engine" - Clean and Reusable
 struct RoleButtonStyle: ButtonStyle {
     let isSelected: Bool
     

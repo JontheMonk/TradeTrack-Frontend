@@ -26,12 +26,14 @@ public protocol EmployeeRegistrationServing {
 /// Default implementation of `EmployeeRegistrationServing` backed by `HTTPClient`.
 struct EmployeeRegistrationService: EmployeeRegistrationServing {
     let http: HTTPClient
+    let adminKey: String
 
     func addEmployee(_ input: EmployeeInput) async throws {
         let _: Empty? = try await http.send(
             "POST",
             path: APIPaths.register,
-            body: input
+            body: input,
+            headers: ["X-Admin-Key": adminKey]
         )
     }
 }

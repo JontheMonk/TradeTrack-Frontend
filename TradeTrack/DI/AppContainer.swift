@@ -32,7 +32,7 @@ struct AppContainer {
 
         let session: URLSession = (environment == .normal) ? .shared : .mock()
         
-        // 2. Build Pipeline Components
+        // Build Pipeline Components
         self.faceAnalyzer = CoreFactory.makeFaceAnalyzer()
         self.faceCollector = CoreFactory.makeFaceCollector()
         self.faceProcessor = try CoreFactory.makeFaceProcessor()
@@ -43,7 +43,6 @@ struct AppContainer {
             self.cameraManager = CoreFactory.makeCameraManager()
         }
 
-        // 4. Build Application Services
         self.registrationService = try RegistrationEmbeddingService(extractor: CoreFactory.makeFaceExtractor())
         
         self.employeeAPI = CoreFactory.makeEmployeeAPI(session: session)

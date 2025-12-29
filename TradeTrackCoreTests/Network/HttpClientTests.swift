@@ -185,4 +185,91 @@ final class HTTPClientTests: XCTestCase {
             ]
         ) as Dummy?
     }
+    
+    // MARK: - Custom Headers
+
+    func test_customHeaders_areSentInRequest() async throws {
+        struct Dummy: Codable, Equatable { let value: Int }
+        
+        let envelope = APIResponse(success: true, data: Dummy(value: 123), code: nil, message: nil)
+        let data = try JSONEncoder().encode(envelope)
+        
+        var capturedHeaders: [String: String] = [:]
+        
+        MockURLProtocol.requestHandler = { request in
+            // Capture all headers from the request
+            if let allHeaders = request.allHTTPHeaderFields {
+                for (key, value) in allHeaders {
+                    capturedHeaders[key] = value
+                }
+            }
+            
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (data, response)
+        }
+        
+        _ = try await client.send(
+            "GET",
+            path: "/dummy",
+            headers: [
+                "X-Admin-Key": "test-admin-key-123",
+                "X-Custom-Header": "custom-value"
+            ]
+        ) as Dummy?
+        
+        // Verify default headers are still present
+        XCTAssertEqual(capturedHeaders["Accept"], "application/json")
+        
+        // Verify custom headers were added
+        XCTAssertEqual(capturedHeaders["X-Admin-Key"], "test-admin-key-123")
+        XCTAssertEqual(capturedHeaders["X-Custom-Header"], "custom-value")
+    }
+
+    func test_customHeaders_withBody_areSentInRequest() async throws {
+        struct RequestBody: Codable {
+            let name: String
+        }
+        struct Dummy: Codable, Equatable { let value: Int }
+        
+        let envelope = APIResponse(success: true, data: Dummy(value: 123), code: nil, message: nil)
+        let data = try JSONEncoder().encode(envelope)
+        
+        var capturedHeaders: [String: String] = [:]
+        
+        MockURLProtocol.requestHandler = { request in
+            // Capture all headers from the request
+            if let allHeaders = request.allHTTPHeaderFields {
+                for (key, value) in allHeaders {
+                    capturedHeaders[key] = value
+                }
+            }
+            
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (data, response)
+        }
+        
+        _ = try await client.send(
+            "POST",
+            path: "/dummy",
+            body: RequestBody(name: "test"),
+            headers: ["X-Admin-Key": "test-admin-key-123"]
+        ) as Dummy?
+        
+        // Verify default headers are present
+        XCTAssertEqual(capturedHeaders["Accept"], "application/json")
+        XCTAssertEqual(capturedHeaders["Content-Type"], "application/json")
+        
+        // Verify custom header was added
+        XCTAssertEqual(capturedHeaders["X-Admin-Key"], "test-admin-key-123")
+    }
 }
