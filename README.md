@@ -72,7 +72,7 @@ Select in Xcode: Product → Scheme → Edit Scheme → Run → Build Configurat
 
 ### Simulator
 
-1. Select a simulator (iPhone 15 Pro recommended)
+1. Select a simulator
 2. Press `Cmd + R` or Product → Run
 
 **Note**: Face recognition requires a physical device with a camera. The simulator has limited camera support.
