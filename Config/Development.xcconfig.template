@@ -3,7 +3,9 @@
 // 
 // Directions:
 // 1. Copy this file to: Config/Development.xcconfig
-// 2. The real .xcconfig is ignored by git to keep local/private settings safe.
+// 2. Add your actual values (these are just placeholders)
+// 3. The real .xcconfig is ignored by git to keep local/private settings safe.
 // ----------------------------------------------------------------------------
 
 BASE_URL = http:/$()/localhost:8000
+ADMIN_API_KEY = your-dev-admin-key-here

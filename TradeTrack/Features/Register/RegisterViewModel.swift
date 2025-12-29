@@ -117,13 +117,13 @@ final class RegisterViewModel: ObservableObject {
     func registerEmployee() async {
         // Basic form and state checks.
         guard isFormValid, let image = selectedImage else {
-            status = "❌ Fill all fields and select a valid image"
+            status = "Fill all fields and select a valid image"
             return
         }
         guard !isSubmitting else { return }
 
         isSubmitting = true
-        status = "⏳ Registering…"
+        status = "Registering…"
         defer { isSubmitting = false }
 
         do {
@@ -136,20 +136,20 @@ final class RegisterViewModel: ObservableObject {
                 employeeId: trimmedEmployeeID,
                 name: trimmedName,
                 embedding: embedding.values,
-                role: role.rawValue  // Convert enum to string for API
+                role: role.label
             )
 
             try await api.addEmployee(input)
 
-            status = "✅ Registered \(trimmedName)"
+            status = "Registered \(trimmedName)"
             resetForm()
 
         } catch is CancellationError {
-            status = "⚠️ Registration cancelled"
+            status = "Registration cancelled"
 
         } catch {
             errorManager.showError(error)
-            status = "❌ Failed to register face"
+            status = "Failed to register face"
         }
     }
 

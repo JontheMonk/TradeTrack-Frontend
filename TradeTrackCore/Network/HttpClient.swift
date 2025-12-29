@@ -86,9 +86,10 @@ import Foundation
     func send<Response: Decodable>(
         _ method: String,
         path: String,
-        query: [String: String?] = [:]
+        query: [String: String?] = [:],
+        headers: [String: String] = [:]
     ) async throws -> Response? {
-        try await request(method, path: path, query: query, bodyData: nil)
+        try await request(method, path: path, query: query, bodyData: nil, headers: headers)
     }
 
     // MARK: - Public API (Encodable Body)
@@ -98,10 +99,11 @@ import Foundation
         _ method: String,
         path: String,
         query: [String: String?] = [:],
-        body: RequestBody
+        body: RequestBody,
+        headers: [String: String] = [:]
     ) async throws -> Response? {
         let data = try encoder.encode(body)
-        return try await request(method, path: path, query: query, bodyData: data)
+        return try await request(method, path: path, query: query, bodyData: data, headers: headers)
     }
 
     // MARK: - Core Request Logic
@@ -115,7 +117,8 @@ import Foundation
         _ method: String,
         path: String,
         query: [String: String?],
-        bodyData: Data?
+        bodyData: Data?,
+        headers: [String: String] = [:]
     ) async throws -> Response? {
         guard let url = urlBuilder.makeURL(
                 from: baseURL,
@@ -132,6 +135,10 @@ import Foundation
         if let bodyData = bodyData {
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.httpBody = bodyData
+        }
+        
+        for (key, value) in headers {
+            req.setValue(value, forHTTPHeaderField: key)
         }
 
         do {

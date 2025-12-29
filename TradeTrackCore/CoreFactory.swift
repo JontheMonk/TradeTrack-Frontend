@@ -101,13 +101,20 @@ public struct CoreFactory {
     }
     
     // MARK: - Application Services
-    
+
     /// Creates a service for registering new employees via the backend API.
     /// - Parameter session: The `URLSession` to use for network communication.
     /// - Returns: An implementation of `EmployeeRegistrationServing`.
+    ///
+    /// The admin API key is read from `Info.plist` (via xcconfig), matching the
+    /// pattern used for `BASE_URL` configuration.
     public static func makeEmployeeAPI(session: URLSession) -> EmployeeRegistrationServing {
+        guard let adminKey = Bundle.main.object(forInfoDictionaryKey: "ADMIN_API_KEY") as? String else {
+            fatalError("ADMIN_API_KEY is missing from Info.plist. Check your xcconfig setup!")
+        }
+        
         let http = getClient(session: session)
-        return EmployeeRegistrationService(http: http)
+        return EmployeeRegistrationService(http: http, adminKey: adminKey)
     }
     
     /// Creates a service to look up existing employee records.

@@ -3,10 +3,9 @@
 // 
 // Directions:
 // 1. Copy this file to: Config/Production.xcconfig
-// 2. Replace the placeholder below with your real production API URL.
-// 3. The real .xcconfig is ignored by git to keep your production URL private.
+// 2. Replace the placeholders below with your real production values.
+// 3. The real .xcconfig is ignored by git to keep your production settings private.
 // ----------------------------------------------------------------------------
 
-// Example: https:/$()/api.tradetrack.com
 BASE_URL = https:/$()/api.yourdomain.com
-
+ADMIN_API_KEY = your-production-admin-key-here
