@@ -59,7 +59,9 @@ The app uses xcconfig files for environment-specific configuration:
 
 ### 4. Open in Xcode
 
-open TradeTrack.xcodeproj### 5. Select Configuration
+open TradeTrack.xcodeproj
+
+### 5. Select Configuration
 
 - **Debug**: Uses Development.xcconfig (for local development)
 - **Release**: Uses Production.xcconfig (for TestFlight/App Store)
