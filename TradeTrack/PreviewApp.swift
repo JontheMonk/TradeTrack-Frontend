@@ -9,7 +9,7 @@ struct PreviewApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                //LookupView(viewModel: .previewWithResults(errorManager: errorManager))
+                LookupView(viewModel: .previewWithResults(errorManager: errorManager))
                 //LookupView(viewModel: .previewNoResults(errorManager: errorManager))
                 //VerificationView(viewModel: .previewSuccess(errorManager: errorManager))
                 //VerificationView(viewModel: .previewNoFace(errorManager: errorManager))
@@ -17,8 +17,7 @@ struct PreviewApp: App {
                 //DashboardView(viewModel: .preview(errorManager: errorManager))
                 //DashboardView(viewModel: .previewAdmin(errorManager: errorManager))
                 //DashboardView(viewModel: .previewWithError(errorManager: errorManager))
-                RegisterView(viewModel: .preview(errorManager: errorManager))
-                //RegisterView(viewModel: .previewFilled(errorManager: errorManager))
+                //RegisterView(viewModel: .preview(errorManager: errorManager))
             }
             .overlay(alignment: .top) {
                 ErrorBannerView(errorManager: errorManager)
@@ -151,19 +150,6 @@ extension RegisterViewModel {
             face: MockEmbeddingService(),
             api: MockRegistrationAPI()
         )
-    }
-    
-    // Form filled out (user can manually select image in preview)
-    static func previewFilled(errorManager: ErrorManager) -> RegisterViewModel {
-        let vm = RegisterViewModel(
-            errorManager: errorManager,
-            face: MockEmbeddingService(),
-            api: MockRegistrationAPI()
-        )
-        vm.employeeID = "EMP001"
-        vm.name = "John Doe"
-        vm.role = "Employee"
-        return vm
     }
 }
 #endif

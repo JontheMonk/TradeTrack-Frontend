@@ -28,8 +28,8 @@ final class RegisterViewModel: ObservableObject {
     /// Employee's display name.
     @Published var name = ""
 
-    /// Employee's role (defaults to `"employee"`).
-    @Published var role = "employee"
+    /// Employee's role (defaults to `.employee`).
+    @Published var role: UserRole = .employee
 
     /// The selected photo used for face embedding.
     @Published var selectedImage: UIImage?
@@ -37,7 +37,7 @@ final class RegisterViewModel: ObservableObject {
 
     // MARK: - UI state (derived / public)
 
-    /// Human-readable status message used in the UI (“Ready”, “Image selected”…).
+    /// Human-readable status message used in the UI ("Ready", "Image selected"…).
     @Published var status = "Ready"
 
     /// Whether a registration request is currently running.
@@ -80,15 +80,10 @@ final class RegisterViewModel: ObservableObject {
         name.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private var trimmedRole: String {
-        role.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
     /// Whether *all* required fields are filled and a photo has been selected.
     var isFormValid: Bool {
         !trimmedEmployeeID.isEmpty &&
         !trimmedName.isEmpty &&
-        !trimmedRole.isEmpty &&
         selectedImage != nil
     }
 
@@ -141,7 +136,7 @@ final class RegisterViewModel: ObservableObject {
                 employeeId: trimmedEmployeeID,
                 name: trimmedName,
                 embedding: embedding.values,
-                role: trimmedRole
+                role: role.rawValue  // Convert enum to string for API
             )
 
             try await api.addEmployee(input)
@@ -165,7 +160,7 @@ final class RegisterViewModel: ObservableObject {
     private func resetForm() {
         employeeID = ""
         name = ""
-        role = "employee"
+        role = .employee
         selectedImage = nil
     }
 }

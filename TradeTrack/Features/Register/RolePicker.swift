@@ -1,72 +1,83 @@
 import SwiftUI
 
-/// A simple segmented button control for choosing an employee role.
-///
-/// This view presents two selectable options:
-///   • **Employee** (value: `"employee"`)
-///   • **Admin**    (value: `"admin"`)
-///
-/// It behaves like a custom “segmented control”:
-///   • The selected role visually highlights in blue
-///   • Tapping an option updates the bound `role` value
-///   • Styling remains consistent with your registration form UI
-///
-/// Usage:
-/// ```swift
-/// RolePicker(role: $viewModel.role)
-/// ```
-struct RolePicker: View {
-    @Binding var role: String
+// 1. Define a protocol for type-safety
+protocol RoleOption: Hashable, CaseIterable {
+    var label: String { get }
+    var icon: String { get }
+}
 
-    private let options: [(label: String, value: String, icon: String)] = [
-        ("Employee", "employee", "person"),
-        ("Admin",    "admin",    "person.badge.key")
-    ]
+// 2. Your specific Enum
+enum UserRole: String, RoleOption {
+    case employee, admin
 
+    var label: String { self.rawValue.capitalized }
+    var icon: String {
+        self == .employee ? "person" : "person.badge.key"
+    }
+}
+
+struct RolePicker<T: RoleOption>: View {
+    @Binding var selection: T
+    
     var body: some View {
         HStack(spacing: 8) {
-            ForEach(options, id: \.value) { opt in
-                Button {
-                    role = opt.value
-                } label: {
+            ForEach(Array(T.allCases), id: \.self) { option in
+                Button(action: { selection = option }) {
                     HStack(spacing: 6) {
-                        Image(systemName: opt.icon)
-                            .font(.system(size: 14, weight: .semibold))
-                        Text(opt.label)
-                            .font(.system(size: 15, weight: .semibold))
+                        Image(systemName: option.icon)
+                        Text(option.label)
                     }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        isSelected(opt.value)
-                            ? LinearGradient(
-                                colors: [Color(hex: "2a5fff"), Color(hex: "1a3dcc")],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                            : Color.white.opacity(0.08)
-                    )
-                    .foregroundColor(isSelected(opt.value) ? .white : .gray)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(
-                                isSelected(opt.value)
-                                    ? Color.white.opacity(0.3)
-                                    : Color.white.opacity(0.15),
-                                lineWidth: 1.5
-                            )
-                    )
-                    .shadow(
-                        color: isSelected(opt.value) ? Color(hex: "2a5fff").opacity(0.3) : Color.clear,
-                        radius: isSelected(opt.value) ? 8 : 0,
-                        y: isSelected(opt.value) ? 4 : 0
-                    )
                 }
+                // We apply our custom style here
+                .buttonStyle(RoleButtonStyle(isSelected: selection == option))
             }
         }
+        // Animates the transition between buttons
+        .animation(.snappy, value: selection)
     }
+}
 
-    private func isSelected(_ v: String) -> Bool { role == v }
+// 3. The "Styling Engine" - Clean and Reusable
+struct RoleButtonStyle: ButtonStyle {
+    let isSelected: Bool
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 15, weight: .semibold))
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity)
+            .foregroundColor(isSelected ? .white : .gray)
+            .background(backgroundView)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(borderView)
+            .shadow(
+                color: isSelected ? Color(hex: "2a5fff").opacity(0.3) : .clear,
+                radius: isSelected ? 8 : 0,
+                y: isSelected ? 4 : 0
+            )
+            // Slight scale effect when pressed
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+    }
+    
+    @ViewBuilder
+    private var backgroundView: some View {
+        if isSelected {
+            LinearGradient(
+                colors: [Color(hex: "2a5fff"), Color(hex: "1a3dcc")],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        } else {
+            Color.white.opacity(0.08)
+        }
+    }
+    
+    private var borderView: some View {
+        RoundedRectangle(cornerRadius: 14)
+            .stroke(
+                Color.white.opacity(isSelected ? 0.3 : 0.15),
+                lineWidth: 1.5
+            )
+    }
 }
