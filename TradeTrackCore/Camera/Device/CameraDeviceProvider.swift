@@ -20,7 +20,7 @@ import AVFoundation
 ///
 /// The protocol mirrors the subset of `AVCaptureDevice` and system authorization
 /// APIs actually used by the app.
-protocol CameraDeviceProvider {
+public protocol CameraDeviceProvider {
 
     /// Returns the system's default capture device matching the given criteria.
     ///

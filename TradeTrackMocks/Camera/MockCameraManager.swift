@@ -1,6 +1,6 @@
 import Foundation
 import AVFoundation
-@testable import TradeTrackCore
+import TradeTrackCore
 
 /// Test double for `CameraManagerProtocol`.
 ///

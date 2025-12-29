@@ -26,7 +26,7 @@ import AVFoundation
 ///
 /// The production implementation is `RealVideoOutput`, but `AVCaptureVideoDataOutput`
 /// also conforms so it can be injected directly if desired.
-protocol VideoOutput: AnyObject {
+public protocol VideoOutput: AnyObject {
 
     var asAVOutput: AVCaptureOutput { get }
     

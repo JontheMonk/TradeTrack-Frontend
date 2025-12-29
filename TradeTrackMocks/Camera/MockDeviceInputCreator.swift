@@ -1,5 +1,5 @@
 import AVFoundation
-@testable import TradeTrackCore
+import TradeTrackCore
 
 /// A test double for `DeviceInputFactory`.
 ///

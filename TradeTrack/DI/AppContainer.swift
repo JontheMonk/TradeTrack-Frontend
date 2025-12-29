@@ -26,22 +26,32 @@ struct AppContainer {
     // MARK: - Initialization
 
     init(environment: AppMode) throws {
+        #if DEBUG
         // 1. Networking Configuration
-        // Handled internally by the factory to avoid leaking mock implementation details.
         CoreFactory.setupMockNetworking(for: environment)
-
-        let session: URLSession = (environment == .normal) ? .shared : .mock()
+        #endif
+        
+        let session: URLSession
+        #if DEBUG
+        session = (environment == .normal) ? .shared : .mock()
+        #else
+        session = .shared
+        #endif
         
         // Build Pipeline Components
         self.faceAnalyzer = CoreFactory.makeFaceAnalyzer()
         self.faceCollector = CoreFactory.makeFaceCollector()
         self.faceProcessor = try CoreFactory.makeFaceProcessor()
         
+        #if DEBUG
         if environment == .uiTest {
             self.cameraManager = CoreFactory.makeUITestCameraManager()
         } else {
             self.cameraManager = CoreFactory.makeCameraManager()
         }
+        #else
+        self.cameraManager = CoreFactory.makeCameraManager()
+        #endif
 
         self.registrationService = try RegistrationEmbeddingService(extractor: CoreFactory.makeFaceExtractor())
         

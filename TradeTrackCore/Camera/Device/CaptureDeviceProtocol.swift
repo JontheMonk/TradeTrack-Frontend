@@ -20,7 +20,7 @@ import AVFoundation
 /// - allow alternative device implementations if needed
 ///
 /// In production, `AVCaptureDevice` conforms via an extension.
-protocol CaptureDeviceProtocol {
+public protocol CaptureDeviceProtocol {
 
     /// A stable identifier for the device.
     ///

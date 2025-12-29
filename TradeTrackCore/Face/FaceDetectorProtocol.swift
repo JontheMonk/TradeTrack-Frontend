@@ -28,7 +28,7 @@ import CoreImage
 /// - easy mocking in unit tests
 /// - swapping different Vision request types in the future
 ///
-protocol FaceDetectorProtocol: Sendable {
+public protocol FaceDetectorProtocol: Sendable {
     /// Attempts to detect the first face in the image.
     ///
     /// - Parameter image: The CIImage frame to analyze.

@@ -18,7 +18,7 @@ import CoreImage
 /// `FaceAnalyzer`) so `FaceValidator` does **not** depend directly on
 /// Vision’s `VNDetectFaceCaptureQualityRequest`, which keeps the validator
 /// testable and easier to mock.
-protocol FaceValidatorProtocol : Sendable {
+public protocol FaceValidatorProtocol : Sendable {
     func isValid(
         face: VNFaceObservation,
         quality : Float

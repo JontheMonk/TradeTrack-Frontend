@@ -1,4 +1,4 @@
-@testable import TradeTrackCore
+import TradeTrackCore
 
 final class MockEmployeeLookupService: EmployeeLookupServing {
 

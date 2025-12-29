@@ -45,13 +45,6 @@
 			remoteGlobalIDString = C403ECD12EF4A3D000F3A427;
 			remoteInfo = TradeTrackCore;
 		};
-		C403ECE02EF4A3D000F3A427 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C4029F992E2D72BD00334A85;
-			remoteInfo = TradeTrack;
-		};
 		C403ECE52EF4A3D000F3A427 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
@@ -60,20 +53,6 @@
 			remoteInfo = TradeTrackCore;
 		};
 		C403F1FC2EFEDD5300F3A427 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C403F1EF2EFEDD5200F3A427;
-			remoteInfo = TradeTrackMocks;
-		};
-		C403F1FE2EFEDD5300F3A427 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C4029F992E2D72BD00334A85;
-			remoteInfo = TradeTrack;
-		};
-		C403F2032EFEDD5300F3A427 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C4029F922E2D72BD00334A85 /* Project object */;
 			proxyType = 1;
@@ -426,7 +405,6 @@
 			);
 			dependencies = (
 				C403ECE62EF4A3D000F3A427 /* PBXTargetDependency */,
-				C403F2042EFEDD5300F3A427 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C4029F9C2E2D72BD00334A85 /* TradeTrack */,
@@ -521,7 +499,6 @@
 			);
 			dependencies = (
 				C403ECDF2EF4A3D000F3A427 /* PBXTargetDependency */,
-				C403ECE12EF4A3D000F3A427 /* PBXTargetDependency */,
 				C403F21B2EFEDE6800F3A427 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -571,7 +548,6 @@
 			);
 			dependencies = (
 				C403F1FD2EFEDD5300F3A427 /* PBXTargetDependency */,
-				C403F1FF2EFEDD5300F3A427 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C403F2002EFEDD5300F3A427 /* TradeTrackMocksTests */,
@@ -765,11 +741,6 @@
 			target = C403ECD12EF4A3D000F3A427 /* TradeTrackCore */;
 			targetProxy = C403ECDE2EF4A3D000F3A427 /* PBXContainerItemProxy */;
 		};
-		C403ECE12EF4A3D000F3A427 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
-			targetProxy = C403ECE02EF4A3D000F3A427 /* PBXContainerItemProxy */;
-		};
 		C403ECE62EF4A3D000F3A427 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C403ECD12EF4A3D000F3A427 /* TradeTrackCore */;
@@ -779,16 +750,6 @@
 			isa = PBXTargetDependency;
 			target = C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */;
 			targetProxy = C403F1FC2EFEDD5300F3A427 /* PBXContainerItemProxy */;
-		};
-		C403F1FF2EFEDD5300F3A427 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C4029F992E2D72BD00334A85 /* TradeTrack */;
-			targetProxy = C403F1FE2EFEDD5300F3A427 /* PBXContainerItemProxy */;
-		};
-		C403F2042EFEDD5300F3A427 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C403F1EF2EFEDD5200F3A427 /* TradeTrackMocks */;
-			targetProxy = C403F2032EFEDD5300F3A427 /* PBXContainerItemProxy */;
 		};
 		C403F2112EFEDD7C00F3A427 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

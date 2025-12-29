@@ -1,6 +1,6 @@
 import Vision
 import CoreImage
-@testable import TradeTrackCore
+import TradeTrackCore
 
 /// A simple fake implementation of `FaceValidatorProtocol` for unit tests.
 ///
