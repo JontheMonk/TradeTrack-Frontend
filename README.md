@@ -23,7 +23,7 @@ iOS application for employee time tracking with face recognition.
 - Xcode 15.0+
 - iOS 17.0+
 - Apple Developer Account (for device testing and TestFlight)
-- Python backend running (see [TradeTrack Backend](../TradeTrack-Backend))
+- Python backend running (see [TradeTrack Backend]([https://github.com/JontheMonk/TradeTrack-Backend/main/README.md]))
 - **Git LFS** (for downloading large files - see Setup below)
 
 ## Setup
